@@ -1,22 +1,35 @@
-import { Center, Paper, Stack, Text, Button, Title, TextInput, Group, ActionIcon, Collapse, Slider, Modal } from "@mantine/core";
-import { IconEdit, IconCheck, IconX } from "@tabler/icons-react";
-import { useSessionStore } from "../stores/sessionStore.ts";
-import { api } from "../api.ts";
-import { useNavigate } from "react-router-dom";
-import { useRef, useState, useCallback } from "react";
-import Cropper, {type Area } from "react-easy-crop";
-import { UserAvatar } from "../components/UserAvatar.tsx";
+import {
+    Center,
+    Paper,
+    Stack,
+    Text,
+    Button,
+    Title,
+    TextInput,
+    Group,
+    ActionIcon,
+    Collapse,
+    Slider,
+    Modal
+} from "@mantine/core";
+import {IconEdit, IconCheck, IconX} from "@tabler/icons-react";
+import {useSessionStore} from "../stores/sessionStore.ts";
+import {api} from "../api.ts";
+import {useNavigate} from "react-router-dom";
+import {useRef, useState, useCallback} from "react";
+import Cropper, {type Area} from "react-easy-crop";
+import {UserAvatar} from "../components/UserAvatar.tsx";
 import getCroppedImg from "../utils/cropImage";
 
 export default function Profile() {
-    const { user, logout, setUser } = useSessionStore();
+    const {user, logout, setUser} = useSessionStore();
     const navigate = useNavigate();
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [crop, setCrop] = useState({x: 0, y: 0});
     const [zoom, setZoom] = useState(1);
     const [uploading, setUploading] = useState(false);
     const [cropModalOpened, setCropModalOpened] = useState(false);
@@ -40,7 +53,9 @@ export default function Profile() {
     }
 
     const handleLogout = async () => {
-        try { await api.post("/auth/logout"); } finally {
+        try {
+            await api.post("/auth/logout");
+        } finally {
             logout();
             navigate("/login");
         }
@@ -69,14 +84,18 @@ export default function Profile() {
 
         try {
             setUploading(true);
-            const { data } = await api.post("/users/me/avatar", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
+            const {data} = await api.post("/users/me/avatar", formData, {
+                headers: {"Content-Type": "multipart/form-data"},
             });
             setUser(data);
             setSelectedFile(null);
             setPreview(null);
             setCropModalOpened(false);
-        } catch (err) { console.error(err); } finally { setUploading(false); }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setUploading(false);
+        }
     };
 
     const handleCancelAvatar = () => {
@@ -89,13 +108,15 @@ export default function Profile() {
         if (email === originalEmail) return setIsEditingEmail(false);
 
         try {
-            const { data } = await api.patch("/users/me/email", { email });
-            setUser({ ...data, emailVerified: false });
+            await api.post("/users/me/email", {email});
+            setUser({...user, email: email, emailVerified: false});
             setOriginalEmail(email);
             setEmailSaved(true);
             setIsEditingEmail(false);
             setTimeout(() => setEmailSaved(false), 3000);
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     const handleEmailCancel = () => {
@@ -107,16 +128,22 @@ export default function Profile() {
         try {
             setVerifyingEmail(true);
             await api.post("/users/me/send-verification");
-        } catch (err) { console.error(err); } finally { setVerifyingEmail(false); }
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setVerifyingEmail(false);
+        }
     };
 
     const handleChangePassword = async () => {
         try {
-            await api.post("/users/me/change-password", { currentPassword, newPassword });
+            await api.post("/users/me/change-password", {currentPassword, newPassword});
             setChangingPassword(false);
             setCurrentPassword("");
             setNewPassword("");
-        } catch (err) { console.error(err); }
+        } catch (err) {
+            console.error(err);
+        }
     };
 
     const handlePasswordCancel = () => {
@@ -140,14 +167,15 @@ export default function Profile() {
                         ref={fileInputRef}
                         type="file"
                         accept="image/*"
-                        style={{ display: "none" }}
+                        style={{display: "none"}}
                         onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
                     />
 
-                    <Modal opened={cropModalOpened} onClose={handleCancelAvatar} title="Crop your avatar" centered size={400}>
+                    <Modal opened={cropModalOpened} onClose={handleCancelAvatar} title="Crop your avatar" centered
+                           size={400}>
                         {preview && (
                             <Stack align="center">
-                                <div style={{ position: 'relative', width: 300, height: 300, background: '#333' }}>
+                                <div style={{position: 'relative', width: 300, height: 300, background: '#333'}}>
                                     <Cropper
                                         image={preview}
                                         crop={crop}
@@ -164,7 +192,7 @@ export default function Profile() {
                                     min={1}
                                     max={3}
                                     step={0.01}
-                                    style={{ width: 300 }}
+                                    style={{width: 300}}
                                 />
                                 <Group mt="sm">
                                     <Button onClick={handleUpload} loading={uploading}>Upload Avatar</Button>
@@ -186,18 +214,22 @@ export default function Profile() {
                             rightSection={
                                 isEditingEmail ? (
                                     <Group display="flex" wrap="nowrap" gap={4} align="center">
-                                        <ActionIcon color="green" onClick={handleEmailSave}><IconCheck size={18} /></ActionIcon>
-                                        <ActionIcon color="red" onClick={handleEmailCancel}><IconX size={18} /></ActionIcon>
+                                        <ActionIcon color="green" onClick={handleEmailSave}><IconCheck
+                                            size={18}/></ActionIcon>
+                                        <ActionIcon color="red" onClick={handleEmailCancel}><IconX
+                                            size={18}/></ActionIcon>
                                     </Group>
                                 ) : (
-                                    <ActionIcon onClick={() => setIsEditingEmail(true)}><IconEdit size={18} /></ActionIcon>
+                                    <ActionIcon onClick={() => setIsEditingEmail(true)}><IconEdit
+                                        size={18}/></ActionIcon>
                                 )
                             }
                             rightSectionWidth={isEditingEmail ? 65 : 40}
                         />
                         <Group w="100%">
                             {!user.emailVerified && (
-                                <Button variant="light" color="blue" onClick={handleSendVerification} loading={verifyingEmail}>
+                                <Button variant="light" color="blue" onClick={handleSendVerification}
+                                        loading={verifyingEmail}>
                                     Verify Email
                                 </Button>
                             )}
@@ -208,15 +240,19 @@ export default function Profile() {
                     </Stack>
 
                     {!changingPassword && (
-                        <Button variant="outline" mt="sm" fullWidth onClick={() => setChangingPassword(true)}>Change Password</Button>
+                        <Button variant="outline" mt="sm" fullWidth onClick={() => setChangingPassword(true)}>Change
+                            Password</Button>
                     )}
                     {changingPassword && (
                         <Stack w="100%">
-                            <TextInput type="password" placeholder="Current password" value={currentPassword} onChange={(e) => setCurrentPassword(e.currentTarget.value)} w="100%" />
-                            <TextInput type="password" placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.currentTarget.value)} w="100%" />
+                            <TextInput type="password" placeholder="Current password" value={currentPassword}
+                                       onChange={(e) => setCurrentPassword(e.currentTarget.value)} w="100%"/>
+                            <TextInput type="password" placeholder="New password" value={newPassword}
+                                       onChange={(e) => setNewPassword(e.currentTarget.value)} w="100%"/>
                             <Group w="100%">
                                 <Button onClick={handleChangePassword} fullWidth>Submit</Button>
-                                <Button color="gray" variant="outline" onClick={handlePasswordCancel} fullWidth>Cancel</Button>
+                                <Button color="gray" variant="outline" onClick={handlePasswordCancel}
+                                        fullWidth>Cancel</Button>
                             </Group>
                         </Stack>
                     )}
