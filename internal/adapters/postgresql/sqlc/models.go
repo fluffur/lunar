@@ -23,6 +23,14 @@ type ChatMember struct {
 	JoinedAt pgtype.Timestamptz `json:"joinedAt"`
 }
 
+type EmailVerificationCode struct {
+	UserID    uuid.UUID          `json:"userId"`
+	CodeHash  string             `json:"codeHash"`
+	ExpiresAt pgtype.Timestamptz `json:"expiresAt"`
+	Attempts  int32              `json:"attempts"`
+	CreatedAt pgtype.Timestamptz `json:"createdAt"`
+}
+
 type Message struct {
 	ID        uuid.UUID          `json:"id"`
 	ChatID    uuid.UUID          `json:"chatId"`
@@ -32,10 +40,11 @@ type Message struct {
 }
 
 type User struct {
-	ID           uuid.UUID          `json:"id"`
-	Username     string             `json:"username"`
-	Email        string             `json:"email"`
-	PasswordHash pgtype.Text        `json:"passwordHash"`
-	CreatedAt    pgtype.Timestamptz `json:"createdAt"`
-	AvatarUrl    pgtype.Text        `json:"avatarUrl"`
+	ID            uuid.UUID          `json:"id"`
+	Username      string             `json:"username"`
+	Email         string             `json:"email"`
+	PasswordHash  pgtype.Text        `json:"passwordHash"`
+	CreatedAt     pgtype.Timestamptz `json:"createdAt"`
+	AvatarUrl     pgtype.Text        `json:"avatarUrl"`
+	EmailVerified bool               `json:"emailVerified"`
 }

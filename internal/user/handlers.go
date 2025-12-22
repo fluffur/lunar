@@ -58,8 +58,10 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	json.Write(w, http.StatusOK, userapi.User{
-		ID:        user.ID,
-		Username:  user.Username,
-		AvatarURL: fileName,
+		ID:            user.ID,
+		Username:      user.Username,
+		Email:         user.Email,
+		AvatarURL:     fileName,
+		EmailVerified: user.EmailVerified,
 	})
 }

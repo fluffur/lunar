@@ -29,10 +29,11 @@ func MessagesFromRepo(rows []repo.GetMessagesPagingRow) []Message {
 			Content:   r.Content,
 			CreatedAt: r.CreatedAt.Time,
 			Sender: user.User{
-				ID:        r.SenderID,
-				Username:  r.Username,
-				Email:     r.Email,
-				AvatarURL: textOrEmpty(r.AvatarUrl),
+				ID:            r.SenderID,
+				Username:      r.Username,
+				Email:         r.Email,
+				AvatarURL:     textOrEmpty(r.AvatarUrl),
+				EmailVerified: r.EmailVerified,
 			},
 		})
 	}

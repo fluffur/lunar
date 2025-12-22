@@ -32,7 +32,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UU
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, username, email, password_hash, created_at, avatar_url
+SELECT id, username, email, password_hash, created_at, avatar_url, email_verified
 FROM users
 WHERE id = $1
 LIMIT 1
@@ -48,12 +48,13 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.AvatarUrl,
+		&i.EmailVerified,
 	)
 	return i, err
 }
 
 const getUserByLogin = `-- name: GetUserByLogin :one
-SELECT id, username, email, password_hash, created_at, avatar_url
+SELECT id, username, email, password_hash, created_at, avatar_url, email_verified
 FROM users
 WHERE username = $1
    OR email = $1
@@ -70,6 +71,7 @@ func (q *Queries) GetUserByLogin(ctx context.Context, login string) (User, error
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.AvatarUrl,
+		&i.EmailVerified,
 	)
 	return i, err
 }

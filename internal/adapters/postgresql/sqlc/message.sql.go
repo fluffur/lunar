@@ -38,7 +38,7 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 }
 
 const getMessagesPaging = `-- name: GetMessagesPaging :many
-SELECT m.id, m.chat_id, m.sender_id, m.content, m.created_at, u.id, u.username, u.email, u.password_hash, u.created_at, u.avatar_url
+SELECT m.id, m.chat_id, m.sender_id, m.content, m.created_at, u.id, u.username, u.email, u.password_hash, u.created_at, u.avatar_url, u.email_verified
 FROM messages m
          JOIN users u ON u.id = m.sender_id
 WHERE m.chat_id = $1::uuid
@@ -59,17 +59,18 @@ type GetMessagesPagingParams struct {
 }
 
 type GetMessagesPagingRow struct {
-	ID           uuid.UUID          `json:"id"`
-	ChatID       uuid.UUID          `json:"chatId"`
-	SenderID     uuid.UUID          `json:"senderId"`
-	Content      string             `json:"content"`
-	CreatedAt    pgtype.Timestamptz `json:"createdAt"`
-	ID_2         uuid.UUID          `json:"id2"`
-	Username     string             `json:"username"`
-	Email        string             `json:"email"`
-	PasswordHash pgtype.Text        `json:"passwordHash"`
-	CreatedAt_2  pgtype.Timestamptz `json:"createdAt2"`
-	AvatarUrl    pgtype.Text        `json:"avatarUrl"`
+	ID            uuid.UUID          `json:"id"`
+	ChatID        uuid.UUID          `json:"chatId"`
+	SenderID      uuid.UUID          `json:"senderId"`
+	Content       string             `json:"content"`
+	CreatedAt     pgtype.Timestamptz `json:"createdAt"`
+	ID_2          uuid.UUID          `json:"id2"`
+	Username      string             `json:"username"`
+	Email         string             `json:"email"`
+	PasswordHash  pgtype.Text        `json:"passwordHash"`
+	CreatedAt_2   pgtype.Timestamptz `json:"createdAt2"`
+	AvatarUrl     pgtype.Text        `json:"avatarUrl"`
+	EmailVerified bool               `json:"emailVerified"`
 }
 
 func (q *Queries) GetMessagesPaging(ctx context.Context, arg GetMessagesPagingParams) ([]GetMessagesPagingRow, error) {
@@ -98,6 +99,7 @@ func (q *Queries) GetMessagesPaging(ctx context.Context, arg GetMessagesPagingPa
 			&i.PasswordHash,
 			&i.CreatedAt_2,
 			&i.AvatarUrl,
+			&i.EmailVerified,
 		); err != nil {
 			return nil, err
 		}
