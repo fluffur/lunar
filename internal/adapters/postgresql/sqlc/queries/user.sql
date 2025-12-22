@@ -29,6 +29,12 @@ SELECT EXISTS (SELECT 1
                WHERE email = $1)
 ;
 
+-- name: UpdateUserEmail :exec
+UPDATE users
+SET email          = $1,
+    email_verified = false
+WHERE id = $2;
+
 -- name: UpdateUserAvatar :exec
 UPDATE users
 SET avatar_url = $1

@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"image"
 	"image/jpeg"
@@ -12,12 +13,17 @@ import (
 
 	"github.com/disintegration/imaging"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type svc struct {
 	repo repo.Querier
 }
+
+var (
+	ErrEmailAlreadyExists = errors.New("email already exists")
+)
 
 func NewService(repo repo.Querier) Service {
 	return &svc{repo}
@@ -35,6 +41,22 @@ func (s *svc) UpdateAvatar(ctx context.Context, id uuid.UUID, url string) error 
 			Valid:  true,
 		},
 	})
+}
+
+func (s *svc) UpdateEmail(ctx context.Context, id uuid.UUID, email string) error {
+	err := s.repo.UpdateUserEmail(ctx, repo.UpdateUserEmailParams{
+		ID:    id,
+		Email: email,
+	})
+
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+			return ErrEmailAlreadyExists
+		}
+	}
+
+	return err
 }
 
 func (s *svc) UploadAvatar(ctx context.Context, userID uuid.UUID, file multipart.File, filename string) (string, error) {

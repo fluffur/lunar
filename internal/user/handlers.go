@@ -1,9 +1,11 @@
 package user
 
 import (
+	"errors"
 	userapi "lunar/internal/api/user"
 	"lunar/internal/authctx"
 	"lunar/internal/httputil/json"
+	"lunar/internal/httputil/validation"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -27,6 +29,41 @@ func (h *Handler) CurrentUser(w http.ResponseWriter, r *http.Request) {
 	user := authctx.UserFromContext(r.Context())
 
 	json.Write(w, http.StatusOK, userapi.FromRepo(user))
+}
+
+func (h *Handler) UpdateEmail(w http.ResponseWriter, r *http.Request) {
+
+	var req updateEmailRequest
+	if err := json.Read(r, &req); err != nil {
+		json.WriteError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+
+	if err := h.validate.Struct(req); err != nil {
+		validation.WriteErrors(w, http.StatusBadRequest, validation.MapErrors(err))
+		return
+	}
+
+	user := authctx.UserFromContext(r.Context())
+	if req.Email == user.Email {
+		validation.WriteErrors(w, http.StatusBadRequest, map[string]string{
+			"email": "email is the same",
+		})
+		return
+	}
+
+	if err := h.service.UpdateEmail(r.Context(), user.ID, req.Email); err != nil {
+		if errors.Is(err, ErrEmailAlreadyExists) {
+			validation.WriteErrors(w, http.StatusConflict, map[string]string{
+				"email": "email already exists",
+			})
+			return
+		}
+		json.WriteError(w, http.StatusInternalServerError, "internal server error")
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
