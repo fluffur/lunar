@@ -1,0 +1,158 @@
+package ws
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log/slog"
+	repo "lunar/internal/adapters/postgresql/sqlc"
+	"lunar/internal/api/message"
+	"net/http"
+	"time"
+
+	"github.com/google/uuid"
+	"github.com/gorilla/websocket"
+	"github.com/redis/go-redis/v9"
+)
+
+type svc struct {
+	rdb      *redis.Client
+	repo     repo.Querier
+	upgrader *websocket.Upgrader
+}
+
+func NewService(rdb *redis.Client, repo repo.Querier, allowedOrigins []string) Service {
+	return &svc{
+		rdb:  rdb,
+		repo: repo,
+		upgrader: &websocket.Upgrader{
+			ReadBufferSize:  1024,
+			WriteBufferSize: 1024,
+			CheckOrigin: func(r *http.Request) bool {
+				origin := r.Header.Get("Origin")
+
+				for _, allowedOrigin := range allowedOrigins {
+					if origin == allowedOrigin {
+						return true
+					}
+				}
+				return false
+			},
+		},
+	}
+}
+
+func (s *svc) HandleWebSocket(
+	w http.ResponseWriter,
+	r *http.Request,
+	chatID uuid.UUID,
+	user repo.User,
+) error {
+	conn, err := s.upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	sub := s.rdb.Subscribe(ctx, chatID.String())
+	defer sub.Close()
+
+	inErr := make(chan error, 1)
+	outErr := make(chan error, 1)
+
+	go s.handleIncoming(ctx, conn, chatID, user, inErr)
+	go s.handleOutgoing(ctx, conn, sub.Channel(), outErr)
+
+	select {
+	case err := <-inErr:
+		return err
+	case err := <-outErr:
+		return err
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+
+}
+
+func (s *svc) handleIncoming(
+	ctx context.Context,
+	conn *websocket.Conn,
+	chatID uuid.UUID,
+	user repo.User,
+	errChan chan error,
+) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			msgType, msgBytes, err := conn.ReadMessage()
+			if err != nil {
+				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
+					slog.Info("websocket", "msgBytes: ", string(msgBytes), "msgType: ", msgType)
+					errChan <- fmt.Errorf("websocket closed unexpectedly: %w", err)
+				}
+				return
+			}
+			if msgType != websocket.TextMessage {
+				continue
+			}
+			content := string(msgBytes)
+			if len(content) == 0 || len(content) > 5000 {
+				slog.Warn("Invalid content length")
+				continue
+			}
+
+			createdMessage, err := s.repo.CreateMessage(ctx, repo.CreateMessageParams{
+				ChatID:   chatID,
+				Content:  content,
+				SenderID: user.ID,
+			})
+			if err != nil {
+				slog.Warn("failed to create chat message:", "err", err)
+				continue
+			}
+
+			msg := message.FromRepo(createdMessage, user)
+			payload, _ := json.Marshal(msg)
+			s.rdb.Publish(ctx, chatID.String(), payload)
+
+		}
+	}
+}
+
+func (s *svc) handleOutgoing(
+	ctx context.Context,
+	conn *websocket.Conn,
+	ch <-chan *redis.Message,
+	errChan chan error,
+) {
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			err := conn.WriteMessage(websocket.PingMessage, nil)
+			if err != nil {
+				errChan <- err
+				return
+			}
+		case msg, ok := <-ch:
+			if !ok {
+				errChan <- fmt.Errorf("redis channel closed")
+				return
+			}
+			err := conn.WriteMessage(websocket.TextMessage, []byte(msg.Payload))
+			if err != nil {
+				errChan <- err
+				return
+			}
+		}
+	}
+}

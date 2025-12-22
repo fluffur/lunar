@@ -1,0 +1,6 @@
+.idea/
+
+.env
+go.sum
+
+tmp/
