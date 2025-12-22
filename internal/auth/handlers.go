@@ -25,7 +25,7 @@ func NewHandler(validate *validator.Validate, service Service) *Handler {
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var credentials registerCredentials
 	if err := json.Read(r, &credentials); err != nil {
-		json.WriteError(w, http.StatusBadRequest, "Invalid request body")
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -48,7 +48,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -59,7 +59,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var credentials loginCredentials
 	if err := json.Read(r, &credentials); err != nil {
-		json.WriteError(w, http.StatusBadRequest, "Invalid request body")
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -74,7 +74,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 			json.WriteError(w, http.StatusUnauthorized, err.Error())
 			return
 		}
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -109,7 +109,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	refreshToken := cookie.Value
 
 	if err := h.service.Logout(r.Context(), refreshToken); err != nil {
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		slog.Error("failed to logout", "err", err)
 		return
 	}

@@ -29,14 +29,14 @@ func (h *Handler) CreateChat(w http.ResponseWriter, r *http.Request) {
 	var params createChatParams
 
 	if err := json.Read(r, &params); err != nil {
-		http.Error(w, "invalid request body", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	chatID, err := h.service.CreateChat(r.Context(), params)
 	if err != nil {
 		slog.Error("create chat error", "err", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -49,7 +49,7 @@ func (h *Handler) JoinCurrentUser(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.service.JoinUserToChat(r.Context(), user.ID, chatID); err != nil {
 		slog.Error("join user to chat error", "err", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
@@ -61,7 +61,7 @@ func (h *Handler) Websocket(w http.ResponseWriter, r *http.Request) {
 
 	if err := h.service.JoinUserToChat(r.Context(), user.ID, chatID); err != nil {
 		slog.Error("join user to chat error", "err", err)
-		http.Error(w, "internal server error", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 

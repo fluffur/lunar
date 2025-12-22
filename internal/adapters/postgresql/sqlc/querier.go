@@ -23,6 +23,7 @@ type Querier interface {
 	IsUserChatMember(ctx context.Context, arg IsUserChatMemberParams) (bool, error)
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error
 	UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) error
+	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
 	UserWithEmailExists(ctx context.Context, email string) (bool, error)
 	UserWithUsernameExists(ctx context.Context, username string) (bool, error)
 }

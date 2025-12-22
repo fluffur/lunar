@@ -39,12 +39,10 @@ export default function Login() {
             navigate('/chats')
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const fieldErrors = error.response?.data?.errors;
-                if (fieldErrors) {
-                    form.setErrors({
-                        username: fieldErrors.login ?? "",
-                        password: fieldErrors.password ?? "",
-                    })
+                const errors = error.response?.data?.errors;
+                if (errors) {
+                    form.setErrors(errors);
+                    return;
                 }
                 const message = error.response?.data?.error ?? 'Login failed';
                 setGeneralError(message)

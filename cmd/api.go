@@ -58,6 +58,7 @@ func (app *application) mount() http.Handler {
 			r.Route("/users/me", func(r chi.Router) {
 				r.Get("/", userHandler.CurrentUser)
 				r.Post("/email", userHandler.UpdateEmail)
+				r.Post("/password", userHandler.ChangePassword)
 				r.Post("/avatar", userHandler.UploadAvatar)
 			})
 

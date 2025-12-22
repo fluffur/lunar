@@ -35,7 +35,7 @@ func (h *Handler) UpdateEmail(w http.ResponseWriter, r *http.Request) {
 
 	var req updateEmailRequest
 	if err := json.Read(r, &req); err != nil {
-		json.WriteError(w, http.StatusBadRequest, "Invalid request body")
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -59,7 +59,35 @@ func (h *Handler) UpdateEmail(w http.ResponseWriter, r *http.Request) {
 			})
 			return
 		}
-		json.WriteError(w, http.StatusInternalServerError, "internal server error")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+	user := authctx.UserFromContext(r.Context())
+
+	var req updatePasswordRequest
+	if err := json.Read(r, &req); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if err := h.validate.Struct(req); err != nil {
+		validation.WriteErrors(w, http.StatusBadRequest, validation.MapErrors(err))
+		return
+	}
+
+	if err := h.service.UpdatePassword(r.Context(), user.ID, req.CurrentPassword, req.NewPassword); err != nil {
+		if errors.Is(err, ErrInvalidCurrentPassword) {
+			validation.WriteErrors(w, http.StatusBadRequest, map[string]string{
+				"currentPassword": err.Error(),
+			})
+			return
+		}
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 

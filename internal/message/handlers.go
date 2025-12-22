@@ -42,7 +42,7 @@ func (h *Handler) ListMessages(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, ErrChatNotFound):
 			json.WriteError(w, http.StatusBadRequest, "Chat not found")
 		default:
-			json.WriteError(w, http.StatusInternalServerError, "Internal server error")
+			w.WriteHeader(http.StatusInternalServerError)
 		}
 		return
 	}

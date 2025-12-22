@@ -94,7 +94,8 @@ func (q *Queries) UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarPara
 
 const updateUserEmail = `-- name: UpdateUserEmail :exec
 UPDATE users
-SET email = $1
+SET email          = $1,
+    email_verified = false
 WHERE id = $2
 `
 
@@ -105,6 +106,22 @@ type UpdateUserEmailParams struct {
 
 func (q *Queries) UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) error {
 	_, err := q.db.Exec(ctx, updateUserEmail, arg.Email, arg.ID)
+	return err
+}
+
+const updateUserPassword = `-- name: UpdateUserPassword :exec
+UPDATE users
+    SET password_hash = $1
+WHERE id = $2
+`
+
+type UpdateUserPasswordParams struct {
+	PasswordHash pgtype.Text `json:"passwordHash"`
+	ID           uuid.UUID   `json:"id"`
+}
+
+func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
+	_, err := q.db.Exec(ctx, updateUserPassword, arg.PasswordHash, arg.ID)
 	return err
 }
 

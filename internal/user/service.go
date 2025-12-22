@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type svc struct {
@@ -22,7 +23,8 @@ type svc struct {
 }
 
 var (
-	ErrEmailAlreadyExists = errors.New("email already exists")
+	ErrEmailAlreadyExists     = errors.New("email already exists")
+	ErrInvalidCurrentPassword = errors.New("invalid current password")
 )
 
 func NewService(repo repo.Querier) Service {
@@ -57,6 +59,30 @@ func (s *svc) UpdateEmail(ctx context.Context, id uuid.UUID, email string) error
 	}
 
 	return err
+}
+
+func (s *svc) UpdatePassword(ctx context.Context, id uuid.UUID, currentPassword, newPassword string) error {
+	user, err := s.repo.GetUser(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash.String), []byte(currentPassword)); err != nil {
+		return ErrInvalidCurrentPassword
+	}
+
+	newPasswordHash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	return s.repo.UpdateUserPassword(ctx, repo.UpdateUserPasswordParams{
+		ID: id,
+		PasswordHash: pgtype.Text{
+			String: string(newPasswordHash),
+			Valid:  true,
+		},
+	})
 }
 
 func (s *svc) UploadAvatar(ctx context.Context, userID uuid.UUID, file multipart.File, filename string) (string, error) {

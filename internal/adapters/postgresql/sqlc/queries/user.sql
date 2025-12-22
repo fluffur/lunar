@@ -35,6 +35,11 @@ SET email          = $1,
     email_verified = false
 WHERE id = $2;
 
+-- name: UpdateUserPassword :exec
+UPDATE users
+    SET password_hash = $1
+WHERE id = $2;
+
 -- name: UpdateUserAvatar :exec
 UPDATE users
 SET avatar_url = $1
