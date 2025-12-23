@@ -20,7 +20,6 @@ import (
 
 func (app *application) mount() http.Handler {
 	r := chi.NewRouter()
-	r.Mount("/api", r)
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
@@ -44,6 +43,7 @@ func (app *application) mount() http.Handler {
 	chatHandler := chat.NewHandler(app.validate, app.chatService, app.wsService)
 	messageHandler := message.NewHandler(app.validate, app.messageService)
 
+	r.Mount("/api", r)
 	r.Handle("/uploads/*", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 
 	r.Route("/auth", func(r chi.Router) {
