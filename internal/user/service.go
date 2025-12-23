@@ -7,7 +7,7 @@ import (
 	"image"
 	"image/jpeg"
 	"log/slog"
-	repo "lunar/internal/adapters/postgresql/sqlc"
+	"lunar/internal/adapters/postgresql/sqlc"
 	"mime/multipart"
 	"os"
 	"path/filepath"
@@ -19,28 +19,24 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-type svc struct {
-	repo             repo.Querier
+type Service struct {
+	q                sqlc.Querier
 	avatarsUploadDir string
 }
 
-var (
-	ErrEmailAlreadyExists     = errors.New("email already exists")
-	ErrInvalidCurrentPassword = errors.New("invalid current password")
-	ErrInvalidImage           = errors.New("invalid image")
-	ErrUploadAvatar           = errors.New("failed to upload avatar")
-)
-
-func NewService(repo repo.Querier, avatarsUploadDir string) Service {
-	return &svc{repo, avatarsUploadDir}
+func NewService(q sqlc.Querier, avatarsUploadDir string) *Service {
+	return &Service{
+		q:                q,
+		avatarsUploadDir: avatarsUploadDir,
+	}
 }
 
-func (s *svc) GetUser(ctx context.Context, id uuid.UUID) (repo.User, error) {
-	return s.repo.GetUser(ctx, id)
+func (s *Service) GetUser(ctx context.Context, id uuid.UUID) (sqlc.User, error) {
+	return s.q.GetUser(ctx, id)
 }
 
-func (s *svc) UpdateAvatar(ctx context.Context, id uuid.UUID, url string) error {
-	return s.repo.UpdateUserAvatar(ctx, repo.UpdateUserAvatarParams{
+func (s *Service) UpdateAvatar(ctx context.Context, id uuid.UUID, url string) error {
+	return s.q.UpdateUserAvatar(ctx, sqlc.UpdateUserAvatarParams{
 		ID: id,
 		AvatarUrl: pgtype.Text{
 			String: url,
@@ -49,8 +45,8 @@ func (s *svc) UpdateAvatar(ctx context.Context, id uuid.UUID, url string) error 
 	})
 }
 
-func (s *svc) UpdateEmail(ctx context.Context, id uuid.UUID, email string) error {
-	err := s.repo.UpdateUserEmail(ctx, repo.UpdateUserEmailParams{
+func (s *Service) UpdateEmail(ctx context.Context, id uuid.UUID, email string) error {
+	err := s.q.UpdateUserEmail(ctx, sqlc.UpdateUserEmailParams{
 		ID:    id,
 		Email: email,
 	})
@@ -65,8 +61,8 @@ func (s *svc) UpdateEmail(ctx context.Context, id uuid.UUID, email string) error
 	return err
 }
 
-func (s *svc) UpdatePassword(ctx context.Context, id uuid.UUID, currentPassword, newPassword string) error {
-	user, err := s.repo.GetUser(ctx, id)
+func (s *Service) UpdatePassword(ctx context.Context, id uuid.UUID, currentPassword, newPassword string) error {
+	user, err := s.q.GetUser(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -80,7 +76,7 @@ func (s *svc) UpdatePassword(ctx context.Context, id uuid.UUID, currentPassword,
 		return err
 	}
 
-	return s.repo.UpdateUserPassword(ctx, repo.UpdateUserPasswordParams{
+	return s.q.UpdateUserPassword(ctx, sqlc.UpdateUserPasswordParams{
 		ID: id,
 		PasswordHash: pgtype.Text{
 			String: string(newPasswordHash),
@@ -89,7 +85,7 @@ func (s *svc) UpdatePassword(ctx context.Context, id uuid.UUID, currentPassword,
 	})
 }
 
-func (s *svc) UploadAvatar(file multipart.File, filename string) (string, error) {
+func (s *Service) UploadAvatar(file multipart.File) (string, error) {
 	img, format, err := image.Decode(file)
 	if err != nil {
 		return "", err

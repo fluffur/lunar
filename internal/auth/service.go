@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
-	repo "lunar/internal/adapters/postgresql/sqlc"
+	sqlc "lunar/internal/adapters/postgresql/sqlc"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -20,8 +20,8 @@ var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 )
 
-type svc struct {
-	repo           *repo.Queries
+type Service struct {
+	q              *sqlc.Queries
 	db             *pgxpool.Pool
 	authenticator  Authenticator
 	refreshService RefreshService
@@ -30,15 +30,15 @@ type svc struct {
 }
 
 func NewService(
-	repo *repo.Queries,
+	q *sqlc.Queries,
 	db *pgxpool.Pool,
 	authenticator Authenticator,
 	refreshService RefreshService,
 	accessTTL time.Duration,
 	issuer string,
-) Service {
-	return &svc{
-		repo:           repo,
+) *Service {
+	return &Service{
+		q:              q,
 		db:             db,
 		authenticator:  authenticator,
 		refreshService: refreshService,
@@ -47,14 +47,14 @@ func NewService(
 	}
 }
 
-func (s *svc) Register(ctx context.Context, credentials registerCredentials) (authTokens, error) {
+func (s *Service) Register(ctx context.Context, credentials registerCredentials) (authTokens, error) {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return authTokens{}, err
 	}
 	defer tx.Rollback(ctx)
 
-	qtx := s.repo.WithTx(tx)
+	qtx := s.q.WithTx(tx)
 
 	if exists, err := qtx.UserWithUsernameExists(ctx, credentials.Username); err != nil {
 		return authTokens{}, err
@@ -73,7 +73,7 @@ func (s *svc) Register(ctx context.Context, credentials registerCredentials) (au
 		return authTokens{}, err
 	}
 
-	userID, err := qtx.CreateUser(ctx, repo.CreateUserParams{
+	userID, err := qtx.CreateUser(ctx, sqlc.CreateUserParams{
 		Username: credentials.Username,
 		Email:    credentials.Email,
 		PasswordHash: pgtype.Text{
@@ -106,8 +106,8 @@ func (s *svc) Register(ctx context.Context, credentials registerCredentials) (au
 	}, nil
 }
 
-func (s *svc) Login(ctx context.Context, credentials loginCredentials) (authTokens, error) {
-	user, err := s.repo.GetUserByLogin(ctx, credentials.Login)
+func (s *Service) Login(ctx context.Context, credentials loginCredentials) (authTokens, error) {
+	user, err := s.q.GetUserByLogin(ctx, credentials.Login)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return authTokens{}, ErrInvalidCredentials
@@ -137,15 +137,15 @@ func (s *svc) Login(ctx context.Context, credentials loginCredentials) (authToke
 	}, nil
 }
 
-func (s *svc) Logout(ctx context.Context, refreshToken string) error {
+func (s *Service) Logout(ctx context.Context, refreshToken string) error {
 	return s.refreshService.Revoke(ctx, refreshToken)
 }
 
-func (s *svc) LogoutAll(ctx context.Context, userID uuid.UUID) error {
+func (s *Service) LogoutAll(ctx context.Context, userID uuid.UUID) error {
 	return s.refreshService.RevokeAll(ctx, userID)
 }
 
-func (s *svc) Refresh(ctx context.Context, refreshToken string) (authTokens, error) {
+func (s *Service) Refresh(ctx context.Context, refreshToken string) (authTokens, error) {
 	userID, err := s.refreshService.Consume(ctx, refreshToken)
 	if err != nil {
 		return authTokens{}, err
@@ -168,7 +168,7 @@ func (s *svc) Refresh(ctx context.Context, refreshToken string) (authTokens, err
 	}, nil
 }
 
-func (s *svc) accessClaims(userID uuid.UUID) jwt.MapClaims {
+func (s *Service) accessClaims(userID uuid.UUID) jwt.MapClaims {
 	now := time.Now()
 	return jwt.MapClaims{
 		"sub": userID.String(),

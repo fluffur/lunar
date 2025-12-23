@@ -13,10 +13,10 @@ import (
 
 type Handler struct {
 	validate *validator.Validate
-	service  Service
+	service  *Service
 }
 
-func NewHandler(validate *validator.Validate, service Service) *Handler {
+func NewHandler(validate *validator.Validate, service *Service) *Handler {
 	return &Handler{
 		validate: validate,
 		service:  service,
@@ -105,14 +105,14 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	file, header, err := r.FormFile("avatar")
+	file, _, err := r.FormFile("avatar")
 	if err != nil {
 		validation.WriteError(w, http.StatusBadRequest, "avatar", "failed to read file")
 		return
 	}
 	defer file.Close()
 
-	filename, err := h.service.UploadAvatar(file, header.Filename)
+	filename, err := h.service.UploadAvatar(file)
 	if err != nil {
 		switch {
 		case errors.Is(err, ErrInvalidImage), errors.Is(err, ErrUploadAvatar):

@@ -2,18 +2,43 @@ package user
 
 import (
 	"context"
-	repo "lunar/internal/adapters/postgresql/sqlc"
-	"mime/multipart"
+	"errors"
+	"lunar/internal/adapters/postgresql/sqlc"
+	"time"
 
 	"github.com/google/uuid"
 )
 
-type Service interface {
-	GetUser(ctx context.Context, id uuid.UUID) (repo.User, error)
-	UpdateEmail(ctx context.Context, id uuid.UUID, email string) error
-	UpdatePassword(ctx context.Context, id uuid.UUID, oldPassword, newPassword string) error
-	UploadAvatar(file multipart.File, filename string) (string, error)
-	UpdateAvatar(ctx context.Context, id uuid.UUID, url string) error
+var (
+	ErrEmailAlreadyExists     = errors.New("email already exists")
+	ErrEmailAlreadyVerified   = errors.New("email already verified")
+	ErrInvalidCurrentPassword = errors.New("invalid current password")
+	ErrInvalidImage           = errors.New("invalid image")
+	ErrUploadAvatar           = errors.New("failed to upload avatar")
+)
+
+type VerificationCodeRepository interface {
+	SaveVerificationCode(
+		ctx context.Context,
+		userID uuid.UUID,
+		codeHash []byte,
+		expiresAt time.Time,
+	) error
+
+	GetVerificationCode(
+		ctx context.Context,
+		userID uuid.UUID,
+	) (*sqlc.EmailVerificationCode, error)
+
+	IncrementAttempts(
+		ctx context.Context,
+		userID uuid.UUID,
+	) error
+
+	Delete(
+		ctx context.Context,
+		userID uuid.UUID,
+	) error
 }
 
 type updateEmailRequest struct {

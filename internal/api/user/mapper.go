@@ -1,10 +1,10 @@
 package user
 
 import (
-	repo "lunar/internal/adapters/postgresql/sqlc"
+	"lunar/internal/adapters/postgresql/sqlc"
 )
 
-func FromRepo(user repo.User) User {
+func FromRepo(user sqlc.User) User {
 	return User{
 		ID:            user.ID,
 		Username:      user.Username,

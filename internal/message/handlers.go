@@ -11,10 +11,10 @@ import (
 
 type Handler struct {
 	validate *validator.Validate
-	service  Service
+	service  *Service
 }
 
-func NewHandler(validate *validator.Validate, service Service) *Handler {
+func NewHandler(validate *validator.Validate, service *Service) *Handler {
 	return &Handler{
 		validate: validate,
 		service:  service,

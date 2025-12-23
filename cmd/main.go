@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
-	repo "lunar/internal/adapters/postgresql/sqlc"
+	"lunar/internal/adapters/postgresql/sqlc"
 	"lunar/internal/auth"
 	"lunar/internal/chat"
 	"lunar/internal/chat/ws"
@@ -66,7 +66,7 @@ func main() {
 
 	rdb := redis.NewClient(&redis.Options{Addr: cfg.redis.addr})
 
-	repos := repo.New(pool)
+	queries := sqlc.New(pool)
 
 	authenticator := auth.NewJWTAuthenticator(
 		cfg.auth.token.access.secret,
@@ -79,17 +79,17 @@ func main() {
 		cfg.auth.token.refresh.exp,
 	)
 	authService := auth.NewService(
-		repos,
+		queries,
 		pool,
 		authenticator,
 		refreshService,
 		cfg.auth.token.access.exp,
 		cfg.auth.token.access.iss,
 	)
-	userService := user.NewService(repos, cfg.fileStore.avatarsUploadDir)
-	chatService := chat.NewService(repos)
-	wsService := ws.NewService(rdb, repos, cfg.cors.allowedOrigins)
-	messageService := message.NewService(repos, pool)
+	userService := user.NewService(queries, cfg.fileStore.avatarsUploadDir)
+	chatService := chat.NewService(queries)
+	wsService := ws.NewService(rdb, queries, cfg.cors.allowedOrigins)
+	messageService := message.NewService(queries, pool)
 
 	validate := validator.New()
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {

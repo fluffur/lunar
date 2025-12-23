@@ -1,19 +1,5 @@
 package auth
 
-import (
-	"context"
-
-	"github.com/google/uuid"
-)
-
-type Service interface {
-	Login(ctx context.Context, credentials loginCredentials) (authTokens, error)
-	Register(ctx context.Context, credentials registerCredentials) (authTokens, error)
-	Logout(ctx context.Context, refreshToken string) error
-	LogoutAll(ctx context.Context, userID uuid.UUID) error
-	Refresh(ctx context.Context, refreshToken string) (authTokens, error)
-}
-
 type registerCredentials struct {
 	Username        string `json:"username" validate:"required,min=3,alphanum"`
 	Email           string `json:"email" validate:"required,email"`

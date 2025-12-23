@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	repo "lunar/internal/adapters/postgresql/sqlc"
+	"lunar/internal/adapters/postgresql/sqlc"
 	"lunar/internal/api/message"
 	"strconv"
 
@@ -15,31 +15,30 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type svc struct {
-	repo *repo.Queries
-	db   *pgxpool.Pool
+type Service struct {
+	q  *sqlc.Queries
+	db *pgxpool.Pool
 }
 
 var (
-	ErrChatNotFound  = errors.New("chat not found")
-	ErrInvalidCursor = errors.New("invalid cursor")
+	ErrChatNotFound = errors.New("chat not found")
 )
 
-func NewService(repo *repo.Queries, db *pgxpool.Pool) Service {
-	return &svc{
-		repo: repo,
-		db:   db,
+func NewService(q *sqlc.Queries, db *pgxpool.Pool) *Service {
+	return &Service{
+		q:  q,
+		db: db,
 	}
 }
 
-func (s *svc) ListMessages(ctx context.Context, chatID uuid.UUID, limit int, cursor *Cursor) ([]message.Message, error) {
+func (s *Service) ListMessages(ctx context.Context, chatID uuid.UUID, limit int, cursor *Cursor) ([]message.Message, error) {
 	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.ReadCommitted})
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback(ctx)
 
-	qtx := s.repo.WithTx(tx)
+	qtx := s.q.WithTx(tx)
 
 	exists, err := qtx.ChatExists(ctx, chatID)
 	if err != nil {
@@ -49,7 +48,7 @@ func (s *svc) ListMessages(ctx context.Context, chatID uuid.UUID, limit int, cur
 		return nil, ErrChatNotFound
 	}
 
-	params := repo.GetMessagesPagingParams{
+	params := sqlc.GetMessagesPagingParams{
 		ChatID: chatID,
 		Limit:  int32(limit),
 	}
@@ -74,7 +73,7 @@ func (s *svc) ListMessages(ctx context.Context, chatID uuid.UUID, limit int, cur
 	return message.MessagesFromRepo(rows), nil
 }
 
-func (s *svc) GenerateCursor(message message.Message) string {
+func (s *Service) GenerateCursor(message message.Message) string {
 	c := Cursor{
 		ID:        message.ID,
 		CreatedAt: message.CreatedAt,
@@ -85,7 +84,7 @@ func (s *svc) GenerateCursor(message message.Message) string {
 	return base64.StdEncoding.EncodeToString(b)
 }
 
-func (s *svc) ParseCursor(cursorEncoded string) (Cursor, error) {
+func (s *Service) ParseCursor(cursorEncoded string) (Cursor, error) {
 	var cursor Cursor
 
 	decoded, err := base64.StdEncoding.DecodeString(cursorEncoded)
@@ -100,7 +99,7 @@ func (s *svc) ParseCursor(cursorEncoded string) (Cursor, error) {
 	return cursor, nil
 }
 
-func (s *svc) NormalizeLimit(limit string, max int, fallback int) int {
+func (s *Service) NormalizeLimit(limit string, max int, fallback int) int {
 	if limit == "" {
 		return fallback
 	}

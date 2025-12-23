@@ -12,69 +12,66 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
-
-	"github.com/rs/cors"
 )
 
 func (app *application) mount() http.Handler {
 	r := chi.NewRouter()
-	c := cors.New(cors.Options{
-		AllowedOrigins:   app.config.cors.allowedOrigins,
-		AllowedMethods:   app.config.cors.allowedMethods,
-		AllowedHeaders:   app.config.cors.allowedHeaders,
-		ExposedHeaders:   app.config.cors.exposedHeaders,
-		AllowCredentials: app.config.cors.allowCredentials,
-		MaxAge:           app.config.cors.maxAge,
-	})
-
-	authHandler := auth.NewHandler(app.validate, app.authService)
-	userHandler := user.NewHandler(app.validate, app.userService)
-	chatHandler := chat.NewHandler(app.validate, app.chatService, app.wsService)
-	messageHandler := message.NewHandler(app.validate, app.messageService)
+	r.Mount("/api", r)
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
-	r.Use(c.Handler)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   app.config.cors.allowedOrigins,
+		AllowedMethods:   app.config.cors.allowedMethods,
+		AllowedHeaders:   app.config.cors.allowedHeaders,
+		ExposedHeaders:   app.config.cors.exposedHeaders,
+		AllowCredentials: app.config.cors.allowCredentials,
+		MaxAge:           app.config.cors.maxAge,
+	}))
 
-	authMw := auth.Middleware(app.authenticator, app.userService)
-	wsAuthMw := auth.WebSocketMiddleware(app.authenticator, app.userService)
+	authMw := auth.Middleware(app.authenticator)
+	wsAuthMw := auth.WebSocketMiddleware(app.authenticator)
+
+	authHandler := auth.NewHandler(app.validate, app.authService)
+	userHandler := user.NewHandler(app.validate, app.userService)
+	chatHandler := chat.NewHandler(app.validate, app.chatService, app.wsService)
+	messageHandler := message.NewHandler(app.validate, app.messageService)
+
 	r.Handle("/uploads/*", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
 
-	r.Route("/api", func(r chi.Router) {
-		r.Route("/auth", func(r chi.Router) {
-			r.Post("/register", authHandler.Register)
-			r.Post("/login", authHandler.Login)
-			r.Post("/refresh", authHandler.Refresh)
-			r.Post("/logout", authHandler.Logout)
-		})
-
-		r.With(authMw).Group(func(r chi.Router) {
-			r.Route("/users/me", func(r chi.Router) {
-				r.Get("/", userHandler.CurrentUser)
-				r.Post("/email", userHandler.UpdateEmail)
-				r.Post("/password", userHandler.ChangePassword)
-				r.Post("/avatar", userHandler.UploadAvatar)
-			})
-
-			r.Route("/chats", func(r chi.Router) {
-				r.Post("/", chatHandler.CreateChat)
-				r.Route("/{chatID:[0-9a-fA-F-]{36}}", func(r chi.Router) {
-					r.Post("/", chatHandler.JoinCurrentUser)
-					r.Get("/messages", messageHandler.ListMessages)
-				})
-			})
-		})
-
-		r.With(wsAuthMw).
-			Get("/chats/{chatID:[0-9a-fA-F-]{36}}/ws", chatHandler.Websocket)
-
+	r.Route("/auth", func(r chi.Router) {
+		r.Post("/register", authHandler.Register)
+		r.Post("/login", authHandler.Login)
+		r.Post("/refresh", authHandler.Refresh)
+		r.Post("/logout", authHandler.Logout)
 	})
+
+	r.With(authMw).Group(func(r chi.Router) {
+		r.Route("/users/me", func(r chi.Router) {
+			r.Get("/", userHandler.CurrentUser)
+			r.Post("/email", userHandler.UpdateEmail)
+			r.Post("/password", userHandler.ChangePassword)
+			r.Post("/avatar", userHandler.UploadAvatar)
+		})
+
+		r.Route("/chats", func(r chi.Router) {
+			r.Post("/", chatHandler.CreateChat)
+			r.Route("/{chatID:[0-9a-fA-F-]{36}}", func(r chi.Router) {
+				r.Post("/", chatHandler.JoinCurrentUser)
+				r.Get("/messages", messageHandler.ListMessages)
+			})
+		})
+	})
+
+	r.With(wsAuthMw).
+		Get("/chats/{chatID:[0-9a-fA-F-]{36}}/ws", chatHandler.Websocket)
 
 	return r
 }
@@ -98,11 +95,11 @@ type application struct {
 	db             *pgxpool.Pool
 	rdb            *redis.Client
 	authenticator  auth.Authenticator
-	authService    auth.Service
-	userService    user.Service
-	chatService    chat.Service
-	wsService      ws.Service
-	messageService message.Service
+	authService    *auth.Service
+	userService    *user.Service
+	chatService    *chat.Service
+	wsService      *ws.Service
+	messageService *message.Service
 	validate       *validator.Validate
 }
 

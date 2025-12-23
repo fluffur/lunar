@@ -3,7 +3,7 @@
 //   sqlc v1.30.0
 // source: message.sql
 
-package repo
+package sqlc
 
 import (
 	"context"

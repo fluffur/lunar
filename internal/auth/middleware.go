@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 	"lunar/internal/authctx"
-	"lunar/internal/user"
 	"net/http"
 	"strings"
 
@@ -11,7 +10,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func WebSocketMiddleware(authenticator Authenticator, userService user.Service) func(next http.Handler) http.Handler {
+func WebSocketMiddleware(authenticator Authenticator) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			tokenStr := r.URL.Query().Get("token")
@@ -34,13 +33,7 @@ func WebSocketMiddleware(authenticator Authenticator, userService user.Service) 
 				return
 			}
 
-			u, err := userService.GetUser(r.Context(), userID)
-			if err != nil {
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-
-			ctx := context.WithValue(r.Context(), authctx.UserIDKey, u)
+			ctx := context.WithValue(r.Context(), authctx.UserIDKey, userID)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
@@ -48,7 +41,7 @@ func WebSocketMiddleware(authenticator Authenticator, userService user.Service) 
 	}
 }
 
-func Middleware(authenticator Authenticator, userService user.Service) func(http.Handler) http.Handler {
+func Middleware(authenticator Authenticator) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			authorization := r.Header.Get("Authorization")

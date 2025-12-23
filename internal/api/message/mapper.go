@@ -1,15 +1,15 @@
 package message
 
 import (
-	repo "lunar/internal/adapters/postgresql/sqlc"
+	"lunar/internal/adapters/postgresql/sqlc"
 	"lunar/internal/api/user"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
 func FromRepo(
-	msg repo.Message,
-	sender repo.User,
+	msg sqlc.Message,
+	sender sqlc.User,
 ) Message {
 	return Message{
 		ID:        msg.ID,
@@ -20,7 +20,7 @@ func FromRepo(
 	}
 }
 
-func MessagesFromRepo(rows []repo.GetMessagesPagingRow) []Message {
+func MessagesFromRepo(rows []sqlc.GetMessagesPagingRow) []Message {
 	result := make([]Message, 0, len(rows))
 	for _, r := range rows {
 		result = append(result, Message{

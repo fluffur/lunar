@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	repo "lunar/internal/adapters/postgresql/sqlc"
+	"lunar/internal/adapters/postgresql/sqlc"
 	"lunar/internal/api/message"
 	"net/http"
 	"time"
@@ -15,16 +15,16 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type svc struct {
+type Service struct {
 	rdb      *redis.Client
-	repo     repo.Querier
+	q        sqlc.Querier
 	upgrader *websocket.Upgrader
 }
 
-func NewService(rdb *redis.Client, repo repo.Querier, allowedOrigins []string) Service {
-	return &svc{
-		rdb:  rdb,
-		repo: repo,
+func NewService(rdb *redis.Client, q sqlc.Querier, allowedOrigins []string) *Service {
+	return &Service{
+		rdb: rdb,
+		q:   q,
 		upgrader: &websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
@@ -42,13 +42,13 @@ func NewService(rdb *redis.Client, repo repo.Querier, allowedOrigins []string) S
 	}
 }
 
-func (s *svc) HandleWebSocket(
+func (s *Service) HandleWebSocket(
 	w http.ResponseWriter,
 	r *http.Request,
 	chatID uuid.UUID,
 	userID uuid.UUID,
 ) error {
-	user, err := s.repo.GetUser(r.Context(), userID)
+	user, err := s.q.GetUser(r.Context(), userID)
 	if err != nil {
 		return err
 	}
@@ -82,11 +82,11 @@ func (s *svc) HandleWebSocket(
 
 }
 
-func (s *svc) handleIncoming(
+func (s *Service) handleIncoming(
 	ctx context.Context,
 	conn *websocket.Conn,
 	chatID uuid.UUID,
-	user repo.User,
+	user sqlc.User,
 	errChan chan error,
 ) {
 	for {
@@ -110,7 +110,7 @@ func (s *svc) handleIncoming(
 				continue
 			}
 
-			createdMessage, err := s.repo.CreateMessage(ctx, repo.CreateMessageParams{
+			createdMessage, err := s.q.CreateMessage(ctx, sqlc.CreateMessageParams{
 				ChatID:   chatID,
 				Content:  content,
 				SenderID: user.ID,
@@ -128,7 +128,7 @@ func (s *svc) handleIncoming(
 	}
 }
 
-func (s *svc) handleOutgoing(
+func (s *Service) handleOutgoing(
 	ctx context.Context,
 	conn *websocket.Conn,
 	ch <-chan *redis.Message,

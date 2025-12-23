@@ -13,11 +13,11 @@ import (
 
 type Handler struct {
 	validate  *validator.Validate
-	service   Service
-	wsService ws.Service
+	service   *Service
+	wsService *ws.Service
 }
 
-func NewHandler(validate *validator.Validate, service Service, wsService ws.Service) *Handler {
+func NewHandler(validate *validator.Validate, service *Service, wsService *ws.Service) *Handler {
 	return &Handler{
 		validate:  validate,
 		service:   service,

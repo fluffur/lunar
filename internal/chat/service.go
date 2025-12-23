@@ -2,33 +2,33 @@ package chat
 
 import (
 	"context"
-	repo "lunar/internal/adapters/postgresql/sqlc"
+	"lunar/internal/adapters/postgresql/sqlc"
 
 	"github.com/google/uuid"
 )
 
-type svc struct {
-	repo repo.Querier
+type Service struct {
+	q sqlc.Querier
 }
 
-func NewService(repo repo.Querier) Service {
-	return &svc{
-		repo: repo,
+func NewService(q sqlc.Querier) *Service {
+	return &Service{
+		q: q,
 	}
 }
 
-func (s *svc) GetChat(ctx context.Context, id uuid.UUID) (repo.Chat, error) {
-	return s.repo.GetChat(ctx, id)
+func (s *Service) GetChat(ctx context.Context, id uuid.UUID) (sqlc.Chat, error) {
+	return s.q.GetChat(ctx, id)
 }
 
-func (s *svc) CreateChat(ctx context.Context, params createChatParams) (uuid.UUID, error) {
-	return s.repo.CreateChat(ctx, repo.CreateChatParams{
+func (s *Service) CreateChat(ctx context.Context, params createChatParams) (uuid.UUID, error) {
+	return s.q.CreateChat(ctx, sqlc.CreateChatParams{
 		Type: params.Type,
 	})
 }
 
-func (s *svc) JoinUserToChat(ctx context.Context, userID uuid.UUID, chatID uuid.UUID) error {
-	return s.repo.AddUserToChat(ctx, repo.AddUserToChatParams{
+func (s *Service) JoinUserToChat(ctx context.Context, userID uuid.UUID, chatID uuid.UUID) error {
+	return s.q.AddUserToChat(ctx, sqlc.AddUserToChatParams{
 		UserID: userID,
 		ChatID: chatID,
 	})
