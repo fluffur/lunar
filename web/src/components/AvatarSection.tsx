@@ -57,10 +57,9 @@ export default function AvatarSection({ user, setUser }: AvatarSectionProps) {
 
         try {
             setUploading(true);
-            const { data } = await api.post("/users/me/avatar", formData, {
-                headers: { "Content-Type": "multipart/form-data" },
-            });
-            setUser(data);
+             await api.post("/users/me/avatar", formData, {
+                 headers: {"Content-Type": "multipart/form-data"},
+             });
             setSelectedFile(null);
             setPreview(null);
             setCropModalOpened(false);

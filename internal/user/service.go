@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image"
 	"image/jpeg"
+	"log/slog"
 	repo "lunar/internal/adapters/postgresql/sqlc"
 	"mime/multipart"
 	"os"
@@ -19,16 +20,19 @@ import (
 )
 
 type svc struct {
-	repo repo.Querier
+	repo             repo.Querier
+	avatarsUploadDir string
 }
 
 var (
 	ErrEmailAlreadyExists     = errors.New("email already exists")
 	ErrInvalidCurrentPassword = errors.New("invalid current password")
+	ErrInvalidImage           = errors.New("invalid image")
+	ErrUploadAvatar           = errors.New("failed to upload avatar")
 )
 
-func NewService(repo repo.Querier) Service {
-	return &svc{repo}
+func NewService(repo repo.Querier, avatarsUploadDir string) Service {
+	return &svc{repo, avatarsUploadDir}
 }
 
 func (s *svc) GetUser(ctx context.Context, id uuid.UUID) (repo.User, error) {
@@ -85,41 +89,28 @@ func (s *svc) UpdatePassword(ctx context.Context, id uuid.UUID, currentPassword,
 	})
 }
 
-func (s *svc) UploadAvatar(ctx context.Context, userID uuid.UUID, file multipart.File, filename string) (string, error) {
-	img, _, err := image.Decode(file)
+func (s *svc) UploadAvatar(file multipart.File, filename string) (string, error) {
+	img, format, err := image.Decode(file)
 	if err != nil {
-		return "", fmt.Errorf("invalid image: %w", err)
+		return "", err
+	}
+	if format != "jpg" && format != "jpeg" && format != "png" && format != "webp" {
+		return "", ErrInvalidImage
 	}
 	dstImg := imaging.Fill(img, 128, 128, imaging.Center, imaging.Lanczos)
 
-	uploadDir := "./uploads/avatars"
-
-	ext := filepath.Ext(filename)
-	if ext == "" {
-		ext = ".jpg"
-	}
-	fileName := fmt.Sprintf("%s%s", uuid.New().String(), ext)
-	filePath := filepath.Join(uploadDir, fileName)
-
+	resultFilename := fmt.Sprintf("%s.%s", uuid.New().String(), format)
+	filePath := filepath.Join(s.avatarsUploadDir, resultFilename)
 	out, err := os.Create(filePath)
 	if err != nil {
-		return "", fmt.Errorf("failed to save file: %w", err)
+		slog.Error("file upload", "err", err, "dir", s.avatarsUploadDir)
+		return "", ErrUploadAvatar
 	}
 	defer out.Close()
 
 	if err := jpeg.Encode(out, dstImg, &jpeg.Options{Quality: 80}); err != nil {
-		return "", fmt.Errorf("failed to encode image: %w", err)
+		return "", err
 	}
 
-	if err := s.repo.UpdateUserAvatar(ctx, repo.UpdateUserAvatarParams{
-		ID: userID,
-		AvatarUrl: pgtype.Text{
-			String: fileName,
-			Valid:  true,
-		},
-	}); err != nil {
-		return "", fmt.Errorf("failed to update avatar", err)
-	}
-
-	return fileName, nil
+	return resultFilename, nil
 }

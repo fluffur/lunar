@@ -10,10 +10,10 @@ import (
 
 type Service interface {
 	GetUser(ctx context.Context, id uuid.UUID) (repo.User, error)
-	UpdateAvatar(ctx context.Context, id uuid.UUID, url string) error
 	UpdateEmail(ctx context.Context, id uuid.UUID, email string) error
 	UpdatePassword(ctx context.Context, id uuid.UUID, oldPassword, newPassword string) error
-	UploadAvatar(ctx context.Context, id uuid.UUID, file multipart.File, filename string) (string, error)
+	UploadAvatar(file multipart.File, filename string) (string, error)
+	UpdateAvatar(ctx context.Context, id uuid.UUID, url string) error
 }
 
 type updateEmailRequest struct {

@@ -2,7 +2,6 @@ package auth
 
 import (
 	"errors"
-	"log/slog"
 	"lunar/internal/httputil/json"
 	"lunar/internal/httputil/validation"
 	"net/http"
@@ -37,18 +36,14 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	tokens, err := h.service.Register(r.Context(), credentials)
 	if err != nil {
 		if errors.Is(err, ErrUsernameExists) {
-			validation.WriteErrors(w, http.StatusBadRequest, validation.FieldErrors{
-				"username": err.Error(),
-			})
+			validation.WriteError(w, http.StatusBadRequest, "username", err.Error())
 			return
 		}
 		if errors.Is(err, ErrInvalidEmail) {
-			validation.WriteErrors(w, http.StatusBadRequest, validation.FieldErrors{
-				"email": err.Error(),
-			})
+			validation.WriteError(w, http.StatusBadRequest, "email", err.Error())
 			return
 		}
-		w.WriteHeader(http.StatusInternalServerError)
+		json.InternalError(w, r, err)
 		return
 	}
 
@@ -74,7 +69,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 			json.WriteError(w, http.StatusUnauthorized, err.Error())
 			return
 		}
-		w.WriteHeader(http.StatusInternalServerError)
+		json.InternalError(w, r, err)
 		return
 	}
 
@@ -85,13 +80,13 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
-		http.Error(w, "no refresh token", http.StatusUnauthorized)
+		json.WriteError(w, http.StatusUnauthorized, "no refresh token")
 		return
 	}
 
 	tokens, err := h.service.Refresh(r.Context(), cookie.Value)
 	if err != nil {
-		http.Error(w, "invalid refresh token", http.StatusUnauthorized)
+		json.WriteError(w, http.StatusUnauthorized, "invalid refresh token")
 		return
 	}
 
@@ -102,15 +97,14 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
-		http.Error(w, "no refresh token", http.StatusUnauthorized)
+		json.WriteError(w, http.StatusUnauthorized, "no refresh token")
 		return
 	}
 
 	refreshToken := cookie.Value
 
 	if err := h.service.Logout(r.Context(), refreshToken); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		slog.Error("failed to logout", "err", err)
+		json.InternalError(w, r, err)
 		return
 	}
 	h.setRefreshTokenCookie(w, "")

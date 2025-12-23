@@ -46,8 +46,13 @@ func (s *svc) HandleWebSocket(
 	w http.ResponseWriter,
 	r *http.Request,
 	chatID uuid.UUID,
-	user repo.User,
+	userID uuid.UUID,
 ) error {
+	user, err := s.repo.GetUser(r.Context(), userID)
+	if err != nil {
+		return err
+	}
+
 	conn, err := s.upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		return err
@@ -92,7 +97,6 @@ func (s *svc) handleIncoming(
 			msgType, msgBytes, err := conn.ReadMessage()
 			if err != nil {
 				if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-					slog.Info("websocket", "msgBytes: ", string(msgBytes), "msgType: ", msgType)
 					errChan <- fmt.Errorf("websocket closed unexpectedly: %w", err)
 				}
 				return

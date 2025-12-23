@@ -107,15 +107,21 @@ type application struct {
 }
 
 type config struct {
-	addr  string
-	cors  corsConfig
-	db    dbConfig
-	redis redisConfig
-	auth  authConfig
+	addr string
+	cors corsConfig
+	auth authConfig
+
+	db        dbConfig
+	redis     redisConfig
+	fileStore fileStoreConfig
 }
 
 type dbConfig struct {
 	dsn string
+}
+
+type fileStoreConfig struct {
+	avatarsUploadDir string
 }
 
 type corsConfig struct {

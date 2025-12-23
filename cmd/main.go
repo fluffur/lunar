@@ -49,6 +49,9 @@ func main() {
 				},
 			},
 		},
+		fileStore: fileStoreConfig{
+			avatarsUploadDir: "./uploads/avatars",
+		},
 	}
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
@@ -83,7 +86,7 @@ func main() {
 		cfg.auth.token.access.exp,
 		cfg.auth.token.access.iss,
 	)
-	userService := user.NewService(repos)
+	userService := user.NewService(repos, cfg.fileStore.avatarsUploadDir)
 	chatService := chat.NewService(repos)
 	wsService := ws.NewService(rdb, repos, cfg.cors.allowedOrigins)
 	messageService := message.NewService(repos, pool)

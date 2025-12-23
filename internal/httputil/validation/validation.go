@@ -32,6 +32,12 @@ func WriteErrors(w http.ResponseWriter, status int, errors FieldErrors) {
 	})
 }
 
+func WriteError(w http.ResponseWriter, status int, field, message string) {
+	json.Write(w, status, map[string]FieldErrors{
+		"errors": {field: message},
+	})
+}
+
 func fieldErrorMessage(fe validator.FieldError) string {
 	switch fe.Tag() {
 	case "required":

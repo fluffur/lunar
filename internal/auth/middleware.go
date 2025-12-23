@@ -17,30 +17,30 @@ func WebSocketMiddleware(authenticator Authenticator, userService user.Service) 
 			tokenStr := r.URL.Query().Get("token")
 			token, err := authenticator.ValidateToken(tokenStr)
 			if err != nil {
-				http.Error(w, "invalid access token", http.StatusUnauthorized)
+				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 			claims := token.Claims.(jwt.MapClaims)
 
 			sub, ok := claims["sub"].(string)
 			if !ok {
-				http.Error(w, "invalid access token", http.StatusUnauthorized)
+				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
 			userID, err := uuid.Parse(sub)
 			if err != nil {
-				http.Error(w, "invalid access token", http.StatusUnauthorized)
+				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
-			user, err := userService.GetUser(r.Context(), userID)
+			u, err := userService.GetUser(r.Context(), userID)
 			if err != nil {
-				http.Error(w, "invalid access token", http.StatusUnauthorized)
+				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), authctx.UserKey, user)
+			ctx := context.WithValue(r.Context(), authctx.UserIDKey, u)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
@@ -53,18 +53,16 @@ func Middleware(authenticator Authenticator, userService user.Service) func(http
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			authorization := r.Header.Get("Authorization")
 
-			parts := strings.Split(authorization, " ")
+			parts := strings.SplitN(authorization, " ", 2)
 
 			if len(parts) < 2 || parts[0] != "Bearer" {
-
-				http.Error(w, "invalid access token", http.StatusUnauthorized)
+				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
 			token, err := authenticator.ValidateToken(strings.TrimSpace(parts[1]))
 			if err != nil {
-
-				http.Error(w, "invalid access token", http.StatusUnauthorized)
+				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
@@ -72,23 +70,17 @@ func Middleware(authenticator Authenticator, userService user.Service) func(http
 
 			sub, ok := claims["sub"].(string)
 			if !ok {
-				http.Error(w, "invalid access token", http.StatusUnauthorized)
+				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
 			userID, err := uuid.Parse(sub)
 			if err != nil {
-				http.Error(w, "invalid access token", http.StatusUnauthorized)
+				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
-			user, err := userService.GetUser(r.Context(), userID)
-			if err != nil {
-				http.Error(w, "invalid access token", http.StatusUnauthorized)
-				return
-			}
-
-			ctx := context.WithValue(r.Context(), authctx.UserKey, user)
+			ctx := context.WithValue(r.Context(), authctx.UserIDKey, userID)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}

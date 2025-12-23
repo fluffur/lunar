@@ -2,6 +2,7 @@ package json
 
 import (
 	"encoding/json"
+	"log/slog"
 	"net/http"
 )
 
@@ -22,4 +23,16 @@ func WriteError(w http.ResponseWriter, status int, message string) {
 	Write(w, status, map[string]string{
 		"error": message,
 	})
+}
+
+func InternalError(w http.ResponseWriter, r *http.Request, err error) {
+	slog.ErrorContext(
+		r.Context(),
+		"internal_server_error",
+		slog.Any("error", err),
+		slog.String("method", r.Method),
+		slog.String("path", r.URL.Path),
+	)
+
+	w.WriteHeader(http.StatusInternalServerError)
 }

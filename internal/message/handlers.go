@@ -38,12 +38,11 @@ func (h *Handler) ListMessages(w http.ResponseWriter, r *http.Request) {
 
 	messages, err := h.service.ListMessages(ctx, chatID, limit, cursor)
 	if err != nil {
-		switch {
-		case errors.Is(err, ErrChatNotFound):
+		if errors.Is(err, ErrChatNotFound) {
 			json.WriteError(w, http.StatusBadRequest, "Chat not found")
-		default:
-			w.WriteHeader(http.StatusInternalServerError)
+			return
 		}
+		json.InternalError(w, r, err)
 		return
 	}
 

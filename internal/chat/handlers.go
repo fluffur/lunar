@@ -36,7 +36,7 @@ func (h *Handler) CreateChat(w http.ResponseWriter, r *http.Request) {
 	chatID, err := h.service.CreateChat(r.Context(), params)
 	if err != nil {
 		slog.Error("create chat error", "err", err)
-		w.WriteHeader(http.StatusInternalServerError)
+		json.InternalError(w, r, err)
 		return
 	}
 
@@ -44,28 +44,26 @@ func (h *Handler) CreateChat(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) JoinCurrentUser(w http.ResponseWriter, r *http.Request) {
-	user := authctx.UserFromContext(r.Context())
+	userID := authctx.UserIDFromContext(r.Context())
 	chatID := uuid.MustParse(r.PathValue("chatID"))
 
-	if err := h.service.JoinUserToChat(r.Context(), user.ID, chatID); err != nil {
-		slog.Error("join user to chat error", "err", err)
-		w.WriteHeader(http.StatusInternalServerError)
+	if err := h.service.JoinUserToChat(r.Context(), userID, chatID); err != nil {
+		json.InternalError(w, r, err)
 		return
 	}
 
 	json.Write(w, http.StatusOK, nil)
 }
 func (h *Handler) Websocket(w http.ResponseWriter, r *http.Request) {
-	user := authctx.UserFromContext(r.Context())
+	userID := authctx.UserIDFromContext(r.Context())
 	chatID := uuid.MustParse(r.PathValue("chatID"))
 
-	if err := h.service.JoinUserToChat(r.Context(), user.ID, chatID); err != nil {
-		slog.Error("join user to chat error", "err", err)
-		w.WriteHeader(http.StatusInternalServerError)
+	if err := h.service.JoinUserToChat(r.Context(), userID, chatID); err != nil {
+		json.InternalError(w, r, err)
 		return
 	}
 
-	if err := h.wsService.HandleWebSocket(w, r, chatID, user); err != nil {
+	if err := h.wsService.HandleWebSocket(w, r, chatID, userID); err != nil {
 		slog.Error("websocket error", "err", err)
 	}
 }
