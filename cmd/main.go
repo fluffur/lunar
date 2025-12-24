@@ -7,9 +7,9 @@ import (
 	"lunar/internal/auth"
 	"lunar/internal/chat"
 	"lunar/internal/chat/ws"
-	"lunar/internal/env"
 	"lunar/internal/message"
 	"lunar/internal/user"
+	"lunar/internal/utils/env"
 	"os"
 	"reflect"
 	"strings"
@@ -26,7 +26,7 @@ func main() {
 	cfg := config{
 		addr: env.GetString("APP_ADDR", ":8080"),
 		cors: corsConfig{
-			allowedOrigins:   []string{"http://localhost:5173", "http://192.168.79.109:5173"},
+			allowedOrigins:   []string{"http://localhost:5173"},
 			allowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 			allowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 			exposedHeaders:   []string{"Link"},

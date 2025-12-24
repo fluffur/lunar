@@ -2,9 +2,9 @@ package chat
 
 import (
 	"log/slog"
-	"lunar/internal/authctx"
 	"lunar/internal/chat/ws"
-	"lunar/internal/httputil/json"
+	ctxUtils "lunar/internal/utils/ctx"
+	"lunar/internal/utils/json"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -44,7 +44,7 @@ func (h *Handler) CreateChat(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) JoinCurrentUser(w http.ResponseWriter, r *http.Request) {
-	userID := authctx.UserIDFromContext(r.Context())
+	userID := ctxUtils.UserIDFromContext(r.Context())
 	chatID := uuid.MustParse(r.PathValue("chatID"))
 
 	if err := h.service.JoinUserToChat(r.Context(), userID, chatID); err != nil {
@@ -55,7 +55,7 @@ func (h *Handler) JoinCurrentUser(w http.ResponseWriter, r *http.Request) {
 	json.Write(w, http.StatusOK, nil)
 }
 func (h *Handler) Websocket(w http.ResponseWriter, r *http.Request) {
-	userID := authctx.UserIDFromContext(r.Context())
+	userID := ctxUtils.UserIDFromContext(r.Context())
 	chatID := uuid.MustParse(r.PathValue("chatID"))
 
 	if err := h.service.JoinUserToChat(r.Context(), userID, chatID); err != nil {

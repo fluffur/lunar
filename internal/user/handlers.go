@@ -3,9 +3,9 @@ package user
 import (
 	"errors"
 	userapi "lunar/internal/api/user"
-	"lunar/internal/authctx"
-	"lunar/internal/httputil/json"
-	"lunar/internal/httputil/validation"
+	ctxUtils "lunar/internal/utils/ctx"
+	"lunar/internal/utils/json"
+	"lunar/internal/utils/validation"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
@@ -24,7 +24,7 @@ func NewHandler(validate *validator.Validate, service *Service) *Handler {
 }
 
 func (h *Handler) CurrentUser(w http.ResponseWriter, r *http.Request) {
-	userID := authctx.UserIDFromContext(r.Context())
+	userID := ctxUtils.UserIDFromContext(r.Context())
 
 	user, err := h.service.GetUser(r.Context(), userID)
 	if err != nil {
@@ -48,7 +48,7 @@ func (h *Handler) UpdateEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := authctx.UserIDFromContext(r.Context())
+	userID := ctxUtils.UserIDFromContext(r.Context())
 
 	user, err := h.service.GetUser(r.Context(), userID)
 	if err != nil {
@@ -85,7 +85,7 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := authctx.UserIDFromContext(r.Context())
+	userID := ctxUtils.UserIDFromContext(r.Context())
 	if err := h.service.UpdatePassword(r.Context(), userID, req.CurrentPassword, req.NewPassword); err != nil {
 		if errors.Is(err, ErrInvalidCurrentPassword) {
 			validation.WriteError(w, http.StatusBadRequest, "currentPassword", err.Error())
@@ -125,7 +125,7 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	if err := h.service.UpdateAvatar(ctx, authctx.UserIDFromContext(ctx), filename); err != nil {
+	if err := h.service.UpdateAvatar(ctx, ctxUtils.UserIDFromContext(ctx), filename); err != nil {
 		json.InternalError(w, r, err)
 		return
 	}

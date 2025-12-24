@@ -2,7 +2,7 @@ package auth
 
 import (
 	"context"
-	"lunar/internal/authctx"
+	ctxUtils "lunar/internal/utils/ctx"
 	"net/http"
 	"strings"
 
@@ -33,7 +33,7 @@ func WebSocketMiddleware(authenticator Authenticator) func(next http.Handler) ht
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), authctx.UserIDKey, userID)
+			ctx := context.WithValue(r.Context(), ctxUtils.UserIDKey, userID)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
@@ -73,7 +73,7 @@ func Middleware(authenticator Authenticator) func(http.Handler) http.Handler {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), authctx.UserIDKey, userID)
+			ctx := context.WithValue(r.Context(), ctxUtils.UserIDKey, userID)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}

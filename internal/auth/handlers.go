@@ -2,8 +2,8 @@ package auth
 
 import (
 	"errors"
-	"lunar/internal/httputil/json"
-	"lunar/internal/httputil/validation"
+	"lunar/internal/utils/json"
+	"lunar/internal/utils/validation"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"

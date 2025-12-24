@@ -2,7 +2,7 @@ package validation
 
 import (
 	"errors"
-	"lunar/internal/httputil/json"
+	"lunar/internal/utils/json"
 	"net/http"
 
 	"github.com/go-playground/validator/v10"
