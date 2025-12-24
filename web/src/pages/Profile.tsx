@@ -47,11 +47,11 @@ export default function Profile() {
         <Center h="calc(100vh - 80px)" p="md">
             <Paper shadow="sm" withBorder radius="lg" p="xl" w="100%" maw={500}>
                 <Stack align="center">
-                    <AvatarSection user={user} setUser={setUser} />
+                    <AvatarSection/>
 
                     <Title order={2}>{user.username}</Title>
 
-                    <EmailSection user={user} setUser={setUser} />
+                    <EmailSection  />
 
                     {!changingPassword && (
                         <Button

@@ -10,22 +10,11 @@ import {
 import { IconEdit, IconCheck, IconX } from "@tabler/icons-react";
 import { useState } from "react";
 import { api } from "../api.ts";
+import {useSessionStore} from "../stores/sessionStore.ts";
 
-interface User {
-    id: string;
-    username: string;
-    email: string;
-    emailVerified: boolean;
-    avatarUrl: string | null;
-}
-
-interface EmailSectionProps {
-    user: User;
-    setUser: (user: User | null) => void;
-}
-
-export default function EmailSection({ user, setUser }: EmailSectionProps) {
-    const [email, setEmail] = useState(user.email || "");
+export default function EmailSection() {
+    const {user, setUser} = useSessionStore();
+    const [email, setEmail] = useState(user?.email || "");
     const [originalEmail, setOriginalEmail] = useState(email);
     const [isEditingEmail, setIsEditingEmail] = useState(false);
     const [emailSaved, setEmailSaved] = useState(false);
@@ -36,7 +25,9 @@ export default function EmailSection({ user, setUser }: EmailSectionProps) {
 
         try {
             await api.post("/users/me/email", { email });
-            setUser({ ...user, email, emailVerified: false });
+            if (user) {
+                setUser({ ...user, email, emailVerified: false });
+            }
             setOriginalEmail(email);
             setEmailSaved(true);
             setIsEditingEmail(false);
@@ -89,7 +80,7 @@ export default function EmailSection({ user, setUser }: EmailSectionProps) {
                 rightSectionWidth={isEditingEmail ? 65 : 40}
             />
             <Group w="100%">
-                {!user.emailVerified && (
+                {!user?.emailVerified && (
                     <Button
                         variant="light"
                         color="blue"
