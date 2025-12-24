@@ -10,26 +10,17 @@ import Cropper, { type Area } from "react-easy-crop";
 import { UserAvatar } from "./UserAvatar.tsx";
 import getCroppedImg from "../utils/cropImage";
 import { api } from "../api.ts";
+import {useSessionStore} from "../stores/sessionStore.ts";
 
-interface User {
-    id: string;
-    username: string;
-    email: string;
-    emailVerified: boolean;
-    avatarUrl: string | null;
-}
 
-interface AvatarSectionProps {
-    user: User;
-    setUser: (user: User | null) => void;
-}
+export default function AvatarSection() {
+    const {user, setUser} = useSessionStore()
 
-export default function AvatarSection({ user, setUser }: AvatarSectionProps) {
     const fileInputRef = useRef<HTMLInputElement>(null);
     const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [preview, setPreview] = useState<string | null>(null);
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null);
-    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [crop, setCrop] = useState({x: 0, y: 0});
     const [zoom, setZoom] = useState(1);
     const [uploading, setUploading] = useState(false);
     const [cropModalOpened, setCropModalOpened] = useState(false);
@@ -57,12 +48,14 @@ export default function AvatarSection({ user, setUser }: AvatarSectionProps) {
 
         try {
             setUploading(true);
-             await api.post("/users/me/avatar", formData, {
-                 headers: {"Content-Type": "multipart/form-data"},
-             });
+            await api.post("/users/me/avatar", formData, {
+                headers: {"Content-Type": "multipart/form-data"},
+            });
             setSelectedFile(null);
             setPreview(null);
             setCropModalOpened(false);
+            const {data} = await api.get("/users/me");
+            setUser(data)
         } catch (err) {
             console.error(err);
         } finally {
@@ -79,8 +72,8 @@ export default function AvatarSection({ user, setUser }: AvatarSectionProps) {
     return (
         <>
             <UserAvatar
-                username={user.username}
-                avatarUrl={preview || user.avatarUrl}
+                username={user?.username ?? ""}
+                avatarUrl={preview || user?.avatarUrl}
                 size={100}
                 loading={uploading}
                 onClick={() => fileInputRef.current?.click()}
@@ -89,7 +82,7 @@ export default function AvatarSection({ user, setUser }: AvatarSectionProps) {
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
-                style={{ display: "none" }}
+                style={{display: "none"}}
                 onChange={(e) => handleFileChange(e.target.files?.[0] || null)}
             />
 
@@ -102,7 +95,7 @@ export default function AvatarSection({ user, setUser }: AvatarSectionProps) {
             >
                 {preview && (
                     <Stack align="center">
-                        <div style={{ position: "relative", width: 300, height: 300, background: "#333" }}>
+                        <div style={{position: "relative", width: 300, height: 300, background: "#333"}}>
                             <Cropper
                                 image={preview}
                                 crop={crop}
@@ -119,7 +112,7 @@ export default function AvatarSection({ user, setUser }: AvatarSectionProps) {
                             min={1}
                             max={3}
                             step={0.01}
-                            style={{ width: 300 }}
+                            style={{width: 300}}
                         />
                         <Group mt="sm">
                             <Button onClick={handleUpload} loading={uploading}>
@@ -134,4 +127,4 @@ export default function AvatarSection({ user, setUser }: AvatarSectionProps) {
             </Modal>
         </>
     );
-}
+};
