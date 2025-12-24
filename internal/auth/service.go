@@ -24,7 +24,7 @@ type Service struct {
 	q              *sqlc.Queries
 	db             *pgxpool.Pool
 	authenticator  Authenticator
-	refreshService RefreshService
+	refreshService RefreshTokenRepository
 	accessTTL      time.Duration
 	issuer         string
 }
@@ -33,7 +33,7 @@ func NewService(
 	q *sqlc.Queries,
 	db *pgxpool.Pool,
 	authenticator Authenticator,
-	refreshService RefreshService,
+	refreshService RefreshTokenRepository,
 	accessTTL time.Duration,
 	issuer string,
 ) *Service {

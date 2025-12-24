@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"log/slog"
+	"lunar/internal/adapters/jwt"
 	"lunar/internal/adapters/postgresql/sqlc"
+	redis2 "lunar/internal/adapters/redis"
 	"lunar/internal/auth"
 	"lunar/internal/chat"
 	"lunar/internal/chat/ws"
@@ -68,11 +70,11 @@ func main() {
 
 	queries := sqlc.New(pool)
 
-	authenticator := auth.NewJWTAuthenticator(
+	authenticator := jwt.NewJWTAuthenticator(
 		cfg.auth.token.access.secret,
 		cfg.auth.token.access.iss,
 	)
-	refreshService := auth.NewRefreshService(
+	refreshService := redis2.NewRefreshTokenRepository(
 		rdb,
 		cfg.auth.token.refresh.keyPrefix,
 		cfg.auth.token.refresh.userKeyPrefix,

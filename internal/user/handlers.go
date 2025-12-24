@@ -132,3 +132,11 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *Handler) SendVerificationCode(w http.ResponseWriter, r *http.Request) {
+
+}
+
+func (h *Handler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
+
+}

@@ -1,4 +1,4 @@
-package auth
+package redis
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"lunar/internal/auth"
 	"time"
 
 	"github.com/google/uuid"
@@ -17,15 +18,15 @@ var (
 	ErrInvalidRefreshToken = errors.New("invalid refresh token")
 )
 
-type refreshSvc struct {
+type RefreshTokenRepository struct {
 	rdb           *redis.Client
 	keyPrefix     string
 	userKeyPrefix string
 	ttl           time.Duration
 }
 
-func NewRefreshService(rdb *redis.Client, keyPrefix string, userKeyPrefix string, ttl time.Duration) RefreshService {
-	return &refreshSvc{
+func NewRefreshTokenRepository(rdb *redis.Client, keyPrefix string, userKeyPrefix string, ttl time.Duration) auth.RefreshTokenRepository {
+	return &RefreshTokenRepository{
 		rdb:           rdb,
 		keyPrefix:     keyPrefix,
 		userKeyPrefix: userKeyPrefix,
@@ -33,7 +34,7 @@ func NewRefreshService(rdb *redis.Client, keyPrefix string, userKeyPrefix string
 	}
 }
 
-func (s *refreshSvc) Issue(ctx context.Context, userID uuid.UUID) (string, error) {
+func (s *RefreshTokenRepository) Issue(ctx context.Context, userID uuid.UUID) (string, error) {
 	token, err := generateToken()
 	if err != nil {
 		return "", err
@@ -54,7 +55,7 @@ func (s *refreshSvc) Issue(ctx context.Context, userID uuid.UUID) (string, error
 	return token, nil
 }
 
-func (s *refreshSvc) Consume(ctx context.Context, token string) (uuid.UUID, error) {
+func (s *RefreshTokenRepository) Consume(ctx context.Context, token string) (uuid.UUID, error) {
 	hash := hashToken(token)
 	key := s.keyPrefix + hash
 
@@ -76,7 +77,7 @@ func (s *refreshSvc) Consume(ctx context.Context, token string) (uuid.UUID, erro
 	return userID, nil
 }
 
-func (s *refreshSvc) Revoke(ctx context.Context, token string) error {
+func (s *RefreshTokenRepository) Revoke(ctx context.Context, token string) error {
 	_, err := s.Consume(ctx, token)
 	if errors.Is(err, ErrInvalidRefreshToken) {
 		return nil
@@ -84,7 +85,7 @@ func (s *refreshSvc) Revoke(ctx context.Context, token string) error {
 	return err
 }
 
-func (s *refreshSvc) RevokeAll(ctx context.Context, userID uuid.UUID) error {
+func (s *RefreshTokenRepository) RevokeAll(ctx context.Context, userID uuid.UUID) error {
 	hashes, err := s.rdb.SMembers(ctx, s.userKey(userID)).Result()
 	if err != nil {
 		return err
@@ -107,7 +108,7 @@ func (s *refreshSvc) RevokeAll(ctx context.Context, userID uuid.UUID) error {
 	return err
 }
 
-func (s *refreshSvc) userKey(userID uuid.UUID) string {
+func (s *RefreshTokenRepository) userKey(userID uuid.UUID) string {
 	return s.keyPrefix + s.userKeyPrefix + userID.String()
 }
 

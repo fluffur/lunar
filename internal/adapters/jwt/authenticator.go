@@ -1,21 +1,22 @@
-package auth
+package jwt
 
 import (
 	"fmt"
+	"lunar/internal/auth"
 
 	"github.com/golang-jwt/jwt/v5"
 )
 
-type JWTAuthenticator struct {
+type Authenticator struct {
 	secret string
 	iss    string
 }
 
-func NewJWTAuthenticator(secret, iss string) Authenticator {
-	return &JWTAuthenticator{secret, iss}
+func NewJWTAuthenticator(secret, iss string) auth.Authenticator {
+	return &Authenticator{secret, iss}
 }
 
-func (a *JWTAuthenticator) GenerateToken(claims jwt.Claims) (string, error) {
+func (a *Authenticator) GenerateToken(claims jwt.Claims) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 
 	tokenString, err := token.SignedString([]byte(a.secret))
@@ -26,7 +27,7 @@ func (a *JWTAuthenticator) GenerateToken(claims jwt.Claims) (string, error) {
 	return tokenString, nil
 }
 
-func (a *JWTAuthenticator) ValidateToken(token string) (*jwt.Token, error) {
+func (a *Authenticator) ValidateToken(token string) (*jwt.Token, error) {
 	return jwt.Parse(token, func(t *jwt.Token) (any, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method %v", t.Header["alg"])
