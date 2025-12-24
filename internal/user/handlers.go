@@ -2,7 +2,7 @@ package user
 
 import (
 	"errors"
-	userapi "lunar/internal/api/user"
+	userModel "lunar/internal/model/user"
 	ctxUtils "lunar/internal/utils/ctx"
 	"lunar/internal/utils/json"
 	"lunar/internal/utils/validation"
@@ -32,7 +32,7 @@ func (h *Handler) CurrentUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.Write(w, http.StatusOK, userapi.FromRepo(user))
+	json.Write(w, http.StatusOK, userModel.FromRepo(user))
 }
 
 func (h *Handler) UpdateEmail(w http.ResponseWriter, r *http.Request) {

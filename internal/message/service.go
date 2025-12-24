@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"lunar/internal/adapters/postgresql/sqlc"
-	"lunar/internal/api/message"
+	"lunar/internal/model/message"
 	"strconv"
 
 	"github.com/google/uuid"

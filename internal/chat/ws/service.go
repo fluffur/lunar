@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"lunar/internal/adapters/postgresql/sqlc"
-	"lunar/internal/api/message"
+	"lunar/internal/model/message"
 	"net/http"
 	"time"
 

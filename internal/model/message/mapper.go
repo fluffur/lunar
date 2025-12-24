@@ -2,7 +2,7 @@ package message
 
 import (
 	"lunar/internal/adapters/postgresql/sqlc"
-	"lunar/internal/api/user"
+	"lunar/internal/model/user"
 
 	"github.com/jackc/pgx/v5/pgtype"
 )

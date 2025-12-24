@@ -1,7 +1,7 @@
 package message
 
 import (
-	"lunar/internal/api/message"
+	"lunar/internal/model/message"
 )
 
 type messagesResponse struct {

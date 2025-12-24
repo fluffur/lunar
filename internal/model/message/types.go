@@ -1,7 +1,7 @@
 package message
 
 import (
-	"lunar/internal/api/user"
+	"lunar/internal/model/user"
 	"time"
 
 	"github.com/google/uuid"
