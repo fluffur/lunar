@@ -8,27 +8,27 @@ import (
 )
 
 type Service struct {
-	q sqlc.Querier
+	queries db.Querier
 }
 
-func NewService(q sqlc.Querier) *Service {
+func NewService(q db.Querier) *Service {
 	return &Service{
-		q: q,
+		queries: q,
 	}
 }
 
-func (s *Service) GetChat(ctx context.Context, id uuid.UUID) (sqlc.Chat, error) {
-	return s.q.GetChat(ctx, id)
+func (s *Service) GetChat(ctx context.Context, id uuid.UUID) (db.Chat, error) {
+	return s.queries.GetChat(ctx, id)
 }
 
 func (s *Service) CreateChat(ctx context.Context, params createChatParams) (uuid.UUID, error) {
-	return s.q.CreateChat(ctx, sqlc.CreateChatParams{
+	return s.queries.CreateChat(ctx, db.CreateChatParams{
 		Type: params.Type,
 	})
 }
 
 func (s *Service) JoinUserToChat(ctx context.Context, userID uuid.UUID, chatID uuid.UUID) error {
-	return s.q.AddUserToChat(ctx, sqlc.AddUserToChatParams{
+	return s.queries.AddUserToChat(ctx, db.AddUserToChatParams{
 		UserID: userID,
 		ChatID: chatID,
 	})

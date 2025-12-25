@@ -3,7 +3,8 @@ package auth
 import (
 	"context"
 	"errors"
-	"lunar/internal/db/sqlc"
+	db "lunar/internal/db/sqlc"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -19,14 +20,14 @@ var (
 )
 
 type Service struct {
-	queries        *sqlc.Queries
+	queries        *db.Queries
 	db             *pgxpool.Pool
 	authenticator  *Authenticator
 	refreshService RefreshTokenRepository
 }
 
 func NewService(
-	queries *sqlc.Queries,
+	queries *db.Queries,
 	db *pgxpool.Pool,
 	authenticator *Authenticator,
 	refreshService RefreshTokenRepository,
@@ -65,12 +66,18 @@ func (s *Service) Register(ctx context.Context, credentials registerCredentials)
 		return Tokens{}, err
 	}
 
-	user, err := qtx.CreateUser(ctx, sqlc.CreateUserParams{
-		Username: credentials.Username,
-		Email:    credentials.Email,
+	user, err := qtx.CreateUser(ctx, db.CreateUserParams{
+		ID:            uuid.Must(uuid.NewV7()),
+		Username:      credentials.Username,
+		Email:         credentials.Email,
+		EmailVerified: false,
 		PasswordHash: pgtype.Text{
 			String: string(hashedPassword),
 			Valid:  true,
+		},
+		CreatedAt: pgtype.Timestamptz{
+			Time:  time.Now(),
+			Valid: true,
 		},
 	})
 	if err != nil {

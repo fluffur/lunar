@@ -63,7 +63,7 @@ func (h *Handler) Websocket(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.wsService.HandleWebSocket(w, r, chatID, userID); err != nil {
+	if err := h.wsService.HandleWebSocket(w, r, chatID, user.ID); err != nil {
 		slog.Error("websocket error", "err", err)
 	}
 }

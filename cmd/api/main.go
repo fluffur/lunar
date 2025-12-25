@@ -8,7 +8,7 @@ import (
 	"lunar/internal/chat/ws"
 	"lunar/internal/config"
 	redis2 "lunar/internal/db/redis"
-	"lunar/internal/db/sqlc"
+	db "lunar/internal/db/sqlc"
 	"lunar/internal/message"
 	"lunar/internal/user"
 	"os"
@@ -41,7 +41,7 @@ func main() {
 
 	rdb := redis.NewClient(&redis.Options{Addr: cfg.Redis.Addr})
 
-	queries := sqlc.New(pool)
+	queries := db.New(pool)
 
 	authenticator := auth.NewJWTAuthenticator(
 		cfg.Auth.AccessToken.Secret,

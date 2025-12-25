@@ -17,14 +17,14 @@ import (
 
 type Service struct {
 	rdb      *redis.Client
-	q        sqlc.Querier
+	queries  db.Querier
 	upgrader *websocket.Upgrader
 }
 
-func NewService(rdb *redis.Client, q sqlc.Querier, allowedOrigins []string) *Service {
+func NewService(rdb *redis.Client, queries db.Querier, allowedOrigins []string) *Service {
 	return &Service{
-		rdb: rdb,
-		q:   q,
+		rdb:     rdb,
+		queries: queries,
 		upgrader: &websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
@@ -48,7 +48,7 @@ func (s *Service) HandleWebSocket(
 	chatID uuid.UUID,
 	userID uuid.UUID,
 ) error {
-	user, err := s.q.GetUser(r.Context(), userID)
+	user, err := s.queries.GetUser(r.Context(), userID)
 	if err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func (s *Service) handleIncoming(
 	ctx context.Context,
 	conn *websocket.Conn,
 	chatID uuid.UUID,
-	user sqlc.User,
+	user db.User,
 	errChan chan error,
 ) {
 	for {
@@ -110,7 +110,7 @@ func (s *Service) handleIncoming(
 				continue
 			}
 
-			createdMessage, err := s.q.CreateMessage(ctx, sqlc.CreateMessageParams{
+			createdMessage, err := s.queries.CreateMessage(ctx, db.CreateMessageParams{
 				ChatID:   chatID,
 				Content:  content,
 				SenderID: user.ID,
@@ -120,7 +120,7 @@ func (s *Service) handleIncoming(
 				continue
 			}
 
-			msg := model.FromRepo(createdMessage, user)
+			msg := model.MessageFromRepo(createdMessage, user)
 			payload, _ := json.Marshal(msg)
 			s.rdb.Publish(ctx, chatID.String(), payload)
 

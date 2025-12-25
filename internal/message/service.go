@@ -16,18 +16,18 @@ import (
 )
 
 type Service struct {
-	q  *sqlc.Queries
-	db *pgxpool.Pool
+	queries *db.Queries
+	db      *pgxpool.Pool
 }
 
 var (
 	ErrChatNotFound = errors.New("chat not found")
 )
 
-func NewService(q *sqlc.Queries, db *pgxpool.Pool) *Service {
+func NewService(queries *db.Queries, db *pgxpool.Pool) *Service {
 	return &Service{
-		q:  q,
-		db: db,
+		queries: queries,
+		db:      db,
 	}
 }
 
@@ -38,7 +38,7 @@ func (s *Service) ListMessages(ctx context.Context, chatID uuid.UUID, limit int,
 	}
 	defer tx.Rollback(ctx)
 
-	qtx := s.q.WithTx(tx)
+	qtx := s.queries.WithTx(tx)
 
 	exists, err := qtx.ChatExists(ctx, chatID)
 	if err != nil {
@@ -48,7 +48,7 @@ func (s *Service) ListMessages(ctx context.Context, chatID uuid.UUID, limit int,
 		return nil, ErrChatNotFound
 	}
 
-	params := sqlc.GetMessagesPagingParams{
+	params := db.GetMessagesPagingParams{
 		ChatID: chatID,
 		Limit:  int32(limit),
 	}

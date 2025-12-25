@@ -1,12 +1,7 @@
 package user
 
 import (
-	"context"
 	"errors"
-	"lunar/internal/infrastructure/db/sqlc"
-	"time"
-
-	"github.com/google/uuid"
 )
 
 var (
@@ -16,30 +11,6 @@ var (
 	ErrInvalidImage           = errors.New("invalid image")
 	ErrUploadAvatar           = errors.New("failed to upload avatar")
 )
-
-type VerificationCodeRepository interface {
-	SaveVerificationCode(
-		ctx context.Context,
-		userID uuid.UUID,
-		codeHash []byte,
-		expiresAt time.Time,
-	) error
-
-	GetVerificationCode(
-		ctx context.Context,
-		userID uuid.UUID,
-	) (*sqlc.EmailVerificationCode, error)
-
-	IncrementAttempts(
-		ctx context.Context,
-		userID uuid.UUID,
-	) error
-
-	Delete(
-		ctx context.Context,
-		userID uuid.UUID,
-	) error
-}
 
 type updateEmailRequest struct {
 	Email string `json:"email" validate:"required,email"`

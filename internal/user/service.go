@@ -24,24 +24,24 @@ import (
 )
 
 type Service struct {
-	q                sqlc.Querier
+	queries          db.Querier
 	avatarsUploadDir string
 	emailQueue       *redis.EmailQueue
 }
 
-func NewService(q sqlc.Querier, avatarsUploadDir string) *Service {
+func NewService(queries db.Querier, avatarsUploadDir string) *Service {
 	return &Service{
-		q:                q,
+		queries:          queries,
 		avatarsUploadDir: avatarsUploadDir,
 	}
 }
 
-func (s *Service) GetUser(ctx context.Context, id uuid.UUID) (sqlc.User, error) {
-	return s.q.GetUser(ctx, id)
+func (s *Service) GetUser(ctx context.Context, id uuid.UUID) (db.User, error) {
+	return s.queries.GetUser(ctx, id)
 }
 
 func (s *Service) UpdateAvatar(ctx context.Context, id uuid.UUID, url string) error {
-	return s.q.UpdateUserAvatar(ctx, sqlc.UpdateUserAvatarParams{
+	return s.queries.UpdateUserAvatar(ctx, db.UpdateUserAvatarParams{
 		ID: id,
 		AvatarUrl: pgtype.Text{
 			String: url,
@@ -51,7 +51,7 @@ func (s *Service) UpdateAvatar(ctx context.Context, id uuid.UUID, url string) er
 }
 
 func (s *Service) UpdateEmail(ctx context.Context, id uuid.UUID, email string) error {
-	err := s.q.UpdateUserEmail(ctx, sqlc.UpdateUserEmailParams{
+	err := s.queries.UpdateUserEmail(ctx, db.UpdateUserEmailParams{
 		ID:    id,
 		Email: email,
 	})
@@ -67,7 +67,7 @@ func (s *Service) UpdateEmail(ctx context.Context, id uuid.UUID, email string) e
 }
 
 func (s *Service) UpdatePassword(ctx context.Context, id uuid.UUID, currentPassword, newPassword string) error {
-	user, err := s.q.GetUser(ctx, id)
+	user, err := s.queries.GetUser(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -81,7 +81,7 @@ func (s *Service) UpdatePassword(ctx context.Context, id uuid.UUID, currentPassw
 		return err
 	}
 
-	return s.q.UpdateUserPassword(ctx, sqlc.UpdateUserPasswordParams{
+	return s.queries.UpdateUserPassword(ctx, db.UpdateUserPasswordParams{
 		ID: id,
 		PasswordHash: pgtype.Text{
 			String: string(newPasswordHash),
@@ -117,7 +117,7 @@ func (s *Service) UploadAvatar(file multipart.File) (string, error) {
 }
 
 func (s *Service) SendVerificationCode(ctx context.Context, id uuid.UUID) error {
-	user, err := s.q.GetUser(ctx, id)
+	user, err := s.queries.GetUser(ctx, id)
 	if err != nil {
 		return err
 	}
@@ -133,7 +133,7 @@ func (s *Service) SendVerificationCode(ctx context.Context, id uuid.UUID) error 
 		return err
 	}
 
-	if err := s.q.UpsertEmailVerificationCode(ctx, sqlc.UpsertEmailVerificationCodeParams{
+	if err := s.queries.UpsertEmailVerificationCode(ctx, db.UpsertEmailVerificationCodeParams{
 		UserID:   id,
 		CodeHash: string(codeHash),
 		ExpiresAt: pgtype.Timestamptz{
