@@ -2,15 +2,19 @@ package user
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"fmt"
 	"image"
 	"image/jpeg"
 	"log/slog"
-	"lunar/internal/adapters/postgresql/sqlc"
+	"lunar/internal/db/redis"
+	"lunar/internal/db/sqlc"
+	"math/big"
 	"mime/multipart"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/disintegration/imaging"
 	"github.com/google/uuid"
@@ -22,6 +26,7 @@ import (
 type Service struct {
 	q                sqlc.Querier
 	avatarsUploadDir string
+	emailQueue       *redis.EmailQueue
 }
 
 func NewService(q sqlc.Querier, avatarsUploadDir string) *Service {
@@ -109,4 +114,40 @@ func (s *Service) UploadAvatar(file multipart.File) (string, error) {
 	}
 
 	return resultFilename, nil
+}
+
+func (s *Service) SendVerificationCode(ctx context.Context, id uuid.UUID) error {
+	user, err := s.q.GetUser(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	n, err := rand.Int(rand.Reader, big.NewInt(1_000_000))
+	if err != nil {
+		return err
+	}
+
+	code := fmt.Sprintf("%06d", n)
+	codeHash, err := bcrypt.GenerateFromPassword([]byte(code), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	if err := s.q.UpsertEmailVerificationCode(ctx, sqlc.UpsertEmailVerificationCodeParams{
+		UserID:   id,
+		CodeHash: string(codeHash),
+		ExpiresAt: pgtype.Timestamptz{
+			Time:  time.Now().Add(time.Minute * 15),
+			Valid: true,
+		},
+	}); err != nil {
+		return err
+	}
+
+	return s.emailQueue.Enqueue(ctx, redis.EmailJob{
+		To:      user.Email,
+		Subject: "Verification Code",
+		Body:    code,
+	})
+
 }

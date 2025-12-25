@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"lunar/internal/adapters/postgresql/sqlc"
-	"lunar/internal/model/message"
+	"lunar/internal/db/sqlc"
+	"lunar/internal/model"
 	"net/http"
 	"time"
 
@@ -120,7 +120,7 @@ func (s *Service) handleIncoming(
 				continue
 			}
 
-			msg := message.FromRepo(createdMessage, user)
+			msg := model.FromRepo(createdMessage, user)
 			payload, _ := json.Marshal(msg)
 			s.rdb.Publish(ctx, chatID.String(), payload)
 

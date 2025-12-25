@@ -3,7 +3,6 @@ package auth
 import (
 	"context"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
@@ -19,14 +18,9 @@ type loginCredentials struct {
 	Password string `json:"password" validate:"required,min=6,max=72"`
 }
 
-type authTokens struct {
+type Tokens struct {
 	AccessToken  string `json:"accessToken"`
 	RefreshToken string `json:"refreshToken"`
-}
-
-type Authenticator interface {
-	GenerateToken(claims jwt.Claims) (string, error)
-	ValidateToken(token string) (*jwt.Token, error)
 }
 
 type RefreshTokenRepository interface {

@@ -19,8 +19,8 @@ ON CONFLICT (chat_id, user_id) DO NOTHING
 `
 
 type AddUserToChatParams struct {
-	ChatID uuid.UUID `json:"chatId"`
-	UserID uuid.UUID `json:"userId"`
+	ChatID uuid.UUID `db:"chat_id" json:"chatId"`
+	UserID uuid.UUID `db:"user_id" json:"userId"`
 }
 
 func (q *Queries) AddUserToChat(ctx context.Context, arg AddUserToChatParams) error {
@@ -48,8 +48,8 @@ RETURNING chats.id
 `
 
 type CreateChatParams struct {
-	Name pgtype.Text `json:"name"`
-	Type string      `json:"type"`
+	Name pgtype.Text `db:"name" json:"name"`
+	Type string      `db:"type" json:"type"`
 }
 
 func (q *Queries) CreateChat(ctx context.Context, arg CreateChatParams) (uuid.UUID, error) {
@@ -85,8 +85,8 @@ SELECT EXISTS (SELECT 1
 `
 
 type IsUserChatMemberParams struct {
-	ChatID uuid.UUID `json:"chatId"`
-	UserID uuid.UUID `json:"userId"`
+	ChatID uuid.UUID `db:"chat_id" json:"chatId"`
+	UserID uuid.UUID `db:"user_id" json:"userId"`
 }
 
 func (q *Queries) IsUserChatMember(ctx context.Context, arg IsUserChatMemberParams) (bool, error) {

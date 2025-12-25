@@ -15,7 +15,7 @@ type Querier interface {
 	ChatExists(ctx context.Context, chatID uuid.UUID) (bool, error)
 	CreateChat(ctx context.Context, arg CreateChatParams) (uuid.UUID, error)
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
-	CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error)
+	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	GetChat(ctx context.Context, id uuid.UUID) (Chat, error)
 	GetMessagesPaging(ctx context.Context, arg GetMessagesPagingParams) ([]GetMessagesPagingRow, error)
 	GetUser(ctx context.Context, id uuid.UUID) (User, error)
@@ -24,6 +24,7 @@ type Querier interface {
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error
 	UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) error
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
+	UpsertEmailVerificationCode(ctx context.Context, arg UpsertEmailVerificationCodeParams) error
 	UserWithEmailExists(ctx context.Context, email string) (bool, error)
 	UserWithUsernameExists(ctx context.Context, username string) (bool, error)
 }

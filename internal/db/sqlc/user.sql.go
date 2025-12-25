@@ -13,26 +13,46 @@ import (
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (username, email, password_hash)
-VALUES ($1, $2, $3)
-RETURNING users.id
+INSERT INTO users (id, username, email, password_hash, created_at, avatar_url, email_verified)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, username, email, email_verified, password_hash, created_at, avatar_url
 `
 
 type CreateUserParams struct {
-	Username     string      `json:"username"`
-	Email        string      `json:"email"`
-	PasswordHash pgtype.Text `json:"passwordHash"`
+	ID            uuid.UUID          `db:"id" json:"id"`
+	Username      string             `db:"username" json:"username"`
+	Email         string             `db:"email" json:"email"`
+	PasswordHash  pgtype.Text        `db:"password_hash" json:"passwordHash"`
+	CreatedAt     pgtype.Timestamptz `db:"created_at" json:"createdAt"`
+	AvatarUrl     pgtype.Text        `db:"avatar_url" json:"avatarUrl"`
+	EmailVerified bool               `db:"email_verified" json:"emailVerified"`
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (uuid.UUID, error) {
-	row := q.db.QueryRow(ctx, createUser, arg.Username, arg.Email, arg.PasswordHash)
-	var id uuid.UUID
-	err := row.Scan(&id)
-	return id, err
+func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
+	row := q.db.QueryRow(ctx, createUser,
+		arg.ID,
+		arg.Username,
+		arg.Email,
+		arg.PasswordHash,
+		arg.CreatedAt,
+		arg.AvatarUrl,
+		arg.EmailVerified,
+	)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.Username,
+		&i.Email,
+		&i.EmailVerified,
+		&i.PasswordHash,
+		&i.CreatedAt,
+		&i.AvatarUrl,
+	)
+	return i, err
 }
 
 const getUser = `-- name: GetUser :one
-SELECT id, username, email, password_hash, created_at, avatar_url, email_verified
+SELECT id, username, email, email_verified, password_hash, created_at, avatar_url
 FROM users
 WHERE id = $1
 LIMIT 1
@@ -45,16 +65,16 @@ func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.ID,
 		&i.Username,
 		&i.Email,
+		&i.EmailVerified,
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.AvatarUrl,
-		&i.EmailVerified,
 	)
 	return i, err
 }
 
 const getUserByLogin = `-- name: GetUserByLogin :one
-SELECT id, username, email, password_hash, created_at, avatar_url, email_verified
+SELECT id, username, email, email_verified, password_hash, created_at, avatar_url
 FROM users
 WHERE username = $1
    OR email = $1
@@ -68,10 +88,10 @@ func (q *Queries) GetUserByLogin(ctx context.Context, login string) (User, error
 		&i.ID,
 		&i.Username,
 		&i.Email,
+		&i.EmailVerified,
 		&i.PasswordHash,
 		&i.CreatedAt,
 		&i.AvatarUrl,
-		&i.EmailVerified,
 	)
 	return i, err
 }
@@ -83,8 +103,8 @@ WHERE id = $2
 `
 
 type UpdateUserAvatarParams struct {
-	AvatarUrl pgtype.Text `json:"avatarUrl"`
-	ID        uuid.UUID   `json:"id"`
+	AvatarUrl pgtype.Text `db:"avatar_url" json:"avatarUrl"`
+	ID        uuid.UUID   `db:"id" json:"id"`
 }
 
 func (q *Queries) UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error {
@@ -100,8 +120,8 @@ WHERE id = $2
 `
 
 type UpdateUserEmailParams struct {
-	Email string    `json:"email"`
-	ID    uuid.UUID `json:"id"`
+	Email string    `db:"email" json:"email"`
+	ID    uuid.UUID `db:"id" json:"id"`
 }
 
 func (q *Queries) UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) error {
@@ -116,12 +136,28 @@ WHERE id = $2
 `
 
 type UpdateUserPasswordParams struct {
-	PasswordHash pgtype.Text `json:"passwordHash"`
-	ID           uuid.UUID   `json:"id"`
+	PasswordHash pgtype.Text `db:"password_hash" json:"passwordHash"`
+	ID           uuid.UUID   `db:"id" json:"id"`
 }
 
 func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error {
 	_, err := q.db.Exec(ctx, updateUserPassword, arg.PasswordHash, arg.ID)
+	return err
+}
+
+const upsertEmailVerificationCode = `-- name: UpsertEmailVerificationCode :exec
+INSERT INTO email_verification_codes (user_id, code_hash, expires_at)
+VALUES ($1, $2, $3)
+`
+
+type UpsertEmailVerificationCodeParams struct {
+	UserID    uuid.UUID          `db:"user_id" json:"userId"`
+	CodeHash  string             `db:"code_hash" json:"codeHash"`
+	ExpiresAt pgtype.Timestamptz `db:"expires_at" json:"expiresAt"`
+}
+
+func (q *Queries) UpsertEmailVerificationCode(ctx context.Context, arg UpsertEmailVerificationCodeParams) error {
+	_, err := q.db.Exec(ctx, upsertEmailVerificationCode, arg.UserID, arg.CodeHash, arg.ExpiresAt)
 	return err
 }
 

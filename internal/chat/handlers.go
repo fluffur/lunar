@@ -44,10 +44,10 @@ func (h *Handler) CreateChat(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) JoinCurrentUser(w http.ResponseWriter, r *http.Request) {
-	userID := ctxUtils.UserIDFromContext(r.Context())
+	user := ctxUtils.UserFromRequest(r)
 	chatID := uuid.MustParse(r.PathValue("chatID"))
 
-	if err := h.service.JoinUserToChat(r.Context(), userID, chatID); err != nil {
+	if err := h.service.JoinUserToChat(r.Context(), user.ID, chatID); err != nil {
 		json.InternalError(w, r, err)
 		return
 	}
@@ -55,10 +55,10 @@ func (h *Handler) JoinCurrentUser(w http.ResponseWriter, r *http.Request) {
 	json.Write(w, http.StatusOK, nil)
 }
 func (h *Handler) Websocket(w http.ResponseWriter, r *http.Request) {
-	userID := ctxUtils.UserIDFromContext(r.Context())
+	user := ctxUtils.UserFromRequest(r)
 	chatID := uuid.MustParse(r.PathValue("chatID"))
 
-	if err := h.service.JoinUserToChat(r.Context(), userID, chatID); err != nil {
+	if err := h.service.JoinUserToChat(r.Context(), user.ID, chatID); err != nil {
 		json.InternalError(w, r, err)
 		return
 	}

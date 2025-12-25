@@ -6,34 +6,26 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
-func WebSocketMiddleware(authenticator Authenticator) func(next http.Handler) http.Handler {
+func WebSocketMiddleware(authenticator *Authenticator) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			tokenStr := r.URL.Query().Get("token")
-			token, err := authenticator.ValidateToken(tokenStr)
-			if err != nil {
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-			claims := token.Claims.(jwt.MapClaims)
-
-			sub, ok := claims["sub"].(string)
-			if !ok {
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-
-			userID, err := uuid.Parse(sub)
+			claims, err := authenticator.ParseClaims(tokenStr)
 			if err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), ctxUtils.UserIDKey, userID)
+			userID, err := uuid.Parse(claims.Subject)
+			if err != nil {
+				w.WriteHeader(http.StatusUnauthorized)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), ctxUtils.UserCtxKey, userID)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}
@@ -41,11 +33,10 @@ func WebSocketMiddleware(authenticator Authenticator) func(next http.Handler) ht
 	}
 }
 
-func Middleware(authenticator Authenticator) func(http.Handler) http.Handler {
+func Middleware(authenticator *Authenticator) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		fn := func(w http.ResponseWriter, r *http.Request) {
 			authorization := r.Header.Get("Authorization")
-
 			parts := strings.SplitN(authorization, " ", 2)
 
 			if len(parts) < 2 || parts[0] != "Bearer" {
@@ -53,27 +44,20 @@ func Middleware(authenticator Authenticator) func(http.Handler) http.Handler {
 				return
 			}
 
-			token, err := authenticator.ValidateToken(strings.TrimSpace(parts[1]))
+			tokenStr := strings.TrimSpace(parts[1])
+			claims, err := authenticator.ParseClaims(tokenStr)
 			if err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
-			claims := token.Claims.(jwt.MapClaims)
-
-			sub, ok := claims["sub"].(string)
-			if !ok {
-				w.WriteHeader(http.StatusUnauthorized)
-				return
-			}
-
-			userID, err := uuid.Parse(sub)
+			userID, err := uuid.Parse(claims.Subject)
 			if err != nil {
 				w.WriteHeader(http.StatusUnauthorized)
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), ctxUtils.UserIDKey, userID)
+			ctx := context.WithValue(r.Context(), ctxUtils.UserCtxKey, userID)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		}

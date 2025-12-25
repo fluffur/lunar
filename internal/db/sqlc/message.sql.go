@@ -19,9 +19,9 @@ RETURNING id, chat_id, sender_id, content, created_at
 `
 
 type CreateMessageParams struct {
-	ChatID   uuid.UUID `json:"chatId"`
-	SenderID uuid.UUID `json:"senderId"`
-	Content  string    `json:"content"`
+	ChatID   uuid.UUID `db:"chat_id" json:"chatId"`
+	SenderID uuid.UUID `db:"sender_id" json:"senderId"`
+	Content  string    `db:"content" json:"content"`
 }
 
 func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error) {
@@ -38,7 +38,7 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 }
 
 const getMessagesPaging = `-- name: GetMessagesPaging :many
-SELECT m.id, m.chat_id, m.sender_id, m.content, m.created_at, u.id, u.username, u.email, u.password_hash, u.created_at, u.avatar_url, u.email_verified
+SELECT m.id, m.chat_id, m.sender_id, m.content, m.created_at, u.id, u.username, u.email, u.email_verified, u.password_hash, u.created_at, u.avatar_url
 FROM messages m
          JOIN users u ON u.id = m.sender_id
 WHERE m.chat_id = $1::uuid
@@ -52,25 +52,25 @@ LIMIT $4
 `
 
 type GetMessagesPagingParams struct {
-	ChatID          uuid.UUID          `json:"chatId"`
-	CursorCreatedAt pgtype.Timestamptz `json:"cursorCreatedAt"`
-	CursorID        uuid.UUID          `json:"cursorId"`
-	Limit           int32              `json:"limit"`
+	ChatID          uuid.UUID          `db:"chat_id" json:"chatId"`
+	CursorCreatedAt pgtype.Timestamptz `db:"cursor_created_at" json:"cursorCreatedAt"`
+	CursorID        uuid.UUID          `db:"cursor_id" json:"cursorId"`
+	Limit           int32              `db:"limit_" json:"limit"`
 }
 
 type GetMessagesPagingRow struct {
-	ID            uuid.UUID          `json:"id"`
-	ChatID        uuid.UUID          `json:"chatId"`
-	SenderID      uuid.UUID          `json:"senderId"`
-	Content       string             `json:"content"`
-	CreatedAt     pgtype.Timestamptz `json:"createdAt"`
-	ID_2          uuid.UUID          `json:"id2"`
-	Username      string             `json:"username"`
-	Email         string             `json:"email"`
-	PasswordHash  pgtype.Text        `json:"passwordHash"`
-	CreatedAt_2   pgtype.Timestamptz `json:"createdAt2"`
-	AvatarUrl     pgtype.Text        `json:"avatarUrl"`
-	EmailVerified bool               `json:"emailVerified"`
+	ID            uuid.UUID          `db:"id" json:"id"`
+	ChatID        uuid.UUID          `db:"chat_id" json:"chatId"`
+	SenderID      uuid.UUID          `db:"sender_id" json:"senderId"`
+	Content       string             `db:"content" json:"content"`
+	CreatedAt     pgtype.Timestamptz `db:"created_at" json:"createdAt"`
+	ID_2          uuid.UUID          `db:"id_2" json:"id2"`
+	Username      string             `db:"username" json:"username"`
+	Email         string             `db:"email" json:"email"`
+	EmailVerified bool               `db:"email_verified" json:"emailVerified"`
+	PasswordHash  pgtype.Text        `db:"password_hash" json:"passwordHash"`
+	CreatedAt_2   pgtype.Timestamptz `db:"created_at_2" json:"createdAt2"`
+	AvatarUrl     pgtype.Text        `db:"avatar_url" json:"avatarUrl"`
 }
 
 func (q *Queries) GetMessagesPaging(ctx context.Context, arg GetMessagesPagingParams) ([]GetMessagesPagingRow, error) {
@@ -84,7 +84,7 @@ func (q *Queries) GetMessagesPaging(ctx context.Context, arg GetMessagesPagingPa
 		return nil, err
 	}
 	defer rows.Close()
-	var items []GetMessagesPagingRow
+	items := []GetMessagesPagingRow{}
 	for rows.Next() {
 		var i GetMessagesPagingRow
 		if err := rows.Scan(
@@ -96,10 +96,10 @@ func (q *Queries) GetMessagesPaging(ctx context.Context, arg GetMessagesPagingPa
 			&i.ID_2,
 			&i.Username,
 			&i.Email,
+			&i.EmailVerified,
 			&i.PasswordHash,
 			&i.CreatedAt_2,
 			&i.AvatarUrl,
-			&i.EmailVerified,
 		); err != nil {
 			return nil, err
 		}

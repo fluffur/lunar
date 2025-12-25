@@ -1,10 +1,10 @@
 package message
 
 import (
-	"lunar/internal/model/message"
+	"lunar/internal/model"
 )
 
 type messagesResponse struct {
-	Messages   []message.Message `json:"messages"`
-	NextCursor string            `json:"nextCursor"`
+	Messages   []model.Message `json:"messages"`
+	NextCursor string          `json:"nextCursor"`
 }

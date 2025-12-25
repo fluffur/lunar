@@ -2,7 +2,7 @@ package user
 
 import (
 	"errors"
-	userModel "lunar/internal/model/user"
+	userModel "lunar/internal/model"
 	ctxUtils "lunar/internal/utils/ctx"
 	"lunar/internal/utils/json"
 	"lunar/internal/utils/validation"
@@ -24,15 +24,15 @@ func NewHandler(validate *validator.Validate, service *Service) *Handler {
 }
 
 func (h *Handler) CurrentUser(w http.ResponseWriter, r *http.Request) {
-	userID := ctxUtils.UserIDFromContext(r.Context())
+	userCtx := ctxUtils.UserFromRequest(r)
 
-	user, err := h.service.GetUser(r.Context(), userID)
+	user, err := h.service.GetUser(r.Context(), userCtx.ID)
 	if err != nil {
 		json.InternalError(w, r, err)
 		return
 	}
 
-	json.Write(w, http.StatusOK, userModel.FromRepo(user))
+	json.Write(w, http.StatusOK, userModel.UserFromRepo(user))
 }
 
 func (h *Handler) UpdateEmail(w http.ResponseWriter, r *http.Request) {
@@ -48,9 +48,9 @@ func (h *Handler) UpdateEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := ctxUtils.UserIDFromContext(r.Context())
+	userCtx := ctxUtils.UserFromRequest(r)
 
-	user, err := h.service.GetUser(r.Context(), userID)
+	user, err := h.service.GetUser(r.Context(), userCtx.ID)
 	if err != nil {
 		json.InternalError(w, r, err)
 		return
@@ -85,8 +85,8 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userID := ctxUtils.UserIDFromContext(r.Context())
-	if err := h.service.UpdatePassword(r.Context(), userID, req.CurrentPassword, req.NewPassword); err != nil {
+	userCtx := ctxUtils.UserFromRequest(r)
+	if err := h.service.UpdatePassword(r.Context(), userCtx.ID, req.CurrentPassword, req.NewPassword); err != nil {
 		if errors.Is(err, ErrInvalidCurrentPassword) {
 			validation.WriteError(w, http.StatusBadRequest, "currentPassword", err.Error())
 			return
@@ -125,7 +125,7 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ctx := r.Context()
-	if err := h.service.UpdateAvatar(ctx, ctxUtils.UserIDFromContext(ctx), filename); err != nil {
+	if err := h.service.UpdateAvatar(ctx, ctxUtils.UserFromRequest(r).ID, filename); err != nil {
 		json.InternalError(w, r, err)
 		return
 	}
@@ -134,7 +134,25 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) SendVerificationCode(w http.ResponseWriter, r *http.Request) {
+	var req sendVerificationCodeRequest
+	if err := json.Read(r, &req); err != nil {
+		json.WriteError(w, http.StatusBadRequest, "invalid request body")
+		return
+	}
 
+	if err := h.validate.Struct(req); err != nil {
+		validation.WriteErrors(w, http.StatusBadRequest, validation.MapErrors(err))
+		return
+	}
+
+	userCtx := ctxUtils.UserFromRequest(r)
+
+	if err := h.service.SendVerificationCode(r.Context(), userCtx.ID); err != nil {
+		json.InternalError(w, r, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *Handler) VerifyEmail(w http.ResponseWriter, r *http.Request) {

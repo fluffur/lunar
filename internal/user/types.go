@@ -3,7 +3,7 @@ package user
 import (
 	"context"
 	"errors"
-	"lunar/internal/adapters/postgresql/sqlc"
+	"lunar/internal/infrastructure/db/sqlc"
 	"time"
 
 	"github.com/google/uuid"
@@ -48,4 +48,8 @@ type updateEmailRequest struct {
 type updatePasswordRequest struct {
 	CurrentPassword string `json:"currentPassword" validate:"required,min=6"`
 	NewPassword     string `json:"newPassword" validate:"required,min=6"`
+}
+
+type sendVerificationCodeRequest struct {
+	Email string `json:"email" validate:"required,email"`
 }

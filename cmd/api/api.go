@@ -1,10 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"log/slog"
 	"lunar/internal/auth"
 	"lunar/internal/chat"
 	"lunar/internal/chat/ws"
+	"lunar/internal/config"
 	"lunar/internal/message"
 	"lunar/internal/user"
 	"net/http"
@@ -27,12 +29,12 @@ func (app *application) mount() http.Handler {
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.Timeout(60 * time.Second))
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   app.config.cors.allowedOrigins,
-		AllowedMethods:   app.config.cors.allowedMethods,
-		AllowedHeaders:   app.config.cors.allowedHeaders,
-		ExposedHeaders:   app.config.cors.exposedHeaders,
-		AllowCredentials: app.config.cors.allowCredentials,
-		MaxAge:           app.config.cors.maxAge,
+		AllowedOrigins:   app.config.CORS.AllowedOrigins,
+		AllowedMethods:   app.config.CORS.AllowedMethods,
+		AllowedHeaders:   app.config.CORS.AllowedHeaders,
+		ExposedHeaders:   app.config.CORS.ExposedHeaders,
+		AllowCredentials: app.config.CORS.AllowCredentials,
+		MaxAge:           app.config.CORS.MaxAge,
 	}))
 
 	authMw := auth.Middleware(app.authenticator)
@@ -80,79 +82,27 @@ func (app *application) mount() http.Handler {
 
 func (app *application) run(h http.Handler) error {
 	srv := &http.Server{
-		Addr:         app.config.addr,
+		Addr:         fmt.Sprintf(":%d", app.config.Addr),
 		Handler:      h,
 		WriteTimeout: 30 * time.Second,
 		ReadTimeout:  10 * time.Second,
 		IdleTimeout:  time.Minute,
 	}
 
-	slog.Info("server has started", "addr", app.config.addr)
+	slog.Info("server has started", "addr", app.config.Addr)
 
 	return srv.ListenAndServe()
 }
 
 type application struct {
-	config         config
+	config         *config.Config
 	db             *pgxpool.Pool
 	rdb            *redis.Client
-	authenticator  auth.Authenticator
+	authenticator  *auth.Authenticator
 	authService    *auth.Service
 	userService    *user.Service
 	chatService    *chat.Service
 	wsService      *ws.Service
 	messageService *message.Service
 	validate       *validator.Validate
-}
-
-type config struct {
-	addr string
-	cors corsConfig
-	auth authConfig
-
-	db        dbConfig
-	redis     redisConfig
-	fileStore fileStoreConfig
-}
-
-type dbConfig struct {
-	dsn string
-}
-
-type fileStoreConfig struct {
-	avatarsUploadDir string
-}
-
-type corsConfig struct {
-	allowedOrigins   []string
-	allowedMethods   []string
-	allowedHeaders   []string
-	exposedHeaders   []string
-	allowCredentials bool
-	maxAge           int
-}
-
-type redisConfig struct {
-	addr string
-}
-
-type authConfig struct {
-	token tokenConfig
-}
-
-type tokenConfig struct {
-	access  accessTokenConfig
-	refresh refreshTokenConfig
-}
-
-type accessTokenConfig struct {
-	secret string
-	exp    time.Duration
-	iss    string
-}
-
-type refreshTokenConfig struct {
-	exp           time.Duration
-	keyPrefix     string
-	userKeyPrefix string
 }

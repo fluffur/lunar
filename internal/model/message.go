@@ -1,26 +1,34 @@
-package message
+package model
 
 import (
-	"lunar/internal/adapters/postgresql/sqlc"
-	"lunar/internal/model/user"
+	db "lunar/internal/db/sqlc"
+	"time"
 
-	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/google/uuid"
 )
 
-func FromRepo(
-	msg sqlc.Message,
-	sender sqlc.User,
+type Message struct {
+	ID        uuid.UUID `json:"id"`
+	ChatID    uuid.UUID `json:"chatId"`
+	Content   string    `json:"content"`
+	Sender    User      `json:"sender"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+func MessageFromRepo(
+	msg db.Message,
+	sender db.User,
 ) Message {
 	return Message{
 		ID:        msg.ID,
 		ChatID:    msg.ChatID,
 		Content:   msg.Content,
 		CreatedAt: msg.CreatedAt.Time,
-		Sender:    user.FromRepo(sender),
+		Sender:    UserFromRepo(sender),
 	}
 }
 
-func MessagesFromRepo(rows []sqlc.GetMessagesPagingRow) []Message {
+func MessagesFromRepo(rows []db.GetMessagesPagingRow) []Message {
 	result := make([]Message, 0, len(rows))
 	for _, r := range rows {
 		result = append(result, Message{
@@ -28,7 +36,7 @@ func MessagesFromRepo(rows []sqlc.GetMessagesPagingRow) []Message {
 			ChatID:    r.ChatID,
 			Content:   r.Content,
 			CreatedAt: r.CreatedAt.Time,
-			Sender: user.User{
+			Sender: User{
 				ID:            r.SenderID,
 				Username:      r.Username,
 				Email:         r.Email,
@@ -38,11 +46,4 @@ func MessagesFromRepo(rows []sqlc.GetMessagesPagingRow) []Message {
 		})
 	}
 	return result
-}
-
-func textOrEmpty(t pgtype.Text) string {
-	if t.Valid {
-		return t.String
-	}
-	return ""
 }

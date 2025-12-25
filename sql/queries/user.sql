@@ -7,9 +7,9 @@ LIMIT 1
 ;
 
 -- name: CreateUser :one
-INSERT INTO users (username, email, password_hash)
-VALUES ($1, $2, $3)
-RETURNING users.id;
+INSERT INTO users (id, username, email, password_hash, created_at, avatar_url, email_verified)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING *;
 
 -- name: GetUser :one
 SELECT *
@@ -44,3 +44,7 @@ WHERE id = $2;
 UPDATE users
 SET avatar_url = $1
 WHERE id = $2;
+
+-- name: UpsertEmailVerificationCode :exec
+INSERT INTO email_verification_codes (user_id, code_hash, expires_at)
+VALUES ($1, $2, $3);

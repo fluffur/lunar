@@ -5,8 +5,8 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"lunar/internal/adapters/postgresql/sqlc"
-	"lunar/internal/model/message"
+	"lunar/internal/db/sqlc"
+	"lunar/internal/model"
 	"strconv"
 
 	"github.com/google/uuid"
@@ -31,7 +31,7 @@ func NewService(q *sqlc.Queries, db *pgxpool.Pool) *Service {
 	}
 }
 
-func (s *Service) ListMessages(ctx context.Context, chatID uuid.UUID, limit int, cursor *Cursor) ([]message.Message, error) {
+func (s *Service) ListMessages(ctx context.Context, chatID uuid.UUID, limit int, cursor *Cursor) ([]model.Message, error) {
 	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.ReadCommitted})
 	if err != nil {
 		return nil, err
@@ -70,10 +70,10 @@ func (s *Service) ListMessages(ctx context.Context, chatID uuid.UUID, limit int,
 		return nil, err
 	}
 
-	return message.MessagesFromRepo(rows), nil
+	return model.MessagesFromRepo(rows), nil
 }
 
-func (s *Service) GenerateCursor(message message.Message) string {
+func (s *Service) GenerateCursor(message model.Message) string {
 	c := Cursor{
 		ID:        message.ID,
 		CreatedAt: message.CreatedAt,
