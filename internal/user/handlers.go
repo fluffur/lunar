@@ -54,7 +54,7 @@ func (h *Handler) CurrentUser(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400		{object}	httputil.ErrorResponse
 //	@Failure		401		{object}	httputil.ErrorResponse
 //	@Failure		500		{object}	httputil.ErrorResponse
-//	@Router			/users/email [put]
+//	@Router			/users/me/email [put]
 func (h *Handler) UpdateEmail(w http.ResponseWriter, r *http.Request) {
 	var req updateEmailRequest
 	if err := httputil.Read(r, &req); err != nil {
@@ -104,7 +104,7 @@ func (h *Handler) UpdateEmail(w http.ResponseWriter, r *http.Request) {
 //	@Failure		400	{object}	httputil.ErrorResponse
 //	@Failure		401	{object}	httputil.ErrorResponse
 //	@Failure		500	{object}	httputil.ErrorResponse
-//	@Router			/users/password [put]
+//	@Router			/users/me/password [put]
 func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	var req updatePasswordRequest
 	if err := httputil.Read(r, &req); err != nil {
@@ -141,7 +141,7 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 //	@SuccessData	204
 //	@Failure		400	{object}	httputil.ErrorResponse
 //	@Failure		500	{object}	httputil.ErrorResponse
-//	@Router			/users/avatar [post]
+//	@Router			/users/me/avatar [post]
 func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, 5<<20)
 	if err := r.ParseMultipartForm(5 << 20); err != nil {
@@ -188,7 +188,7 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 //	@SuccessData	204
 //	@Failure		400	{object}	httputil.ErrorResponse
 //	@Failure		500	{object}	httputil.ErrorResponse
-//	@Router			/users/verification-code [post]
+//	@Router			/users/me/verification-code [post]
 func (h *Handler) SendVerificationCode(w http.ResponseWriter, r *http.Request) {
 	var req sendVerificationCodeRequest
 	if err := httputil.Read(r, &req); err != nil {
