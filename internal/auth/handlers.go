@@ -20,15 +20,15 @@ func NewHandler(validator *httputil.Validator, service *Service) *Handler {
 
 // Register registers a new user
 //
-//	@Summary	Register a new user
-//	@Tags		auth
-//	@Accept		json
-//	@Produce	json
-//	@Param		input	body		RegisterCredentials	true	"Registration credentials"
-//	@Success	200		{object}	TokenSuccessResponse
-//	@Failure	400		{object}	httputil.ErrorResponse
-//	@Failure	500		{object}	httputil.ErrorResponse
-//	@Router		/auth/register [post]
+//	@Summary		Register a new user
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			input	body		RegisterCredentials	true	"Registration credentials"
+//	@SuccessData	200																													{object}			TokenSuccessResponse
+//	@Failure		400		{object}	httputil.ErrorResponse
+//	@Failure		500		{object}	httputil.ErrorResponse
+//	@Router			/auth/register [post]
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var credentials RegisterCredentials
 
@@ -57,21 +57,21 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.setRefreshTokenCookie(w, tokens.RefreshToken)
-	httputil.Success(w, tokens)
+	httputil.SuccessData(w, tokens)
 }
 
 // Login logs in a user
 //
-//	@Summary	Login a user
-//	@Tags		auth
-//	@Accept		json
-//	@Produce	json
-//	@Param		input	body		LoginCredentials	true	"Login credentials"
-//	@Success	200		{object}	TokenSuccessResponse
-//	@Failure	400		{object}	httputil.ErrorResponse
-//	@Failure	401		{object}	httputil.ErrorResponse
-//	@Failure	500		{object}	httputil.ErrorResponse
-//	@Router		/auth/login [post]
+//	@Summary		Login a user
+//	@Tags			auth
+//	@Accept			json
+//	@Produce		json
+//	@Param			input	body		LoginCredentials	true	"Login credentials"
+//	@SuccessData	200																													{object}			TokenSuccessResponse
+//	@Failure		400		{object}	httputil.ErrorResponse
+//	@Failure		401		{object}	httputil.ErrorResponse
+//	@Failure		500		{object}	httputil.ErrorResponse
+//	@Router			/auth/login [post]
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var credentials LoginCredentials
 	if err := httputil.Read(r, &credentials); err != nil {
@@ -95,17 +95,17 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 
 	h.setRefreshTokenCookie(w, tokens.RefreshToken)
 
-	httputil.Success(w, tokens)
+	httputil.SuccessData(w, tokens)
 }
 
 // Refresh refreshes the access token
 //
-//	@Summary	Refresh access token
-//	@Tags		auth
-//	@Produce	json
-//	@Success	200	{object}	TokenSuccessResponse
-//	@Failure	401	{object}	httputil.ErrorResponse
-//	@Router		/auth/refresh [post]
+//	@Summary		Refresh access token
+//	@Tags			auth
+//	@Produce		json
+//	@SuccessData	200	{object}	TokenSuccessResponse
+//	@Failure		401	{object}	httputil.ErrorResponse
+//	@Router			/auth/refresh [post]
 func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
@@ -120,18 +120,18 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.setRefreshTokenCookie(w, tokens.RefreshToken)
-	httputil.Success(w, tokens)
+	httputil.SuccessData(w, tokens)
 }
 
 // Logout logs out a user
 //
-//	@Summary	Logout a user
-//	@Tags		auth
-//	@Produce	json
-//	@Success	200	{object}	httputil.Response
-//	@Failure	401	{object}	httputil.ErrorResponse
-//	@Failure	500	{object}	httputil.ErrorResponse
-//	@Router		/auth/logout [post]
+//	@Summary		Logout a user
+//	@Tags			auth
+//	@Produce		json
+//	@SuccessData	200	{object}	httputil.Response
+//	@Failure		401	{object}	httputil.ErrorResponse
+//	@Failure		500	{object}	httputil.ErrorResponse
+//	@Router			/auth/logout [post]
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
@@ -147,7 +147,7 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 	h.setRefreshTokenCookie(w, "")
 
-	httputil.Success(w, nil)
+	httputil.Success(w)
 }
 
 func (h *Handler) setRefreshTokenCookie(w http.ResponseWriter, refreshToken string) {

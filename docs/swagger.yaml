@@ -2,34 +2,40 @@ definitions:
   auth.LoginCredentials:
     properties:
       login:
+        minLength: 3
         type: string
       password:
+        maxLength: 72
+        minLength: 6
         type: string
+    required:
+    - login
+    - password
     type: object
   auth.RegisterCredentials:
     properties:
       confirmPassword:
+        minLength: 6
         type: string
       email:
         type: string
       password:
+        minLength: 6
         type: string
       username:
+        minLength: 3
         type: string
+    required:
+    - confirmPassword
+    - email
+    - password
+    - username
     type: object
-  auth.TokenSuccessResponse:
+  chat.createChatParams:
     properties:
-      data:
-        $ref: '#/definitions/auth.Tokens'
-      success:
-        default: true
-        type: boolean
-    type: object
-  auth.Tokens:
-    properties:
-      accessToken:
+      name:
         type: string
-      refreshToken:
+      type:
         type: string
     type: object
   httputil.ErrorBody:
@@ -48,14 +54,36 @@ definitions:
         default: false
         type: boolean
     type: object
-  httputil.Response:
+  user.sendVerificationCodeRequest:
     properties:
-      success:
-        default: true
-        type: boolean
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  user.updateEmailRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
+    type: object
+  user.updatePasswordRequest:
+    properties:
+      currentPassword:
+        minLength: 6
+        type: string
+      newPassword:
+        minLength: 6
+        type: string
+    required:
+    - currentPassword
+    - newPassword
     type: object
 info:
   contact: {}
+  title: Lunar API
+  version: 1.0.0
 paths:
   /auth/login:
     post:
@@ -71,10 +99,6 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/auth.TokenSuccessResponse'
         "400":
           description: Bad Request
           schema:
@@ -95,10 +119,6 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/httputil.Response'
         "401":
           description: Unauthorized
           schema:
@@ -115,10 +135,6 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/auth.TokenSuccessResponse'
         "401":
           description: Unauthorized
           schema:
@@ -140,10 +156,6 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/auth.TokenSuccessResponse'
         "400":
           description: Bad Request
           schema:
@@ -155,4 +167,231 @@ paths:
       summary: Register a new user
       tags:
       - auth
+  /chat:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Chat creation params
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/chat.createChatParams'
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new chat
+      tags:
+      - chat
+  /chat/{chatID}/join:
+    post:
+      parameters:
+      - description: Chat ID
+        in: path
+        name: chatID
+        required: true
+        type: string
+      responses:
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Join current user to chat
+      tags:
+      - chat
+  /chat/{chatID}/messages:
+    get:
+      parameters:
+      - description: Chat ID
+        in: path
+        name: chatID
+        required: true
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Cursor
+        in: query
+        name: cursor
+        type: string
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List messages in a chat
+      tags:
+      - message
+  /users/avatar:
+    post:
+      consumes:
+      - multipart/form-data
+      parameters:
+      - description: Avatar file
+        in: formData
+        name: avatar
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Upload user avatar
+      tags:
+      - user
+  /users/email:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Email update request
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/user.updateEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update user email
+      tags:
+      - user
+  /users/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get current user
+      tags:
+      - user
+  /users/password:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Password change request
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/user.updatePasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Change user password
+      tags:
+      - user
+  /users/verification-code:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Verification request
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/user.sendVerificationCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Send verification code
+      tags:
+      - user
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

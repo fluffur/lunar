@@ -19,6 +19,17 @@ func NewHandler(validator *httputil.Validator, service *Service) *Handler {
 	}
 }
 
+// CurrentUser returns the current user
+//
+//	@Summary		Get current user
+//	@Tags			user
+//	@Produce		json
+//	@Security		BearerAuth
+//	@SuccessData	200	{object}	UserSuccessResponse
+//	@Failure		400	{object}	httputil.ErrorResponse
+//	@Failure		401	{object}	httputil.ErrorResponse
+//	@Failure		500	{object}	httputil.ErrorResponse
+//	@Router			/users/me [get]
 func (h *Handler) CurrentUser(w http.ResponseWriter, r *http.Request) {
 	userCtx := httputil.UserFromRequest(r)
 
@@ -28,9 +39,22 @@ func (h *Handler) CurrentUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httputil.Success(w, userModel.UserFromRepo(user))
+	httputil.SuccessData(w, userModel.UserFromRepo(user))
 }
 
+// UpdateEmail updates the user's email
+//
+//	@Summary		Update user email
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			input	body		updateEmailRequest	true	"Email update request"
+//	@SuccessData	200																													{object}			httputil.Response
+//	@Failure		400		{object}	httputil.ErrorResponse
+//	@Failure		401		{object}	httputil.ErrorResponse
+//	@Failure		500		{object}	httputil.ErrorResponse
+//	@Router			/users/email [put]
 func (h *Handler) UpdateEmail(w http.ResponseWriter, r *http.Request) {
 	var req updateEmailRequest
 	if err := httputil.Read(r, &req); err != nil {
@@ -65,9 +89,22 @@ func (h *Handler) UpdateEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httputil.Success(w, nil)
+	httputil.Success(w)
 }
 
+// ChangePassword changes the user's password
+//
+//	@Summary		Change user password
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			input	body	updatePasswordRequest	true	"Password change request"
+//	@SuccessData	204
+//	@Failure		400	{object}	httputil.ErrorResponse
+//	@Failure		401	{object}	httputil.ErrorResponse
+//	@Failure		500	{object}	httputil.ErrorResponse
+//	@Router			/users/password [put]
 func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 	var req updatePasswordRequest
 	if err := httputil.Read(r, &req); err != nil {
@@ -90,9 +127,21 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	httputil.Success(w)
 }
 
+// UploadAvatar uploads a new avatar for the user
+//
+//	@Summary		Upload user avatar
+//	@Tags			user
+//	@Accept			multipart/form-data
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			avatar	formData	file	true	"Avatar file"
+//	@SuccessData	204
+//	@Failure		400	{object}	httputil.ErrorResponse
+//	@Failure		500	{object}	httputil.ErrorResponse
+//	@Router			/users/avatar [post]
 func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, 5<<20)
 	if err := r.ParseMultipartForm(5 << 20); err != nil {
@@ -128,6 +177,18 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// SendVerificationCode sends a verification code to the user's email
+//
+//	@Summary		Send verification code
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Security		BearerAuth
+//	@Param			input	body	sendVerificationCodeRequest	true	"Verification request"
+//	@SuccessData	204
+//	@Failure		400	{object}	httputil.ErrorResponse
+//	@Failure		500	{object}	httputil.ErrorResponse
+//	@Router			/users/verification-code [post]
 func (h *Handler) SendVerificationCode(w http.ResponseWriter, r *http.Request) {
 	var req sendVerificationCodeRequest
 	if err := httputil.Read(r, &req); err != nil {

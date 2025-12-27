@@ -12,3 +12,8 @@ type createChatParams struct {
 type createChatResponse struct {
 	ID uuid.UUID `json:"id"`
 }
+
+type CreateChatSuccessResponse struct {
+	Success bool               `json:"success" default:"true"`
+	Data    createChatResponse `json:"data"`
+}

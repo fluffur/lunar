@@ -38,7 +38,13 @@ func Read(r *http.Request, data any) error {
 	return decoder.Decode(data)
 }
 
-func Success(w http.ResponseWriter, data any) {
+func Success(w http.ResponseWriter) {
+	Write(w, http.StatusOK, Response{
+		Success: true,
+	})
+}
+
+func SuccessData(w http.ResponseWriter, data any) {
 	Write(w, http.StatusOK, DataResponse{
 		Success: true,
 		Data:    data,

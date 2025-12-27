@@ -18,6 +18,11 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+// @title						Lunar API
+// @version					1.0.0
+// @securityDefinitions.apikey	BearerAuth
+// @in							header
+// @name						Authorization
 func main() {
 	ctx := context.Background()
 

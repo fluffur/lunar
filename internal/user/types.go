@@ -2,6 +2,7 @@ package user
 
 import (
 	"errors"
+	"lunar/internal/model"
 )
 
 var (
@@ -23,4 +24,9 @@ type updatePasswordRequest struct {
 
 type sendVerificationCodeRequest struct {
 	Email string `json:"email" validate:"required,email"`
+}
+
+type UserSuccessResponse struct {
+	Success bool       `json:"success" default:"true"`
+	Data    model.User `json:"data"`
 }
