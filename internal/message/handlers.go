@@ -2,21 +2,20 @@ package message
 
 import (
 	"errors"
-	"lunar/internal/utils/json"
+	"lunar/internal/httputil"
 	"net/http"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
 
 type Handler struct {
-	validate *validator.Validate
+	validate *httputil.Validator
 	service  *Service
 }
 
-func NewHandler(validate *validator.Validate, service *Service) *Handler {
+func NewHandler(validator *httputil.Validator, service *Service) *Handler {
 	return &Handler{
-		validate: validate,
+		validate: validator,
 		service:  service,
 	}
 }
@@ -30,7 +29,7 @@ func (h *Handler) ListMessages(w http.ResponseWriter, r *http.Request) {
 	if cursorStr := r.URL.Query().Get("cursor"); cursorStr != "" {
 		c, err := h.service.ParseCursor(cursorStr)
 		if err != nil {
-			json.WriteError(w, http.StatusBadRequest, "Invalid cursor")
+			httputil.BadRequest(w, "Invalid cursor")
 			return
 		}
 		cursor = &c
@@ -39,10 +38,10 @@ func (h *Handler) ListMessages(w http.ResponseWriter, r *http.Request) {
 	messages, err := h.service.ListMessages(ctx, chatID, limit, cursor)
 	if err != nil {
 		if errors.Is(err, ErrChatNotFound) {
-			json.WriteError(w, http.StatusBadRequest, "Chat not found")
+			httputil.BadRequest(w, "Chat not found")
 			return
 		}
-		json.InternalError(w, r, err)
+		httputil.InternalError(w, r, err)
 		return
 	}
 
@@ -51,7 +50,7 @@ func (h *Handler) ListMessages(w http.ResponseWriter, r *http.Request) {
 		nextCursor = h.service.GenerateCursor(messages[len(messages)-1])
 	}
 
-	json.Write(w, http.StatusOK, messagesResponse{
+	httputil.Success(w, messagesResponse{
 		Messages:   messages,
 		NextCursor: nextCursor,
 	})

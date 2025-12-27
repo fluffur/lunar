@@ -5,7 +5,7 @@ import (
 )
 
 type createChatParams struct {
-	Name string `json:"name" omitempty:""`
+	Name string `json:"name,omitempty"`
 	Type string `json:"type"`
 }
 

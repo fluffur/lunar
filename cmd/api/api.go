@@ -7,6 +7,7 @@ import (
 	"lunar/internal/chat"
 	"lunar/internal/chat/ws"
 	"lunar/internal/config"
+	"lunar/internal/httputil"
 	"lunar/internal/message"
 	"lunar/internal/user"
 	"net/http"
@@ -15,7 +16,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 )
@@ -40,10 +40,10 @@ func (app *application) mount() http.Handler {
 	authMw := auth.Middleware(app.authenticator)
 	wsAuthMw := auth.WebSocketMiddleware(app.authenticator)
 
-	authHandler := auth.NewHandler(app.validate, app.authService)
-	userHandler := user.NewHandler(app.validate, app.userService)
-	chatHandler := chat.NewHandler(app.validate, app.chatService, app.wsService)
-	messageHandler := message.NewHandler(app.validate, app.messageService)
+	authHandler := auth.NewHandler(app.validator, app.authService)
+	userHandler := user.NewHandler(app.validator, app.userService)
+	chatHandler := chat.NewHandler(app.validator, app.chatService, app.wsService)
+	messageHandler := message.NewHandler(app.validator, app.messageService)
 
 	r.Mount("/api", r)
 	r.Handle("/uploads/*", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
@@ -105,5 +105,5 @@ type application struct {
 	chatService    *chat.Service
 	wsService      *ws.Service
 	messageService *message.Service
-	validate       *validator.Validate
+	validator      *httputil.Validator
 }

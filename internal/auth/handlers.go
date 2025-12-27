@@ -2,113 +2,112 @@ package auth
 
 import (
 	"errors"
-	"lunar/internal/utils/json"
-	"lunar/internal/utils/validation"
+	"lunar/internal/httputil"
 	"net/http"
-
-	"github.com/go-playground/validator/v10"
 )
 
 type Handler struct {
-	validate *validator.Validate
-	service  *Service
+	validator *httputil.Validator
+	service   *Service
 }
 
-func NewHandler(validate *validator.Validate, service *Service) *Handler {
+func NewHandler(validator *httputil.Validator, service *Service) *Handler {
 	return &Handler{
-		validate: validate,
-		service:  service,
+		validator: validator,
+		service:   service,
 	}
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var credentials RegisterCredentials
-	if err := json.Read(r, &credentials); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+
+	if err := httputil.Read(r, &credentials); err != nil {
+		httputil.InvalidRequestBody(w)
 		return
 	}
 
-	if err := h.validate.Struct(credentials); err != nil {
-		validation.WriteErrors(w, http.StatusBadRequest, validation.MapErrors(err))
+	if fieldErrs := h.validator.Validate(credentials); fieldErrs != nil {
+		httputil.ValidationError(w, fieldErrs)
 		return
 	}
 
 	tokens, err := h.service.Register(r.Context(), credentials)
 	if err != nil {
 		if errors.Is(err, ErrUsernameExists) {
-			validation.WriteError(w, http.StatusBadRequest, "username", err.Error())
+			httputil.ValidationError(w, map[string]string{"username": err.Error()})
 			return
 		}
 		if errors.Is(err, ErrInvalidEmail) {
-			validation.WriteError(w, http.StatusBadRequest, "email", err.Error())
+			httputil.ValidationError(w, map[string]string{"email": err.Error()})
 			return
 		}
-		json.InternalError(w, r, err)
+		httputil.InternalError(w, r, err)
 		return
 	}
 
 	h.setRefreshTokenCookie(w, tokens.RefreshToken)
-	json.Write(w, http.StatusOK, tokens)
+	httputil.Success(w, tokens)
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	var credentials LoginCredentials
-	if err := json.Read(r, &credentials); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	if err := httputil.Read(r, &credentials); err != nil {
+		httputil.InvalidRequestBody(w)
 		return
 	}
 
-	if err := h.validate.Struct(credentials); err != nil {
-		validation.WriteErrors(w, http.StatusBadRequest, validation.MapErrors(err))
+	if fieldErrs := h.validator.Validate(credentials); fieldErrs != nil {
+		httputil.ValidationError(w, fieldErrs)
 		return
 	}
-
 	tokens, err := h.service.Login(r.Context(), credentials)
 	if err != nil {
 		if errors.Is(err, ErrInvalidCredentials) {
-			json.WriteError(w, http.StatusUnauthorized, err.Error())
+			httputil.Unauthorized(w, err.Error())
 			return
 		}
-		json.InternalError(w, r, err)
+		httputil.InternalError(w, r, err)
 		return
 	}
 
 	h.setRefreshTokenCookie(w, tokens.RefreshToken)
-	json.Write(w, http.StatusOK, tokens)
+
+	httputil.Success(w, tokens)
 }
 
 func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
-		json.WriteError(w, http.StatusUnauthorized, "no refresh token")
+		httputil.Unauthorized(w, "no refresh token")
 		return
 	}
 
 	tokens, err := h.service.Refresh(r.Context(), cookie.Value)
 	if err != nil {
-		json.WriteError(w, http.StatusUnauthorized, "invalid refresh token")
+		httputil.Unauthorized(w, "invalid refresh token")
 		return
 	}
 
 	h.setRefreshTokenCookie(w, tokens.RefreshToken)
-	json.Write(w, http.StatusOK, tokens)
+	httputil.Success(w, tokens)
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	cookie, err := r.Cookie("refresh_token")
 	if err != nil {
-		json.WriteError(w, http.StatusUnauthorized, "no refresh token")
+		httputil.Unauthorized(w, "no refresh token")
 		return
 	}
 
 	refreshToken := cookie.Value
 
 	if err := h.service.Logout(r.Context(), refreshToken); err != nil {
-		json.InternalError(w, r, err)
+		httputil.InternalError(w, r, err)
 		return
 	}
 	h.setRefreshTokenCookie(w, "")
-	w.WriteHeader(http.StatusOK)
+
+	httputil.Success(w, nil)
 }
 
 func (h *Handler) setRefreshTokenCookie(w http.ResponseWriter, refreshToken string) {

@@ -3,23 +3,21 @@ package chat
 import (
 	"log/slog"
 	"lunar/internal/chat/ws"
-	ctxUtils "lunar/internal/utils/ctx"
-	"lunar/internal/utils/json"
+	"lunar/internal/httputil"
 	"net/http"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/google/uuid"
 )
 
 type Handler struct {
-	validate  *validator.Validate
+	validator *httputil.Validator
 	service   *Service
 	wsService *ws.Service
 }
 
-func NewHandler(validate *validator.Validate, service *Service, wsService *ws.Service) *Handler {
+func NewHandler(validator *httputil.Validator, service *Service, wsService *ws.Service) *Handler {
 	return &Handler{
-		validate:  validate,
+		validator: validator,
 		service:   service,
 		wsService: wsService,
 	}
@@ -28,38 +26,37 @@ func NewHandler(validate *validator.Validate, service *Service, wsService *ws.Se
 func (h *Handler) CreateChat(w http.ResponseWriter, r *http.Request) {
 	var params createChatParams
 
-	if err := json.Read(r, &params); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
+	if err := httputil.Read(r, &params); err != nil {
+		httputil.InvalidRequestBody(w)
 		return
 	}
 
 	chatID, err := h.service.CreateChat(r.Context(), params)
 	if err != nil {
-		slog.Error("create chat error", "err", err)
-		json.InternalError(w, r, err)
+		httputil.InternalError(w, r, err)
 		return
 	}
 
-	json.Write(w, http.StatusCreated, createChatResponse{ID: chatID})
+	httputil.Created(w, createChatResponse{ID: chatID})
 }
 
 func (h *Handler) JoinCurrentUser(w http.ResponseWriter, r *http.Request) {
-	user := ctxUtils.UserFromRequest(r)
+	user := httputil.UserFromRequest(r)
 	chatID := uuid.MustParse(r.PathValue("chatID"))
 
 	if err := h.service.JoinUserToChat(r.Context(), user.ID, chatID); err != nil {
-		json.InternalError(w, r, err)
+		httputil.InternalError(w, r, err)
 		return
 	}
 
-	json.Write(w, http.StatusOK, nil)
+	httputil.Success(w, nil)
 }
 func (h *Handler) Websocket(w http.ResponseWriter, r *http.Request) {
-	user := ctxUtils.UserFromRequest(r)
+	user := httputil.UserFromRequest(r)
 	chatID := uuid.MustParse(r.PathValue("chatID"))
 
 	if err := h.service.JoinUserToChat(r.Context(), user.ID, chatID); err != nil {
-		json.InternalError(w, r, err)
+		httputil.InternalError(w, r, err)
 		return
 	}
 

@@ -9,13 +9,11 @@ import (
 	"lunar/internal/config"
 	redis2 "lunar/internal/db/redis"
 	db "lunar/internal/db/sqlc"
+	"lunar/internal/httputil"
 	"lunar/internal/message"
 	"lunar/internal/user"
 	"os"
-	"reflect"
-	"strings"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 )
@@ -66,16 +64,7 @@ func main() {
 	wsService := ws.NewService(rdb, queries, cfg.CORS.AllowedOrigins)
 	messageService := message.NewService(queries, pool)
 
-	validate := validator.New()
-	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
-		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
-
-		if name == "-" {
-			return ""
-		}
-
-		return name
-	})
+	validator := httputil.NewValidator()
 
 	api := application{
 		config:         cfg,
@@ -87,7 +76,7 @@ func main() {
 		chatService:    chatService,
 		wsService:      wsService,
 		messageService: messageService,
-		validate:       validate,
+		validator:      validator,
 	}
 
 	if err := api.run(api.mount()); err != nil {
