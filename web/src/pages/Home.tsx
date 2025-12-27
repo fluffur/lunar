@@ -1,5 +1,5 @@
-import {Button, Container, Group, Title, Text} from "@mantine/core";
-import { Link } from "react-router-dom";
+import {Button, Container, Group, Text, Title} from "@mantine/core";
+import {Link} from "react-router-dom";
 
 export default function Home() {
     return (
@@ -23,18 +23,19 @@ export default function Home() {
                 }}
             >
                 Connect with{' '}
-                <Text component="span" variant="gradient" gradient={{from: 'violet', to: 'blue'}} inherit>
+                <Text component="span" inherit>
                     Lunar
                 </Text>
             </Title>
             <Text c="dimmed" size="xl" maw={600} mx="auto" mb={50}>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et
+                dolore magna aliqua.
             </Text>
             <Group>
-                <Button size="xl" variant="gradient" gradient={{from: 'violet', to: 'blue'}} component={Link} to="/register">
+                <Button size="xl" component={Link} to="/register">
                     Get Started
                 </Button>
-                <Button size="xl" variant="default" component={Link} to="/login " >
+                <Button size="xl" variant="default" component={Link} to="/login ">
                     Sign In
                 </Button>
             </Group>

@@ -1,6 +1,6 @@
 import {useForm} from '@mantine/form'
 import {Anchor, Button, Center, Group, Paper, PasswordInput, Stack, Text, TextInput, Title} from '@mantine/core'
-import {api} from "../api.ts";
+import {authApi, userApi} from "../api.ts";
 import {useSessionStore} from "../stores/sessionStore.ts";
 import {Link, useNavigate} from "react-router-dom";
 import axios from "axios";
@@ -24,26 +24,22 @@ export default function Register() {
 
     const handleSubmit = async (user: typeof form.values) => {
         try {
-            const {data} = await api.post('/auth/register', user)
+            const {data} = await authApi.authRegisterPost(user)
 
-            const token = data.accessToken;
-            setToken(token);
+            const token = data?.data?.accessToken;
+            setToken(token ?? "");
 
-            const {data: userData} = await api.get('/users/me')
-            setUser(userData);
+            const {data: userData} = await userApi.usersMeGet()
+            setUser(userData?.data ?? null);
 
             navigate('/chats')
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const message = error.response?.data?.error ?? 'Registration failed';
+                const message = error.response?.data?.error?.message ?? 'Registration failed';
                 setGeneralError(message)
-                const errors = error.response?.data?.errors;
+                const errors = error.response?.data?.error?.fields;
                 if (errors) {
-                    form.setErrors({
-                        username: errors.username,
-                        email: errors.email,
-                        password: errors.password,
-                    })
+                    form.setErrors(errors)
                 }
             }
             throw error
@@ -64,10 +60,10 @@ export default function Register() {
 
                             <TextInput placeholder="username" size="lg" {...form.getInputProps('username')} />
                             <TextInput type="email" placeholder="email" size="lg" {...form.getInputProps('email')} />
-                            <PasswordInput placeholder="*********" size="lg" {...form.getInputProps('password')} />
-                            <PasswordInput placeholder="*********"
+                            <PasswordInput placeholder="input password" size="lg" {...form.getInputProps('password')} />
+                            <PasswordInput placeholder="confirm password"
                                            size="lg" {...form.getInputProps('confirmPassword')} />
-                            <Button type="submit" fullWidth size="lg" color="violet">
+                            <Button type="submit" fullWidth size="lg">
                                 Register
                             </Button>
                         </Stack>

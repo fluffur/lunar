@@ -14,3 +14,6 @@ down:
 swag:
 	swag fmt -g cmd/api/main.go
 	swag init -g cmd/api/main.go
+
+swag-client:
+	openapi-generator-cli generate -i docs/swagger.yaml -g typescript-axios -o web/api

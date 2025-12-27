@@ -1,4 +1,9 @@
-export default function getCroppedImg(file: File, crop: { x: number; y: number; width: number; height: number }): Promise<Blob> {
+export default function getCroppedImg(file: File, crop: {
+    x: number;
+    y: number;
+    width: number;
+    height: number
+}): Promise<Blob> {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);

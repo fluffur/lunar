@@ -22,17 +22,17 @@ func NewHandler(validator *httputil.Validator, service *Service) *Handler {
 
 // ListMessages lists messages in a chat
 //
-//	@Summary		List messages in a chat
-//	@Tags			message
-//	@Produce		json
-//	@Security		BearerAuth
-//	@Param			chatID	path		string	true	"Chat ID"
-//	@Param			limit	query		int		false	"Limit"
-//	@Param			cursor	query		string	false	"Cursor"
-//	@SuccessData	200																									{object}	MessagesSuccessResponse
-//	@Failure		400		{object}	httputil.ErrorResponse
-//	@Failure		500		{object}	httputil.ErrorResponse
-//	@Router			/chat/{chatID}/messages [get]
+//	@Summary	List messages in a chat
+//	@Tags		message
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		chatID	path		string	true	"Chat ID"
+//	@Param		limit	query		int		false	"Limit"
+//	@Param		cursor	query		string	false	"Cursor"
+//	@Success	200		{object}	MessagesSuccessResponse
+//	@Failure	400		{object}	httputil.ErrorResponse
+//	@Failure	500		{object}	httputil.ErrorResponse
+//	@Router		/chats/{chatID}/messages [get]
 func (h *Handler) ListMessages(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	chatID := uuid.MustParse(r.PathValue("chatID"))

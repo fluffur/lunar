@@ -19,13 +19,13 @@ type LoginCredentials struct {
 }
 
 type Tokens struct {
-	AccessToken  string `json:"accessToken"`
-	RefreshToken string `json:"refreshToken"`
+	AccessToken  string `json:"accessToken" binding:"required"`
+	RefreshToken string `json:"refreshToken" binding:"required"`
 }
 
 type TokenSuccessResponse struct {
-	Success bool   `json:"success" default:"true"`
-	Data    Tokens `json:"data"`
+	Success bool   `json:"success" default:"true" binding:"required"`
+	Data    Tokens `json:"data" binding:"required"`
 }
 
 type RefreshTokenRepository interface {

@@ -1,7 +1,7 @@
-import { createTheme } from '@mantine/core';
+import {createTheme} from '@mantine/core';
 
 export const theme = createTheme({
-    primaryColor: 'violet',
+    primaryColor: 'teal',
     defaultRadius: 'md',
     fontFamily: 'Inter, system-ui, Avenir, Helvetica, Arial, sans-serif',
     headings: {

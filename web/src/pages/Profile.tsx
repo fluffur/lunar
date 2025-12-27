@@ -1,21 +1,14 @@
-import {
-    Center,
-    Paper,
-    Stack,
-    Text,
-    Button,
-    Title,
-} from "@mantine/core";
-import { useSessionStore } from "../stores/sessionStore.ts";
-import { api } from "../api.ts";
-import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import {Button, Center, Paper, Stack, Text, Title,} from "@mantine/core";
+import {useSessionStore} from "../stores/sessionStore.ts";
+import {authApi} from "../api.ts";
+import {useNavigate} from "react-router-dom";
+import {useState} from "react";
 import ChangePasswordForm from "../components/ChangePasswordForm.tsx";
 import EmailSection from "../components/EmailSection.tsx";
 import AvatarSection from "../components/AvatarSection.tsx";
 
 export default function Profile() {
-    const { user, logout, setUser } = useSessionStore();
+    const {user, logout} = useSessionStore();
     const navigate = useNavigate();
 
 
@@ -31,7 +24,7 @@ export default function Profile() {
 
     const handleLogout = async () => {
         try {
-            await api.post("/auth/logout");
+            await authApi.authLogoutPost();
         } finally {
             logout();
             navigate("/login");
@@ -51,7 +44,7 @@ export default function Profile() {
 
                     <Title order={2}>{user.username}</Title>
 
-                    <EmailSection  />
+                    <EmailSection/>
 
                     {!changingPassword && (
                         <Button
@@ -64,13 +57,13 @@ export default function Profile() {
                         </Button>
                     )}
                     {changingPassword && (
-                        <ChangePasswordForm handlePasswordCancel={handlePasswordCancel} />
+                        <ChangePasswordForm handlePasswordCancel={handlePasswordCancel}/>
 
                     )}
-
-                    <Button color="red" variant="outline" mt="lg" fullWidth onClick={handleLogout}>
+                    <Button color="red" variant="subtle" onClick={handleLogout}>
                         Logout
                     </Button>
+
                 </Stack>
             </Paper>
         </Center>

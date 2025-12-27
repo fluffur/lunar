@@ -21,15 +21,15 @@ func NewHandler(validator *httputil.Validator, service *Service) *Handler {
 
 // CurrentUser returns the current user
 //
-//	@Summary		Get current user
-//	@Tags			user
-//	@Produce		json
-//	@Security		BearerAuth
-//	@SuccessData	200	{object}	UserSuccessResponse
-//	@Failure		400	{object}	httputil.ErrorResponse
-//	@Failure		401	{object}	httputil.ErrorResponse
-//	@Failure		500	{object}	httputil.ErrorResponse
-//	@Router			/users/me [get]
+//	@Summary	Get current user
+//	@Tags		user
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Success	200	{object}	SuccessResponse
+//	@Failure	400	{object}	httputil.ErrorResponse
+//	@Failure	401	{object}	httputil.ErrorResponse
+//	@Failure	500	{object}	httputil.ErrorResponse
+//	@Router		/users/me [get]
 func (h *Handler) CurrentUser(w http.ResponseWriter, r *http.Request) {
 	userCtx := httputil.UserFromRequest(r)
 
@@ -50,7 +50,7 @@ func (h *Handler) CurrentUser(w http.ResponseWriter, r *http.Request) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			input	body		updateEmailRequest	true	"Email update request"
-//	@SuccessData	200																																					{object}			httputil.Response
+//	@SuccessData	200																																																																																																																																																													{object}			httputil.Response
 //	@Failure		400		{object}	httputil.ErrorResponse
 //	@Failure		401		{object}	httputil.ErrorResponse
 //	@Failure		500		{object}	httputil.ErrorResponse

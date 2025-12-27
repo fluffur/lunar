@@ -8,11 +8,11 @@ import (
 )
 
 type Message struct {
-	ID        uuid.UUID `json:"id"`
-	ChatID    uuid.UUID `json:"chatId"`
-	Content   string    `json:"content"`
-	Sender    User      `json:"sender"`
-	CreatedAt time.Time `json:"createdAt"`
+	ID        uuid.UUID `json:"id" binding:"required"`
+	ChatID    uuid.UUID `json:"chatId" binding:"required"`
+	Content   string    `json:"content" binding:"required"`
+	Sender    User      `json:"sender" binding:"required"`
+	CreatedAt time.Time `json:"createdAt" binding:"required"`
 }
 
 func MessageFromRepo(

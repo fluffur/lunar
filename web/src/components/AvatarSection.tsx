@@ -1,15 +1,9 @@
-import {
-    Stack,
-    Modal,
-    Slider,
-    Group,
-    Button,
-} from "@mantine/core";
-import { useRef, useState, useCallback } from "react";
-import Cropper, { type Area } from "react-easy-crop";
-import { UserAvatar } from "./UserAvatar.tsx";
+import {Button, Group, Modal, Slider, Stack,} from "@mantine/core";
+import {useCallback, useRef, useState} from "react";
+import Cropper, {type Area} from "react-easy-crop";
+import {UserAvatar} from "./UserAvatar.tsx";
 import getCroppedImg from "../utils/cropImage";
-import { api } from "../api.ts";
+import {userApi} from "../api.ts";
 import {useSessionStore} from "../stores/sessionStore.ts";
 
 
@@ -43,19 +37,18 @@ export default function AvatarSection() {
         if (!selectedFile || !croppedAreaPixels) return;
 
         const croppedBlob = await getCroppedImg(selectedFile, croppedAreaPixels);
-        const formData = new FormData();
-        formData.append("avatar", croppedBlob, selectedFile.name);
+        const file = new File([croppedBlob], selectedFile.name);
 
         try {
             setUploading(true);
-            await api.post("/users/me/avatar", formData, {
+            await userApi.usersMeAvatarPost(file, {
                 headers: {"Content-Type": "multipart/form-data"},
             });
             setSelectedFile(null);
             setPreview(null);
             setCropModalOpened(false);
-            const {data} = await api.get("/users/me");
-            setUser(data)
+            const {data} = await userApi.usersMeGet();
+            setUser(data.data)
         } catch (err) {
             console.error(err);
         } finally {

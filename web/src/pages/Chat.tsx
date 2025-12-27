@@ -1,14 +1,14 @@
-import { useEffect, useRef, useState } from "react";
-import { ActionIcon, Button, Center, Group, Paper, ScrollArea, Stack, Text, TextInput } from "@mantine/core";
-import { useNavigate, useParams } from "react-router-dom";
-import { useSessionStore } from "../stores/sessionStore.ts";
-import { api } from "../api.ts";
-import { IconArrowDown, IconSend2 } from "@tabler/icons-react";
+import {useEffect, useRef, useState} from "react";
+import {ActionIcon, Button, Center, Group, Paper, ScrollArea, Stack, Text, TextInput} from "@mantine/core";
+import {useNavigate, useParams} from "react-router-dom";
+import {useSessionStore} from "../stores/sessionStore.ts";
+import {authApi, messageApi} from "../api.ts";
+import {IconArrowDown, IconSend2} from "@tabler/icons-react";
 import useWebSocket from "react-use-websocket";
-import { isTokenExpired } from "../utils.ts";
+import {isTokenExpired} from "../utils.ts";
 import axios from "axios";
 import NotFound from "./NotFound.tsx";
-import { UserAvatar } from "../components/UserAvatar.tsx";
+import {UserAvatar} from "../components/UserAvatar.tsx";
 import {WS_BASE_URL} from "../config.ts";
 
 interface Sender {
@@ -23,16 +23,12 @@ interface ChatMessage {
     sender?: Sender
     createdAt?: string;
 }
-interface PagingMessagesResponse {
-    messages: ChatMessage[];
-    nextCursor?: string;
-}
 
 
 export default function Chat() {
-    const { chatId } = useParams<string>();
+    const {chatId} = useParams<string>();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const { token, user, setToken, logout } = useSessionStore()
+    const {token, user, setToken, logout} = useSessionStore()
     const [value, setValue] = useState("");
 
     const viewportRef = useRef<HTMLDivElement | null>(null);
@@ -51,16 +47,18 @@ export default function Chat() {
 
         setLoading(true);
         try {
-            const { data } = await api.get<PagingMessagesResponse>(
-                `/chats/${chatId}/messages?cursor=${encodeURIComponent(nextCursor)}`
+            const {data} = await messageApi.chatsChatIDMessagesGet(
+                chatId ?? "",
+                50,
+                encodeURIComponent(nextCursor),
             );
 
             const scrollContainer = viewportRef.current;
             const prevScrollHeight = scrollContainer.scrollHeight;
 
-            setMessages(prev => [...data.messages.reverse(), ...prev]);
+            setMessages(prev => [...data?.data?.messages?.reverse() ?? [], ...prev]);
 
-            setNextCursor(data.nextCursor ?? null);
+            setNextCursor(data?.data?.nextCursor ?? null);
 
             setTimeout(() => {
                 const newScrollHeight = scrollContainer.scrollHeight;
@@ -89,7 +87,7 @@ export default function Chat() {
             loadOlderMessages();
         }
 
-        const { scrollHeight, clientHeight } = viewportRef.current;
+        const {scrollHeight, clientHeight} = viewportRef.current;
         const isBottom = scrollHeight - position.y - clientHeight < 100;
         setIsAtBottom(isBottom);
         if (isBottom) {
@@ -102,9 +100,9 @@ export default function Chat() {
 
         (async () => {
             try {
-                const { data } = await api.get(`/chats/${chatId}/messages`);
-                setMessages(data.messages?.reverse() ?? []);
-                setNextCursor(data.nextCursor ?? null);
+                const {data} = await messageApi.chatsChatIDMessagesGet(chatId);
+                setMessages(data.data?.messages?.reverse() ?? []);
+                setNextCursor(data.data?.nextCursor ?? null);
             } catch (error) {
                 if (axios.isAxiosError(error)) {
                     if (error.response?.status === 404) {
@@ -128,8 +126,8 @@ export default function Chat() {
 
             if (!currentToken || isTokenExpired(currentToken)) {
                 try {
-                    const { data } = await api.post('/auth/refresh');
-                    const newToken = data.accessToken;
+                    const {data} = await authApi.authRefreshPost();
+                    const newToken = data.data.accessToken;
                     setToken(newToken);
                     return;
                 } catch {
@@ -145,7 +143,7 @@ export default function Chat() {
         prepareSocket();
     }, [chatId, token, setToken, logout]);
 
-    const { sendMessage: wsSendMessage } = useWebSocket(
+    const {sendMessage: wsSendMessage} = useWebSocket(
         socketUrl,
         {
             shouldReconnect: () => true,
@@ -192,12 +190,12 @@ export default function Chat() {
         });
     };
 
-    const [windowHeight, setWindowHeight] = useState(window.innerHeight);
+    const [windowHeight, _] = useState(window.innerHeight);
 
 
     if (notFound) {
         return (
-            <NotFound />
+            <NotFound/>
         )
 
     }
@@ -205,17 +203,17 @@ export default function Chat() {
     return (
         <Center h={windowHeight - 80} p="md">
             <Paper w="100%" maw={500} h="100%" shadow="xl" radius="lg" withBorder display="flex"
-                style={{ flexDirection: 'column', overflow: 'hidden', position: 'relative' }}>
-                <ScrollArea style={{ flex: 1 }} viewportRef={viewportRef} onScrollPositionChange={handleScroll} p="md">
+                   style={{flexDirection: 'column', overflow: 'hidden', position: 'relative'}}>
+                <ScrollArea style={{flex: 1}} viewportRef={viewportRef} onScrollPositionChange={handleScroll} p="md">
                     <Stack gap="md">
                         {messages.map((m, i) => {
                             const isMe = m.sender?.username === user?.username;
                             return (
                                 <Group key={i} align="flex-end" justify={isMe ? 'flex-end' : 'flex-start'} gap="xs"
-                                    wrap="nowrap">
+                                       wrap="nowrap">
                                     {!isMe && m.sender?.username && (
                                         <UserAvatar username={m.sender.username} avatarUrl={m.sender.avatarUrl}
-                                            size={32} />
+                                                    size={32}/>
 
                                     )}
 
@@ -271,8 +269,7 @@ export default function Chat() {
                             radius="xl"
                             size="xs"
                             variant="filled"
-                            color="violet"
-                            leftSection={<IconArrowDown size={14} />}
+                            leftSection={<IconArrowDown size={14}/>}
                         >
                             {unreadCount} new messages
                         </Button>
@@ -280,20 +277,20 @@ export default function Chat() {
                 )}
 
                 {!isAtBottom && unreadCount === 0 && (
-                    <div style={{ position: 'absolute', bottom: 80, right: 20, zIndex: 10 }}>
+                    <div style={{position: 'absolute', bottom: 80, right: 20, zIndex: 10}}>
                         <ActionIcon
                             onClick={scrollToBottom}
                             radius="xl"
                             size="lg"
                             variant="default"
-                            style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                            style={{boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}}
                         >
-                            <IconArrowDown size={18} />
+                            <IconArrowDown size={18}/>
                         </ActionIcon>
                     </div>
                 )}
 
-                <Paper p="md" >
+                <Paper p="md">
                     <TextInput
                         placeholder="Type a message..."
                         value={value}
@@ -306,12 +303,11 @@ export default function Chat() {
                             <ActionIcon
                                 size={38}
                                 radius="md"
-                                color="violet"
                                 variant="filled"
                                 onClick={sendMessage}
                                 disabled={!value.trim()}
                             >
-                                <IconSend2 />
+                                <IconSend2/>
                             </ActionIcon>
                         }
                     />

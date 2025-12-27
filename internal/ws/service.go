@@ -12,6 +12,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
+	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -111,9 +112,14 @@ func (s *Service) handleIncoming(
 			}
 
 			createdMessage, err := s.queries.CreateMessage(ctx, db.CreateMessageParams{
+				ID:       uuid.Must(uuid.NewV7()),
 				ChatID:   chatID,
-				Content:  content,
 				SenderID: user.ID,
+				Content:  content,
+				CreatedAt: pgtype.Timestamptz{
+					Time:  time.Now(),
+					Valid: true,
+				},
 			})
 			if err != nil {
 				slog.Warn("failed to create chat message:", "err", err)

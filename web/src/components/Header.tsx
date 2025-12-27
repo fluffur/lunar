@@ -1,7 +1,7 @@
 import {Link} from 'react-router-dom';
 import {Button, Container, Group, Menu, Text, UnstyledButton} from '@mantine/core';
 import {useSessionStore} from "../stores/sessionStore.ts";
-import {api} from "../api.ts";
+import {authApi} from "../api.ts";
 import {UserAvatar} from "./UserAvatar.tsx";
 import {IconLogout, IconUserFilled} from "@tabler/icons-react";
 
@@ -9,7 +9,7 @@ export function Header() {
     const {user, logout} = useSessionStore();
 
     const handleLogout = async () => {
-        await api.post('/auth/logout')
+        await authApi.authLogoutPost()
         logout();
     }
 
@@ -29,8 +29,6 @@ export function Header() {
                     <Text
                         size="xl"
                         fw={900}
-                        variant="gradient"
-                        gradient={{from: 'violet.4', to: 'blue.5', deg: 100}}
                         style={{cursor: 'pointer', letterSpacing: '-1px'}}
                         component={Link} to="/"
                     >
@@ -81,7 +79,7 @@ export function Header() {
                         ) : (
                             <Group>
                                 <Button variant="subtle" color="gray" component={Link} to="/login">Log in</Button>
-                                <Button variant="gradient" gradient={{from: 'violet', to: 'blue'}} component={Link}
+                                <Button component={Link}
                                         to="/register">Sign up</Button>
                             </Group>
                         )}

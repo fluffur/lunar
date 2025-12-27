@@ -31,11 +31,45 @@ definitions:
     - password
     - username
     type: object
+  auth.TokenSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/auth.Tokens'
+      success:
+        default: true
+        type: boolean
+    required:
+    - data
+    - success
+    type: object
+  auth.Tokens:
+    properties:
+      accessToken:
+        type: string
+      refreshToken:
+        type: string
+    required:
+    - accessToken
+    - refreshToken
+    type: object
+  chat.CreateChatSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/chat.createChatResponse'
+      success:
+        default: true
+        type: boolean
+    type: object
   chat.createChatParams:
     properties:
       name:
         type: string
       type:
+        type: string
+    type: object
+  chat.createChatResponse:
+    properties:
+      id:
         type: string
     type: object
   httputil.ErrorBody:
@@ -53,6 +87,78 @@ definitions:
       success:
         default: false
         type: boolean
+    type: object
+  httputil.Response:
+    properties:
+      success:
+        default: true
+        type: boolean
+    type: object
+  message.MessagesSuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/message.messagesResponse'
+      success:
+        default: true
+        type: boolean
+    type: object
+  message.messagesResponse:
+    properties:
+      messages:
+        items:
+          $ref: '#/definitions/model.Message'
+        type: array
+      nextCursor:
+        type: string
+    type: object
+  model.Message:
+    properties:
+      chatId:
+        type: string
+      content:
+        type: string
+      createdAt:
+        type: string
+      id:
+        type: string
+      sender:
+        $ref: '#/definitions/model.User'
+    required:
+    - chatId
+    - content
+    - createdAt
+    - id
+    - sender
+    type: object
+  model.User:
+    properties:
+      avatarUrl:
+        type: string
+      email:
+        type: string
+      emailVerified:
+        type: boolean
+      id:
+        type: string
+      username:
+        type: string
+    required:
+    - avatarUrl
+    - email
+    - emailVerified
+    - id
+    - username
+    type: object
+  user.SuccessResponse:
+    properties:
+      data:
+        $ref: '#/definitions/model.User'
+      success:
+        default: true
+        type: boolean
+    required:
+    - data
+    - success
     type: object
   user.sendVerificationCodeRequest:
     properties:
@@ -99,6 +205,10 @@ paths:
       produces:
       - application/json
       responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.TokenSuccessResponse'
         "400":
           description: Bad Request
           schema:
@@ -119,6 +229,10 @@ paths:
       produces:
       - application/json
       responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httputil.Response'
         "401":
           description: Unauthorized
           schema:
@@ -135,6 +249,10 @@ paths:
       produces:
       - application/json
       responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.TokenSuccessResponse'
         "401":
           description: Unauthorized
           schema:
@@ -156,6 +274,10 @@ paths:
       produces:
       - application/json
       responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.TokenSuccessResponse'
         "400":
           description: Bad Request
           schema:
@@ -167,7 +289,7 @@ paths:
       summary: Register a new user
       tags:
       - auth
-  /chat:
+  /chats:
     post:
       consumes:
       - application/json
@@ -181,6 +303,10 @@ paths:
       produces:
       - application/json
       responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/chat.CreateChatSuccessResponse'
         "400":
           description: Bad Request
           schema:
@@ -198,7 +324,7 @@ paths:
       summary: Create a new chat
       tags:
       - chat
-  /chat/{chatID}/join:
+  /chats/{chatID}:
     post:
       parameters:
       - description: Chat ID
@@ -220,7 +346,7 @@ paths:
       summary: Join current user to chat
       tags:
       - chat
-  /chat/{chatID}/messages:
+  /chats/{chatID}/messages:
     get:
       parameters:
       - description: Chat ID
@@ -239,6 +365,10 @@ paths:
       produces:
       - application/json
       responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/message.MessagesSuccessResponse'
         "400":
           description: Bad Request
           schema:
@@ -257,6 +387,10 @@ paths:
       produces:
       - application/json
       responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user.SuccessResponse'
         "400":
           description: Bad Request
           schema:

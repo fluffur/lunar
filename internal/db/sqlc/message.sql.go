@@ -13,19 +13,27 @@ import (
 )
 
 const createMessage = `-- name: CreateMessage :one
-INSERT INTO messages(chat_id, sender_id, content)
-VALUES ($1, $2, $3)
+INSERT INTO messages(id, chat_id, sender_id, content, created_at)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING id, chat_id, sender_id, content, created_at
 `
 
 type CreateMessageParams struct {
-	ChatID   uuid.UUID `db:"chat_id" json:"chatId"`
-	SenderID uuid.UUID `db:"sender_id" json:"senderId"`
-	Content  string    `db:"content" json:"content"`
+	ID        uuid.UUID          `db:"id" json:"id"`
+	ChatID    uuid.UUID          `db:"chat_id" json:"chatId"`
+	SenderID  uuid.UUID          `db:"sender_id" json:"senderId"`
+	Content   string             `db:"content" json:"content"`
+	CreatedAt pgtype.Timestamptz `db:"created_at" json:"createdAt"`
 }
 
 func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error) {
-	row := q.db.QueryRow(ctx, createMessage, arg.ChatID, arg.SenderID, arg.Content)
+	row := q.db.QueryRow(ctx, createMessage,
+		arg.ID,
+		arg.ChatID,
+		arg.SenderID,
+		arg.Content,
+		arg.CreatedAt,
+	)
 	var i Message
 	err := row.Scan(
 		&i.ID,

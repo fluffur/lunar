@@ -1,15 +1,7 @@
-import {
-    Stack,
-    TextInput,
-    Group,
-    ActionIcon,
-    Collapse,
-    Text,
-    Button,
-} from "@mantine/core";
-import { IconEdit, IconCheck, IconX } from "@tabler/icons-react";
-import { useState } from "react";
-import { api } from "../api.ts";
+import {ActionIcon, Button, Collapse, Group, Stack, Text, TextInput,} from "@mantine/core";
+import {IconCheck, IconEdit, IconX} from "@tabler/icons-react";
+import {useState} from "react";
+import {api, userApi} from "../api.ts";
 import {useSessionStore} from "../stores/sessionStore.ts";
 
 export default function EmailSection() {
@@ -24,9 +16,9 @@ export default function EmailSection() {
         if (email === originalEmail) return setIsEditingEmail(false);
 
         try {
-            await api.post("/users/me/email", { email });
+            await userApi.usersMeEmailPut({email});
             if (user) {
-                setUser({ ...user, email, emailVerified: false });
+                setUser({...user, email, emailVerified: false});
             }
             setOriginalEmail(email);
             setEmailSaved(true);
@@ -65,15 +57,15 @@ export default function EmailSection() {
                     isEditingEmail ? (
                         <Group display="flex" wrap="nowrap" gap={4} align="center">
                             <ActionIcon color="green" onClick={handleEmailSave}>
-                                <IconCheck size={18} />
+                                <IconCheck size={18}/>
                             </ActionIcon>
                             <ActionIcon color="red" onClick={handleEmailCancel}>
-                                <IconX size={18} />
+                                <IconX size={18}/>
                             </ActionIcon>
                         </Group>
                     ) : (
                         <ActionIcon onClick={() => setIsEditingEmail(true)}>
-                            <IconEdit size={18} />
+                            <IconEdit size={18}/>
                         </ActionIcon>
                     )
                 }

@@ -13,18 +13,25 @@ import (
 )
 
 const addUserToChat = `-- name: AddUserToChat :exec
-INSERT INTO chat_members (chat_id, user_id)
-VALUES ($1, $2)
+INSERT INTO chat_members (id, chat_id, user_id, joined_at)
+VALUES ($1, $2, $3, $4)
 ON CONFLICT (chat_id, user_id) DO NOTHING
 `
 
 type AddUserToChatParams struct {
-	ChatID uuid.UUID `db:"chat_id" json:"chatId"`
-	UserID uuid.UUID `db:"user_id" json:"userId"`
+	ID       uuid.UUID          `db:"id" json:"id"`
+	ChatID   uuid.UUID          `db:"chat_id" json:"chatId"`
+	UserID   uuid.UUID          `db:"user_id" json:"userId"`
+	JoinedAt pgtype.Timestamptz `db:"joined_at" json:"joinedAt"`
 }
 
 func (q *Queries) AddUserToChat(ctx context.Context, arg AddUserToChatParams) error {
-	_, err := q.db.Exec(ctx, addUserToChat, arg.ChatID, arg.UserID)
+	_, err := q.db.Exec(ctx, addUserToChat,
+		arg.ID,
+		arg.ChatID,
+		arg.UserID,
+		arg.JoinedAt,
+	)
 	return err
 }
 
@@ -42,18 +49,25 @@ func (q *Queries) ChatExists(ctx context.Context, chatID uuid.UUID) (bool, error
 }
 
 const createChat = `-- name: CreateChat :one
-INSERT INTO chats (name, type)
-VALUES ($1, $2)
+INSERT INTO chats (id, name, type, created_at)
+VALUES ($1, $2, $3, $4)
 RETURNING chats.id
 `
 
 type CreateChatParams struct {
-	Name pgtype.Text `db:"name" json:"name"`
-	Type string      `db:"type" json:"type"`
+	ID        uuid.UUID          `db:"id" json:"id"`
+	Name      pgtype.Text        `db:"name" json:"name"`
+	Type      string             `db:"type" json:"type"`
+	CreatedAt pgtype.Timestamptz `db:"created_at" json:"createdAt"`
 }
 
 func (q *Queries) CreateChat(ctx context.Context, arg CreateChatParams) (uuid.UUID, error) {
-	row := q.db.QueryRow(ctx, createChat, arg.Name, arg.Type)
+	row := q.db.QueryRow(ctx, createChat,
+		arg.ID,
+		arg.Name,
+		arg.Type,
+		arg.CreatedAt,
+	)
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err

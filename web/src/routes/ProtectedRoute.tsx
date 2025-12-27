@@ -6,11 +6,11 @@ export function ProtectedRoute() {
     const {initialized, token} = useSessionStore();
     if (!initialized) return (
         <Center h="90vh">
-            <Loader />
+            <Loader/>
         </Center>
     );
 
-    if (!token) return <Navigate to="/login" replace />;
+    if (!token) return <Navigate to="/login" replace/>;
 
     return <Outlet/>;
 }

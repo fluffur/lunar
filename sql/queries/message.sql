@@ -1,6 +1,6 @@
 -- name: CreateMessage :one
-INSERT INTO messages(chat_id, sender_id, content)
-VALUES (@chat_id, @sender_id, @content)
+INSERT INTO messages(id, chat_id, sender_id, content, created_at)
+VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 
 -- name: GetMessagesPaging :many

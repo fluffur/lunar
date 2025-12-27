@@ -1,9 +1,10 @@
 import axios from "axios";
 import {useSessionStore} from "./stores/sessionStore.ts";
 import {API_BASE_URL} from "./config.ts";
+import {AuthApi, ChatApi, MessageApi, UserApi} from "../api";
 
 export const api = axios.create({
-    baseURL: API_BASE_URL +'/api',
+    baseURL: API_BASE_URL + '/api',
     headers: {'Content-Type': 'application/json'},
     withCredentials: true,
 });
@@ -34,8 +35,8 @@ api.interceptors.response.use(
         ) {
             originalRequest._retry = true;
             try {
-                const {data} = await api.post('/auth/refresh');
-                const newToken = data.accessToken;
+                const {data} = await authApi.authRefreshPost();
+                const newToken = data.data.accessToken;
                 useSessionStore.getState().setToken(newToken);
 
                 originalRequest.headers.Authorization = `Bearer ${newToken}`;
@@ -50,3 +51,7 @@ api.interceptors.response.use(
     }
 );
 
+export const authApi = new AuthApi(undefined, undefined, api)
+export const userApi = new UserApi(undefined, undefined, api)
+export const messageApi = new MessageApi(undefined, undefined, api)
+export const chatApi = new ChatApi(undefined, undefined, api)

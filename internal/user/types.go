@@ -26,7 +26,7 @@ type sendVerificationCodeRequest struct {
 	Email string `json:"email" validate:"required,email"`
 }
 
-type UserSuccessResponse struct {
-	Success bool       `json:"success" default:"true"`
-	Data    model.User `json:"data"`
+type SuccessResponse struct {
+	Success bool       `json:"success" default:"true" binding:"required"`
+	Data    model.User `json:"data" binding:"required"`
 }

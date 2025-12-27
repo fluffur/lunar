@@ -8,7 +8,7 @@ import Chats from "./pages/Chats.tsx";
 import {Header} from "./components/Header.tsx";
 import {useSessionStore} from "./stores/sessionStore.ts";
 import {useEffect} from "react";
-import {api} from "./api.ts";
+import {userApi} from "./api.ts";
 import Chat from "./pages/Chat.tsx";
 import Profile from "./pages/Profile.tsx";
 
@@ -18,8 +18,8 @@ function App() {
     useEffect(() => {
         const requestAuth = async () => {
             try {
-                const {data} = await api.get("/users/me");
-                setUser(data);
+                const {data} = await userApi.usersMeGet();
+                setUser(data.data);
             } catch {
                 logout();
             } finally {
@@ -36,7 +36,7 @@ function App() {
             <Routes>
                 <Route path="/" element={<Home/>}/>
                 <Route element={<ProtectedRoute/>}>
-                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/profile" element={<Profile/>}/>
                     <Route path="/chats">
                         <Route index element={<Chats/>}/>
                         <Route path=":chatId" element={<Chat/>}/>

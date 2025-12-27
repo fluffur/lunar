@@ -7,11 +7,11 @@ import (
 )
 
 type User struct {
-	ID            uuid.UUID `json:"id"`
-	Username      string    `json:"username"`
-	Email         string    `json:"email"`
-	AvatarURL     string    `json:"avatarUrl"`
-	EmailVerified bool      `json:"emailVerified"`
+	ID            uuid.UUID `json:"id" binding:"required"`
+	Username      string    `json:"username" binding:"required"`
+	Email         string    `json:"email" binding:"required"`
+	AvatarURL     string    `json:"avatarUrl" binding:"required"`
+	EmailVerified bool      `json:"emailVerified" binding:"required"`
 }
 
 func UserFromRepo(user db.User) User {

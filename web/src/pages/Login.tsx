@@ -1,7 +1,7 @@
 import {useForm} from '@mantine/form'
 import {Anchor, Button, Center, Group, Paper, PasswordInput, Stack, Text, TextInput, Title} from '@mantine/core'
 import {Link, useNavigate} from "react-router-dom";
-import {api} from "../api.ts";
+import {authApi, userApi} from "../api.ts";
 import {useSessionStore} from "../stores/sessionStore.ts";
 import axios from "axios";
 import {useState} from "react";
@@ -28,23 +28,22 @@ export default function Login() {
     const handleSubmit = async (loginFormData: typeof form.values) => {
         try {
             setGeneralError(null);
-            const {data} = await api.post('/auth/login', loginFormData)
-
-            const token = data.accessToken;
+            const {data} = await authApi.authLoginPost(loginFormData)
+            const token = data.data.accessToken;
             setToken(token);
 
-            const {data: userData} = await api.get('/users/me')
-            setUser(userData);
+            const {data: userData} = await userApi.usersMeGet()
+            setUser(userData.data);
 
             navigate('/chats')
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const errors = error.response?.data?.errors;
+                const errors = error.response?.data?.data?.error?.fields;
                 if (errors) {
                     form.setErrors(errors);
                     return;
                 }
-                const message = error.response?.data?.error ?? 'Login failed';
+                const message = error.response?.data?.error?.fields ?? 'Login failed';
                 setGeneralError(message)
             }
             throw error;
@@ -56,7 +55,7 @@ export default function Login() {
         <Center h="90vh">
             <Paper withBorder shadow="xl" p="xl" radius="lg" mx="auto" maw={500} w="100%">
                 <Title order={2} ta="center" mb="lg">
-                    Welcome back
+                    Sign in
                 </Title>
 
                 <Stack>
@@ -64,8 +63,8 @@ export default function Login() {
                         <Stack>
                             {generalError && <Text color="red">{generalError}</Text>}
                             <TextInput placeholder="email or username" size="lg" {...form.getInputProps('login')} />
-                            <PasswordInput placeholder="*********" size="lg" {...form.getInputProps('password')} />
-                            <Button type="submit" fullWidth size="lg" color="violet">
+                            <PasswordInput placeholder="input password" size="lg" {...form.getInputProps('password')} />
+                            <Button type="submit" fullWidth size="lg">
                                 Login
                             </Button>
                         </Stack>

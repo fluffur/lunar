@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import {Button, Center, Stack, Text, TextInput, Title} from '@mantine/core';
 import {useNavigate} from 'react-router-dom';
-import {api} from "../api.ts";
+import {chatApi} from "../api.ts";
 
 export default function Chats() {
     const [chatId, setChatId] = useState('');
@@ -13,11 +13,14 @@ export default function Chats() {
     };
 
     const handleCreateChat = async () => {
-        const {data} = await api.post("/chats", {
+        const {data} = await chatApi.chatsPost({
             type: "public"
         })
+        console.log(data)
+        if (data?.data?.id) {
+            navigate(`/chats/${data.data.id}`);
+        }
 
-        navigate(`/chats/${data.id}`);
     };
 
     const handleChange = (value: string) => {
@@ -41,7 +44,6 @@ export default function Chats() {
                 <Button
                     fullWidth
                     size="lg"
-                    color="violet"
                     onClick={handleJoinChat}
                     disabled={!chatId}
                 >
@@ -55,7 +57,6 @@ export default function Chats() {
                     fullWidth
                     size="lg"
                     variant="outline"
-                    color="violet"
                     onClick={handleCreateChat}
                 >
                     Create a new Chat

@@ -1,7 +1,7 @@
-import { Stack, TextInput, Text, Group, Button } from "@mantine/core";
-import { useForm } from "@mantine/form";
-import { useState } from "react";
-import { api } from "../api.ts";
+import {Button, Group, Stack, Text, TextInput} from "@mantine/core";
+import {useForm} from "@mantine/form";
+import {useState} from "react";
+import {userApi} from "../api.ts";
 import axios from "axios";
 
 type Props = {
@@ -9,7 +9,7 @@ type Props = {
     handlePasswordCancel?: () => void;
 };
 
-export default function ChangePasswordForm({ onSuccess, handlePasswordCancel }: Props) {
+export default function ChangePasswordForm({onSuccess, handlePasswordCancel}: Props) {
     const [passwordError, setPasswordError] = useState<string | null>(null);
 
     const form = useForm({
@@ -29,7 +29,7 @@ export default function ChangePasswordForm({ onSuccess, handlePasswordCancel }: 
         const values = form.values;
 
         try {
-            await api.post("/users/me/password", {
+            await userApi.usersMePasswordPut({
                 currentPassword: values.currentPassword,
                 newPassword: values.newPassword,
             });

@@ -4,13 +4,13 @@ FROM chats
 WHERE id = $1;
 
 -- name: CreateChat :one
-INSERT INTO chats (name, type)
-VALUES ($1, $2)
+INSERT INTO chats (id, name, type, created_at)
+VALUES ($1, $2, $3, $4)
 RETURNING chats.id;
 
 -- name: AddUserToChat :exec
-INSERT INTO chat_members (chat_id, user_id)
-VALUES (@chat_id, @user_id)
+INSERT INTO chat_members (id, chat_id, user_id, joined_at)
+VALUES ($1, $2, $3, $4)
 ON CONFLICT (chat_id, user_id) DO NOTHING;
 ;
 
