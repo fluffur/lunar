@@ -13,14 +13,14 @@ var (
 )
 
 type updateEmailRequest struct {
-	Email string `json:"email" validator:"required,email"`
+	Email string `json:"email" validate:"required,email"`
 }
 
 type updatePasswordRequest struct {
-	CurrentPassword string `json:"currentPassword" validator:"required,min=6"`
-	NewPassword     string `json:"newPassword" validator:"required,min=6"`
+	CurrentPassword string `json:"currentPassword" validate:"required,min=6"`
+	NewPassword     string `json:"newPassword" validate:"required,min=6"`
 }
 
 type sendVerificationCodeRequest struct {
-	Email string `json:"email" validator:"required,email"`
+	Email string `json:"email" validate:"required,email"`
 }

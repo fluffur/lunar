@@ -38,7 +38,7 @@ func (h *Handler) UpdateEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.validator.Validate(req); err != nil {
+	if err := h.validator.Validate(&req); err != nil {
 		httputil.ValidationError(w, err)
 		return
 	}
@@ -75,7 +75,7 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if fieldErrs := h.validator.Validate(req); fieldErrs != nil {
+	if fieldErrs := h.validator.Validate(&req); fieldErrs != nil {
 		httputil.ValidationError(w, fieldErrs)
 		return
 	}
@@ -135,7 +135,7 @@ func (h *Handler) SendVerificationCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if fieldErrs := h.validator.Validate(req); fieldErrs != nil {
+	if fieldErrs := h.validator.Validate(&req); fieldErrs != nil {
 		httputil.ValidationError(w, fieldErrs)
 		return
 	}

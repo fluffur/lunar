@@ -7,8 +7,16 @@ import (
 )
 
 type Response struct {
-	Success bool       `json:"success"`
-	Data    any        `json:"data,omitempty"`
+	Success bool `json:"success" default:"true"`
+}
+
+type DataResponse struct {
+	Success bool `json:"success" default:"true"`
+	Data    any  `json:"data,omitempty"`
+}
+
+type ErrorResponse struct {
+	Success bool       `json:"success" default:"false"`
 	Error   *ErrorBody `json:"error,omitempty"`
 }
 
@@ -31,14 +39,14 @@ func Read(r *http.Request, data any) error {
 }
 
 func Success(w http.ResponseWriter, data any) {
-	Write(w, http.StatusOK, Response{
+	Write(w, http.StatusOK, DataResponse{
 		Success: true,
 		Data:    data,
 	})
 }
 
 func Created(w http.ResponseWriter, data any) {
-	Write(w, http.StatusCreated, Response{
+	Write(w, http.StatusCreated, DataResponse{
 		Success: true,
 		Data:    data,
 	})
@@ -49,7 +57,7 @@ func NoContent(w http.ResponseWriter) {
 }
 
 func Error(w http.ResponseWriter, status int, code, message string) {
-	Write(w, status, Response{
+	Write(w, status, ErrorResponse{
 		Success: false,
 		Error: &ErrorBody{
 			Code:    code,
@@ -61,7 +69,7 @@ func Error(w http.ResponseWriter, status int, code, message string) {
 type FieldErrors map[string]string
 
 func ValidationError(w http.ResponseWriter, fields FieldErrors) {
-	Write(w, http.StatusUnprocessableEntity, Response{
+	Write(w, http.StatusUnprocessableEntity, ErrorResponse{
 		Success: false,
 		Error: &ErrorBody{
 			Code:   "validation_error",
@@ -115,7 +123,7 @@ func InternalError(w http.ResponseWriter, r *http.Request, err error) {
 		slog.String("path", r.URL.Path),
 	)
 
-	Write(w, http.StatusInternalServerError, Response{
+	Write(w, http.StatusInternalServerError, ErrorResponse{
 		Success: false,
 		Error: &ErrorBody{
 			Code:    "internal_error",

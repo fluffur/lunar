@@ -35,7 +35,6 @@ func (v *Validator) Validate(s any) FieldErrors {
 	if err == nil {
 		return nil
 	}
-
 	var ve validator.ValidationErrors
 	if !errors.As(err, &ve) {
 		return nil
