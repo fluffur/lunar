@@ -5,11 +5,11 @@ import (
 	"log/slog"
 	"lunar/internal/auth"
 	"lunar/internal/chat"
-	"lunar/internal/chat/ws"
 	"lunar/internal/config"
 	"lunar/internal/httputil"
 	"lunar/internal/message"
 	"lunar/internal/user"
+	"lunar/internal/ws"
 	"net/http"
 	"time"
 

@@ -2,8 +2,8 @@ package chat
 
 import (
 	"log/slog"
-	"lunar/internal/chat/ws"
 	"lunar/internal/httputil"
+	"lunar/internal/ws"
 	"net/http"
 
 	"github.com/google/uuid"
