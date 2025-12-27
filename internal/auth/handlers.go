@@ -22,7 +22,7 @@ func NewHandler(validate *validator.Validate, service *Service) *Handler {
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
-	var credentials registerCredentials
+	var credentials RegisterCredentials
 	if err := json.Read(r, &credentials); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
@@ -52,7 +52,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
-	var credentials loginCredentials
+	var credentials LoginCredentials
 	if err := json.Read(r, &credentials); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return

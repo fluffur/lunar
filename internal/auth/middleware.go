@@ -2,6 +2,7 @@ package auth
 
 import (
 	"context"
+	"lunar/internal/httputil"
 	ctxUtils "lunar/internal/utils/ctx"
 	"net/http"
 	"strings"
@@ -15,13 +16,13 @@ func WebSocketMiddleware(authenticator *Authenticator) func(next http.Handler) h
 			tokenStr := r.URL.Query().Get("token")
 			claims, err := authenticator.ParseClaims(tokenStr)
 			if err != nil {
-				w.WriteHeader(http.StatusUnauthorized)
+				httputil.WriteUnauthorized(w, "Invalid token")
 				return
 			}
 
 			userID, err := uuid.Parse(claims.Subject)
 			if err != nil {
-				w.WriteHeader(http.StatusUnauthorized)
+				httputil.WriteUnauthorized(w, "Invalid token payload")
 				return
 			}
 
@@ -40,14 +41,14 @@ func Middleware(authenticator *Authenticator) func(http.Handler) http.Handler {
 			parts := strings.SplitN(authorization, " ", 2)
 
 			if len(parts) < 2 || parts[0] != "Bearer" {
-				w.WriteHeader(http.StatusUnauthorized)
+				httputil.WriteUnauthorized(w, "Invalid token")
 				return
 			}
 
 			tokenStr := strings.TrimSpace(parts[1])
 			claims, err := authenticator.ParseClaims(tokenStr)
 			if err != nil {
-				w.WriteHeader(http.StatusUnauthorized)
+				httputil.WriteUnauthorized(w, "Invalid token payload")
 				return
 			}
 

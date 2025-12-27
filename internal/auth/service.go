@@ -40,7 +40,7 @@ func NewService(
 	}
 }
 
-func (s *Service) Register(ctx context.Context, credentials registerCredentials) (Tokens, error) {
+func (s *Service) Register(ctx context.Context, credentials RegisterCredentials) (Tokens, error) {
 	tx, err := s.db.Begin(ctx)
 	if err != nil {
 		return Tokens{}, err
@@ -105,7 +105,7 @@ func (s *Service) Register(ctx context.Context, credentials registerCredentials)
 	}, nil
 }
 
-func (s *Service) Login(ctx context.Context, credentials loginCredentials) (Tokens, error) {
+func (s *Service) Login(ctx context.Context, credentials LoginCredentials) (Tokens, error) {
 	user, err := s.queries.GetUserByLogin(ctx, credentials.Login)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

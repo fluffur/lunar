@@ -1,7 +1,6 @@
 package ctx
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -25,12 +24,4 @@ func UserFromRequest(r *http.Request) *UserContext {
 	}
 	return user
 
-}
-
-func UserIDFromContext(ctx context.Context) uuid.UUID {
-	userID, ok := ctx.Value(UserCtxKey).(uuid.UUID)
-	if !ok {
-		panic("User ID not found in context. Make sure middleware ran")
-	}
-	return userID
 }
