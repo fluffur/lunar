@@ -1,5 +1,5 @@
 import {useEffect, useRef, useState} from "react";
-import {ActionIcon, Button, Center, Group, Paper, ScrollArea, Stack, Text, TextInput} from "@mantine/core";
+import {ActionIcon, Button, Center, Group, Paper, ScrollArea, Stack, Text, Textarea} from "@mantine/core";
 import {useNavigate, useParams} from "react-router-dom";
 import {useSessionStore} from "../stores/sessionStore.ts";
 import {authApi, messageApi} from "../api.ts";
@@ -175,7 +175,7 @@ export default function Chat() {
 
     const sendMessage = () => {
         if (!value.trim()) return;
-        wsSendMessage(value);
+        wsSendMessage(value.trim().replace(/\n\n+/g, '\n\n'));
         setValue("");
     };
 
@@ -291,26 +291,36 @@ export default function Chat() {
                 )}
 
                 <Paper p="md">
-                    <TextInput
-                        placeholder="Type a message..."
-                        value={value}
-                        onChange={(e) => setValue(e.currentTarget.value)}
-                        onKeyDown={(e) => e.key === "Enter" && sendMessage()}
-                        radius="md"
-                        size="md"
-                        rightSectionWidth={43}
-                        rightSection={
-                            <ActionIcon
-                                size={38}
-                                radius="md"
-                                variant="filled"
-                                onClick={sendMessage}
-                                disabled={!value.trim()}
-                            >
-                                <IconSend2/>
-                            </ActionIcon>
-                        }
-                    />
+
+                    <Group gap="sm">
+                        <Textarea
+                            placeholder="Type a message..."
+                            value={value}
+                            onChange={(e) => setValue(e.currentTarget.value)}
+                            onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey) {
+                                e.preventDefault();
+                                sendMessage();
+                            }
+                        }}
+                            radius="md"
+                            size="md"
+                            minRows={1}
+                            maxRows={5}
+                            autosize
+                            style={{flex: 1}}
+
+                        />
+                        <ActionIcon
+                            size={38}
+                            radius="md"
+                            variant="filled"
+                            onClick={sendMessage}
+                            disabled={!value.trim()}
+                        >
+                            <IconSend2/>
+                        </ActionIcon>
+                    </Group>
                 </Paper>
             </Paper>
         </Center>
