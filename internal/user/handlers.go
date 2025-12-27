@@ -174,7 +174,7 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	httputil.Success(w)
 }
 
 // SendVerificationCode sends a verification code to the user's email
