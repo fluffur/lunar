@@ -25,7 +25,7 @@ func NewHandler(validator *httputil.Validator, service *Service) *Handler {
 //	@Accept			json
 //	@Produce		json
 //	@Param			input	body		RegisterCredentials	true	"Registration credentials"
-//	@SuccessData	200																													{object}			TokenSuccessResponse
+//	@SuccessData	200																																					{object}			TokenSuccessResponse
 //	@Failure		400		{object}	httputil.ErrorResponse
 //	@Failure		500		{object}	httputil.ErrorResponse
 //	@Router			/auth/register [post]
@@ -67,7 +67,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 //	@Accept			json
 //	@Produce		json
 //	@Param			input	body		LoginCredentials	true	"Login credentials"
-//	@SuccessData	200																													{object}			TokenSuccessResponse
+//	@SuccessData	200																																					{object}			TokenSuccessResponse
 //	@Failure		400		{object}	httputil.ErrorResponse
 //	@Failure		401		{object}	httputil.ErrorResponse
 //	@Failure		500		{object}	httputil.ErrorResponse

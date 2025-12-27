@@ -252,7 +252,29 @@ paths:
       summary: List messages in a chat
       tags:
       - message
-  /users/avatar:
+  /users/me:
+    get:
+      produces:
+      - application/json
+      responses:
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get current user
+      tags:
+      - user
+  /users/me/avatar:
     post:
       consumes:
       - multipart/form-data
@@ -278,7 +300,7 @@ paths:
       summary: Upload user avatar
       tags:
       - user
-  /users/email:
+  /users/me/email:
     put:
       consumes:
       - application/json
@@ -309,29 +331,7 @@ paths:
       summary: Update user email
       tags:
       - user
-  /users/me:
-    get:
-      produces:
-      - application/json
-      responses:
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Get current user
-      tags:
-      - user
-  /users/password:
+  /users/me/password:
     put:
       consumes:
       - application/json
@@ -362,7 +362,7 @@ paths:
       summary: Change user password
       tags:
       - user
-  /users/verification-code:
+  /users/me/verification-code:
     post:
       consumes:
       - application/json

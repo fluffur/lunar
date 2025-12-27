@@ -29,7 +29,7 @@ func NewHandler(validator *httputil.Validator, service *Service) *Handler {
 //	@Param			chatID	path		string	true	"Chat ID"
 //	@Param			limit	query		int		false	"Limit"
 //	@Param			cursor	query		string	false	"Cursor"
-//	@SuccessData	200																				{object}	MessagesSuccessResponse
+//	@SuccessData	200																									{object}	MessagesSuccessResponse
 //	@Failure		400		{object}	httputil.ErrorResponse
 //	@Failure		500		{object}	httputil.ErrorResponse
 //	@Router			/chat/{chatID}/messages [get]

@@ -50,7 +50,7 @@ func (h *Handler) CurrentUser(w http.ResponseWriter, r *http.Request) {
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			input	body		updateEmailRequest	true	"Email update request"
-//	@SuccessData	200																													{object}			httputil.Response
+//	@SuccessData	200																																					{object}			httputil.Response
 //	@Failure		400		{object}	httputil.ErrorResponse
 //	@Failure		401		{object}	httputil.ErrorResponse
 //	@Failure		500		{object}	httputil.ErrorResponse
@@ -208,7 +208,7 @@ func (h *Handler) SendVerificationCode(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.WriteHeader(http.StatusNoContent)
+	httputil.Success(w)
 }
 
 func (h *Handler) VerifyEmail(w http.ResponseWriter, r *http.Request) {

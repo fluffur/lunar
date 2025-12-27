@@ -280,7 +280,43 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/avatar": {
+        "/users/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "user"
+                ],
+                "summary": "Get current user",
+                "responses": {
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/users/me/avatar": {
             "post": {
                 "security": [
                     {
@@ -322,7 +358,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/email": {
+        "/users/me/email": {
             "put": {
                 "security": [
                     {
@@ -372,43 +408,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/me": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Get current user",
-                "responses": {
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/users/password": {
+        "/users/me/password": {
             "put": {
                 "security": [
                     {
@@ -458,7 +458,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/users/verification-code": {
+        "/users/me/verification-code": {
             "post": {
                 "security": [
                     {

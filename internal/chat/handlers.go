@@ -31,7 +31,7 @@ func NewHandler(validator *httputil.Validator, service *Service, wsService *ws.S
 //	@Produce		json
 //	@Security		BearerAuth
 //	@Param			input	body		createChatParams	true	"Chat creation params"
-//	@SuccessData	201																													{object}			CreateChatSuccessResponse
+//	@SuccessData	201																																					{object}			CreateChatSuccessResponse
 //	@Failure		400		{object}	httputil.ErrorResponse
 //	@Failure		401		{object}	httputil.ErrorResponse
 //	@Failure		500		{object}	httputil.ErrorResponse
@@ -59,7 +59,7 @@ func (h *Handler) CreateChat(w http.ResponseWriter, r *http.Request) {
 //	@Tags			chat
 //	@Param			chatID	path	string	true	"Chat ID"
 //	@Security		BearerAuth
-//	@SuccessData	200														{object}	httputil.Response
+//	@SuccessData	200																{object}	httputil.Response
 //	@Failure		401	{object}	httputil.ErrorResponse
 //	@Failure		500	{object}	httputil.ErrorResponse
 //	@Router			/chat/{chatID}/join [post]
