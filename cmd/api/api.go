@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	_ "lunar/docs"
@@ -12,6 +14,9 @@ import (
 	"lunar/internal/user"
 	"lunar/internal/ws"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -94,9 +99,43 @@ func (app *application) run(h http.Handler) error {
 		IdleTimeout:  time.Minute,
 	}
 
+	shutdown := make(chan error)
+
+	go func() {
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+		s := <-quit
+
+		slog.Info("shutting down server", "signal", s.String())
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		shutdown <- srv.Shutdown(ctx)
+	}()
+
 	slog.Info("server has started", "addr", app.config.Addr)
 
-	return srv.ListenAndServe()
+	err := srv.ListenAndServe()
+	if !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+
+	err = <-shutdown
+	if err != nil {
+		return err
+	}
+
+	slog.Info("completing background tasks", "addr", srv.Addr)
+
+	app.db.Close()
+	if err := app.rdb.Close(); err != nil {
+		slog.Error("failed to close redis", "error", err)
+	}
+
+	slog.Info("server stopped", "addr", srv.Addr)
+
+	return nil
 }
 
 type application struct {
