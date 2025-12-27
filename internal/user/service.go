@@ -9,7 +9,7 @@ import (
 	"image/jpeg"
 	"log/slog"
 	"lunar/internal/db/redis"
-	"lunar/internal/db/sqlc"
+	db "lunar/internal/db/sqlc"
 	"math/big"
 	"mime/multipart"
 	"os"

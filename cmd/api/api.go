@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	_ "lunar/docs"
 	"lunar/internal/auth"
 	"lunar/internal/chat"
 	"lunar/internal/config"
@@ -18,6 +19,7 @@ import (
 	"github.com/go-chi/cors"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 func (app *application) mount() http.Handler {
@@ -36,6 +38,8 @@ func (app *application) mount() http.Handler {
 		AllowCredentials: app.config.CORS.AllowCredentials,
 		MaxAge:           app.config.CORS.MaxAge,
 	}))
+
+	r.Get("/docs/*", httpSwagger.Handler())
 
 	authMw := auth.Middleware(app.authenticator)
 	wsAuthMw := auth.WebSocketMiddleware(app.authenticator)

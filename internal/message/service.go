@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"lunar/internal/db/sqlc"
+	db "lunar/internal/db/sqlc"
 	"lunar/internal/model"
 	"strconv"
 

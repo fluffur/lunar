@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	"lunar/internal/db/sqlc"
+	db "lunar/internal/db/sqlc"
 	"lunar/internal/model"
 	"net/http"
 	"time"

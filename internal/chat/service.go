@@ -2,7 +2,7 @@ package chat
 
 import (
 	"context"
-	"lunar/internal/db/sqlc"
+	db "lunar/internal/db/sqlc"
 
 	"github.com/google/uuid"
 )
