@@ -68,10 +68,12 @@ func (app *application) mount() http.Handler {
 	r.With(authMw).Group(func(r chi.Router) {
 		r.Route("/users/me", func(r chi.Router) {
 			r.Get("/", userHandler.CurrentUser)
-			r.Post("/email", userHandler.UpdateEmail)
+
+			r.Put("/email", userHandler.UpdateEmail)
 			r.Post("/email/verification-code", userHandler.SendVerificationCode)
-			r.Post("/email/verify", userHandler.VerifyEmail)
-			r.Post("/password", userHandler.ChangePassword)
+			r.Post("/email/verification", userHandler.VerifyEmail)
+
+			r.Put("/password", userHandler.ChangePassword)
 			r.Post("/avatar", userHandler.UploadAvatar)
 		})
 

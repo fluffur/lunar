@@ -23,7 +23,7 @@ func (s *Service) GetChat(ctx context.Context, id uuid.UUID) (db.Chat, error) {
 	return s.queries.GetChat(ctx, id)
 }
 
-func (s *Service) CreateChat(ctx context.Context, params createChatParams) (uuid.UUID, error) {
+func (s *Service) CreateChat(ctx context.Context, params CreateParams) (uuid.UUID, error) {
 	return s.queries.CreateChat(ctx, db.CreateChatParams{
 		ID: uuid.Must(uuid.NewV7()),
 		Name: pgtype.Text{

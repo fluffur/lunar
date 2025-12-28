@@ -53,13 +53,14 @@ void (empty response body)
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
+|**200** | OK |  -  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal Server Error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **chatsPost**
-> ChatCreateChatSuccessResponse chatsPost(input)
+> ChatCreateResponse chatsPost(input)
 
 
 ### Example
@@ -68,13 +69,13 @@ void (empty response body)
 import {
     ChatApi,
     Configuration,
-    ChatCreateChatParams
+    ChatCreateParams
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new ChatApi(configuration);
 
-let input: ChatCreateChatParams; //Chat creation params
+let input: ChatCreateParams; //Chat creation params
 
 const { status, data } = await apiInstance.chatsPost(
     input
@@ -85,12 +86,12 @@ const { status, data } = await apiInstance.chatsPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **input** | **ChatCreateChatParams**| Chat creation params | |
+| **input** | **ChatCreateParams**| Chat creation params | |
 
 
 ### Return type
 
-**ChatCreateChatSuccessResponse**
+**ChatCreateResponse**
 
 ### Authorization
 

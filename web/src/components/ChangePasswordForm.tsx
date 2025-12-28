@@ -37,7 +37,7 @@ export default function ChangePasswordForm({onSuccess, handlePasswordCancel}: Pr
             if (onSuccess) onSuccess();
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const errors = error.response?.data?.errors;
+                const errors = error.response?.data?.error?.fields;
                 form.setErrors(errors);
             } else {
                 setPasswordError("Failed to change password");

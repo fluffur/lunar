@@ -42,7 +42,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/auth.TokenSuccessResponse"
+                            "$ref": "#/definitions/auth.Tokens"
                         }
                     },
                     "400": {
@@ -77,10 +77,7 @@ const docTemplate = `{
                 "summary": "Logout a user",
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.Response"
-                        }
+                        "description": "OK"
                     },
                     "401": {
                         "description": "Unauthorized",
@@ -110,7 +107,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/auth.TokenSuccessResponse"
+                            "$ref": "#/definitions/auth.Tokens"
                         }
                     },
                     "401": {
@@ -149,7 +146,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/auth.TokenSuccessResponse"
+                            "$ref": "#/definitions/auth.Tokens"
                         }
                     },
                     "400": {
@@ -191,7 +188,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/chat.createChatParams"
+                            "$ref": "#/definitions/chat.CreateParams"
                         }
                     }
                 ],
@@ -199,7 +196,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/chat.CreateChatSuccessResponse"
+                            "$ref": "#/definitions/chat.CreateResponse"
                         }
                     },
                     "400": {
@@ -244,6 +241,9 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
@@ -298,7 +298,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/message.MessagesSuccessResponse"
+                            "$ref": "#/definitions/message.GetPagingResponse"
                         }
                     },
                     "400": {
@@ -334,7 +334,7 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.SuccessResponse"
+                            "$ref": "#/definitions/model.User"
                         }
                     },
                     "400": {
@@ -385,6 +385,9 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -424,11 +427,14 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.updateEmailRequest"
+                            "$ref": "#/definitions/user.UpdateEmailRequest"
                         }
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -474,11 +480,14 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.updatePasswordRequest"
+                            "$ref": "#/definitions/user.UpdatePasswordRequest"
                         }
                     }
                 ],
                 "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -524,11 +533,14 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.sendVerificationCodeRequest"
+                            "$ref": "#/definitions/user.SendVerificationCodeRequest"
                         }
                     }
                 ],
                 "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -590,22 +602,6 @@ const docTemplate = `{
                 }
             }
         },
-        "auth.TokenSuccessResponse": {
-            "type": "object",
-            "required": [
-                "data",
-                "success"
-            ],
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/auth.Tokens"
-                },
-                "success": {
-                    "type": "boolean",
-                    "default": true
-                }
-            }
-        },
         "auth.Tokens": {
             "type": "object",
             "required": [
@@ -621,19 +617,7 @@ const docTemplate = `{
                 }
             }
         },
-        "chat.CreateChatSuccessResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/chat.createChatResponse"
-                },
-                "success": {
-                    "type": "boolean",
-                    "default": true
-                }
-            }
-        },
-        "chat.createChatParams": {
+        "chat.CreateParams": {
             "type": "object",
             "properties": {
                 "name": {
@@ -644,7 +628,7 @@ const docTemplate = `{
                 }
             }
         },
-        "chat.createChatResponse": {
+        "chat.CreateResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -669,35 +653,10 @@ const docTemplate = `{
             "properties": {
                 "error": {
                     "$ref": "#/definitions/httputil.ErrorBody"
-                },
-                "success": {
-                    "type": "boolean",
-                    "default": false
                 }
             }
         },
-        "httputil.Response": {
-            "type": "object",
-            "properties": {
-                "success": {
-                    "type": "boolean",
-                    "default": true
-                }
-            }
-        },
-        "message.MessagesSuccessResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/message.messagesResponse"
-                },
-                "success": {
-                    "type": "boolean",
-                    "default": true
-                }
-            }
-        },
-        "message.messagesResponse": {
+        "message.GetPagingResponse": {
             "type": "object",
             "properties": {
                 "messages": {
@@ -765,23 +724,7 @@ const docTemplate = `{
                 }
             }
         },
-        "user.SuccessResponse": {
-            "type": "object",
-            "required": [
-                "data",
-                "success"
-            ],
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/model.User"
-                },
-                "success": {
-                    "type": "boolean",
-                    "default": true
-                }
-            }
-        },
-        "user.sendVerificationCodeRequest": {
+        "user.SendVerificationCodeRequest": {
             "type": "object",
             "required": [
                 "email"
@@ -792,7 +735,7 @@ const docTemplate = `{
                 }
             }
         },
-        "user.updateEmailRequest": {
+        "user.UpdateEmailRequest": {
             "type": "object",
             "required": [
                 "email"
@@ -803,7 +746,7 @@ const docTemplate = `{
                 }
             }
         },
-        "user.updatePasswordRequest": {
+        "user.UpdatePasswordRequest": {
             "type": "object",
             "required": [
                 "currentPassword",

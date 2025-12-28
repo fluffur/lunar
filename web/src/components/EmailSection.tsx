@@ -1,7 +1,7 @@
-import {ActionIcon, Button, Collapse, Group, Stack, Text, TextInput,} from "@mantine/core";
+import {ActionIcon, Collapse, Group, Stack, Text, TextInput,} from "@mantine/core";
 import {IconCheck, IconEdit, IconX} from "@tabler/icons-react";
 import {useState} from "react";
-import {api, userApi} from "../api.ts";
+import {userApi} from "../api.ts";
 import {useSessionStore} from "../stores/sessionStore.ts";
 
 export default function EmailSection() {
@@ -10,7 +10,6 @@ export default function EmailSection() {
     const [originalEmail, setOriginalEmail] = useState(email);
     const [isEditingEmail, setIsEditingEmail] = useState(false);
     const [emailSaved, setEmailSaved] = useState(false);
-    const [verifyingEmail, setVerifyingEmail] = useState(false);
 
     const handleEmailSave = async () => {
         if (email === originalEmail) return setIsEditingEmail(false);
@@ -32,17 +31,6 @@ export default function EmailSection() {
     const handleEmailCancel = () => {
         setEmail(originalEmail);
         setIsEditingEmail(false);
-    };
-
-    const handleSendVerification = async () => {
-        try {
-            setVerifyingEmail(true);
-            await api.post("/users/me/send-verification");
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setVerifyingEmail(false);
-        }
     };
 
     return (
@@ -71,18 +59,7 @@ export default function EmailSection() {
                 }
                 rightSectionWidth={isEditingEmail ? 65 : 40}
             />
-            <Group w="100%">
-                {!user?.emailVerified && (
-                    <Button
-                        variant="light"
-                        color="blue"
-                        onClick={handleSendVerification}
-                        loading={verifyingEmail}
-                    >
-                        Verify Email
-                    </Button>
-                )}
-            </Group>
+
             <Collapse in={emailSaved}>
                 <Text color="green" size="sm">
                     Email updated. Please verify new email.

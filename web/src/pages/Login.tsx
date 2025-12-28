@@ -29,16 +29,16 @@ export default function Login() {
         try {
             setGeneralError(null);
             const {data} = await authApi.authLoginPost(loginFormData)
-            const token = data.data.accessToken;
+            const token = data.accessToken;
             setToken(token);
 
             const {data: userData} = await userApi.usersMeGet()
-            setUser(userData.data);
+            setUser(userData);
 
             navigate('/chats')
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const errors = error.response?.data?.data?.error?.fields;
+                const errors = error.response?.data?.error?.fields;
                 if (errors) {
                     form.setErrors(errors);
                     return;

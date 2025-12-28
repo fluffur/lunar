@@ -30,14 +30,14 @@ func NewHandler(validator *httputil.Validator, service *Service, wsService *ws.S
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		input	body		createChatParams	true	"Chat creation params"
-//	@Success	201		{object}	CreateChatSuccessResponse
+//	@Param		input	body		CreateParams	true	"Chat creation params"
+//	@Success	201		{object}	CreateResponse
 //	@Failure	400		{object}	httputil.ErrorResponse
 //	@Failure	401		{object}	httputil.ErrorResponse
 //	@Failure	500		{object}	httputil.ErrorResponse
 //	@Router		/chats [post]
 func (h *Handler) CreateChat(w http.ResponseWriter, r *http.Request) {
-	var params createChatParams
+	var params CreateParams
 
 	if err := httputil.Read(r, &params); err != nil {
 		httputil.InvalidRequestBody(w)
@@ -50,19 +50,19 @@ func (h *Handler) CreateChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httputil.Created(w, createChatResponse{ID: chatID})
+	httputil.Created(w, CreateResponse{ID: chatID})
 }
 
 // JoinCurrentUser joins the current user to a chat
 //
-//	@Summary		Join current user to chat
-//	@Tags			chat
-//	@Param			chatID	path	string	true	"Chat ID"
-//	@Security		BearerAuth
-//	@SuccessData	200																																														{object}	httputil.Response
-//	@Failure		401	{object}	httputil.ErrorResponse
-//	@Failure		500	{object}	httputil.ErrorResponse
-//	@Router			/chats/{chatID} [post]
+//	@Summary	Join current user to chat
+//	@Tags		chat
+//	@Param		chatID	path	string	true	"Chat ID"
+//	@Security	BearerAuth
+//	@Success	200
+//	@Failure	401	{object}	httputil.ErrorResponse
+//	@Failure	500	{object}	httputil.ErrorResponse
+//	@Router		/chats/{chatID} [post]
 func (h *Handler) JoinCurrentUser(w http.ResponseWriter, r *http.Request) {
 	user := httputil.UserFromRequest(r)
 	chatID := uuid.MustParse(r.PathValue("chatID"))

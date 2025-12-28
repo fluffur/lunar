@@ -7,7 +7,7 @@ All URIs are relative to *http://localhost*
 |[**chatsChatIDMessagesGet**](#chatschatidmessagesget) | **GET** /chats/{chatID}/messages | List messages in a chat|
 
 # **chatsChatIDMessagesGet**
-> MessageMessagesSuccessResponse chatsChatIDMessagesGet()
+> MessageGetPagingResponse chatsChatIDMessagesGet()
 
 
 ### Example
@@ -43,7 +43,7 @@ const { status, data } = await apiInstance.chatsChatIDMessagesGet(
 
 ### Return type
 
-**MessageMessagesSuccessResponse**
+**MessageGetPagingResponse**
 
 ### Authorization
 

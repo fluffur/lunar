@@ -33,7 +33,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/auth.TokenSuccessResponse"
+                            "$ref": "#/definitions/auth.Tokens"
                         }
                     },
                     "400": {
@@ -68,10 +68,7 @@
                 "summary": "Logout a user",
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.Response"
-                        }
+                        "description": "OK"
                     },
                     "401": {
                         "description": "Unauthorized",
@@ -101,7 +98,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/auth.TokenSuccessResponse"
+                            "$ref": "#/definitions/auth.Tokens"
                         }
                     },
                     "401": {
@@ -140,7 +137,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/auth.TokenSuccessResponse"
+                            "$ref": "#/definitions/auth.Tokens"
                         }
                     },
                     "400": {
@@ -182,7 +179,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/chat.createChatParams"
+                            "$ref": "#/definitions/chat.CreateParams"
                         }
                     }
                 ],
@@ -190,7 +187,7 @@
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/chat.CreateChatSuccessResponse"
+                            "$ref": "#/definitions/chat.CreateResponse"
                         }
                     },
                     "400": {
@@ -235,6 +232,9 @@
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
                     "401": {
                         "description": "Unauthorized",
                         "schema": {
@@ -289,7 +289,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/message.MessagesSuccessResponse"
+                            "$ref": "#/definitions/message.GetPagingResponse"
                         }
                     },
                     "400": {
@@ -325,7 +325,7 @@
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/user.SuccessResponse"
+                            "$ref": "#/definitions/model.User"
                         }
                     },
                     "400": {
@@ -376,6 +376,9 @@
                     }
                 ],
                 "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -415,11 +418,14 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.updateEmailRequest"
+                            "$ref": "#/definitions/user.UpdateEmailRequest"
                         }
                     }
                 ],
                 "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -465,11 +471,14 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.updatePasswordRequest"
+                            "$ref": "#/definitions/user.UpdatePasswordRequest"
                         }
                     }
                 ],
                 "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -515,11 +524,14 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/user.sendVerificationCodeRequest"
+                            "$ref": "#/definitions/user.SendVerificationCodeRequest"
                         }
                     }
                 ],
                 "responses": {
+                    "204": {
+                        "description": "No Content"
+                    },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
@@ -581,22 +593,6 @@
                 }
             }
         },
-        "auth.TokenSuccessResponse": {
-            "type": "object",
-            "required": [
-                "data",
-                "success"
-            ],
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/auth.Tokens"
-                },
-                "success": {
-                    "type": "boolean",
-                    "default": true
-                }
-            }
-        },
         "auth.Tokens": {
             "type": "object",
             "required": [
@@ -612,19 +608,7 @@
                 }
             }
         },
-        "chat.CreateChatSuccessResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/chat.createChatResponse"
-                },
-                "success": {
-                    "type": "boolean",
-                    "default": true
-                }
-            }
-        },
-        "chat.createChatParams": {
+        "chat.CreateParams": {
             "type": "object",
             "properties": {
                 "name": {
@@ -635,7 +619,7 @@
                 }
             }
         },
-        "chat.createChatResponse": {
+        "chat.CreateResponse": {
             "type": "object",
             "properties": {
                 "id": {
@@ -660,35 +644,10 @@
             "properties": {
                 "error": {
                     "$ref": "#/definitions/httputil.ErrorBody"
-                },
-                "success": {
-                    "type": "boolean",
-                    "default": false
                 }
             }
         },
-        "httputil.Response": {
-            "type": "object",
-            "properties": {
-                "success": {
-                    "type": "boolean",
-                    "default": true
-                }
-            }
-        },
-        "message.MessagesSuccessResponse": {
-            "type": "object",
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/message.messagesResponse"
-                },
-                "success": {
-                    "type": "boolean",
-                    "default": true
-                }
-            }
-        },
-        "message.messagesResponse": {
+        "message.GetPagingResponse": {
             "type": "object",
             "properties": {
                 "messages": {
@@ -756,23 +715,7 @@
                 }
             }
         },
-        "user.SuccessResponse": {
-            "type": "object",
-            "required": [
-                "data",
-                "success"
-            ],
-            "properties": {
-                "data": {
-                    "$ref": "#/definitions/model.User"
-                },
-                "success": {
-                    "type": "boolean",
-                    "default": true
-                }
-            }
-        },
-        "user.sendVerificationCodeRequest": {
+        "user.SendVerificationCodeRequest": {
             "type": "object",
             "required": [
                 "email"
@@ -783,7 +726,7 @@
                 }
             }
         },
-        "user.updateEmailRequest": {
+        "user.UpdateEmailRequest": {
             "type": "object",
             "required": [
                 "email"
@@ -794,7 +737,7 @@
                 }
             }
         },
-        "user.updatePasswordRequest": {
+        "user.UpdatePasswordRequest": {
             "type": "object",
             "required": [
                 "currentPassword",

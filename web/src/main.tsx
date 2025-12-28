@@ -4,12 +4,15 @@ import App from './App.tsx'
 import {BrowserRouter} from "react-router-dom";
 import {MantineProvider} from "@mantine/core";
 import '@mantine/core/styles.css'
-import {theme} from "./theme.ts";
+import {createAppTheme} from "./theme.ts";
+import {useUiStore} from "./stores/uiStore.ts";
 
 function Root() {
+    const {primaryColor, colorScheme} = useUiStore()
+
     return (
         <StrictMode>
-            <MantineProvider theme={theme} defaultColorScheme="dark">
+            <MantineProvider theme={createAppTheme(primaryColor)} forceColorScheme={colorScheme}>
                 <BrowserRouter>
                     <App/>
                 </BrowserRouter>

@@ -31,17 +31,6 @@ definitions:
     - password
     - username
     type: object
-  auth.TokenSuccessResponse:
-    properties:
-      data:
-        $ref: '#/definitions/auth.Tokens'
-      success:
-        default: true
-        type: boolean
-    required:
-    - data
-    - success
-    type: object
   auth.Tokens:
     properties:
       accessToken:
@@ -52,22 +41,14 @@ definitions:
     - accessToken
     - refreshToken
     type: object
-  chat.CreateChatSuccessResponse:
-    properties:
-      data:
-        $ref: '#/definitions/chat.createChatResponse'
-      success:
-        default: true
-        type: boolean
-    type: object
-  chat.createChatParams:
+  chat.CreateParams:
     properties:
       name:
         type: string
       type:
         type: string
     type: object
-  chat.createChatResponse:
+  chat.CreateResponse:
     properties:
       id:
         type: string
@@ -84,25 +65,8 @@ definitions:
     properties:
       error:
         $ref: '#/definitions/httputil.ErrorBody'
-      success:
-        default: false
-        type: boolean
     type: object
-  httputil.Response:
-    properties:
-      success:
-        default: true
-        type: boolean
-    type: object
-  message.MessagesSuccessResponse:
-    properties:
-      data:
-        $ref: '#/definitions/message.messagesResponse'
-      success:
-        default: true
-        type: boolean
-    type: object
-  message.messagesResponse:
+  message.GetPagingResponse:
     properties:
       messages:
         items:
@@ -149,32 +113,21 @@ definitions:
     - id
     - username
     type: object
-  user.SuccessResponse:
-    properties:
-      data:
-        $ref: '#/definitions/model.User'
-      success:
-        default: true
-        type: boolean
-    required:
-    - data
-    - success
-    type: object
-  user.sendVerificationCodeRequest:
+  user.SendVerificationCodeRequest:
     properties:
       email:
         type: string
     required:
     - email
     type: object
-  user.updateEmailRequest:
+  user.UpdateEmailRequest:
     properties:
       email:
         type: string
     required:
     - email
     type: object
-  user.updatePasswordRequest:
+  user.UpdatePasswordRequest:
     properties:
       currentPassword:
         minLength: 6
@@ -208,7 +161,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/auth.TokenSuccessResponse'
+            $ref: '#/definitions/auth.Tokens'
         "400":
           description: Bad Request
           schema:
@@ -231,8 +184,6 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            $ref: '#/definitions/httputil.Response'
         "401":
           description: Unauthorized
           schema:
@@ -252,7 +203,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/auth.TokenSuccessResponse'
+            $ref: '#/definitions/auth.Tokens'
         "401":
           description: Unauthorized
           schema:
@@ -277,7 +228,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/auth.TokenSuccessResponse'
+            $ref: '#/definitions/auth.Tokens'
         "400":
           description: Bad Request
           schema:
@@ -299,14 +250,14 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/chat.createChatParams'
+          $ref: '#/definitions/chat.CreateParams'
       produces:
       - application/json
       responses:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/chat.CreateChatSuccessResponse'
+            $ref: '#/definitions/chat.CreateResponse'
         "400":
           description: Bad Request
           schema:
@@ -333,6 +284,8 @@ paths:
         required: true
         type: string
       responses:
+        "200":
+          description: OK
         "401":
           description: Unauthorized
           schema:
@@ -368,7 +321,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/message.MessagesSuccessResponse'
+            $ref: '#/definitions/message.GetPagingResponse'
         "400":
           description: Bad Request
           schema:
@@ -390,7 +343,7 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/user.SuccessResponse'
+            $ref: '#/definitions/model.User'
         "400":
           description: Bad Request
           schema:
@@ -421,6 +374,8 @@ paths:
       produces:
       - application/json
       responses:
+        "204":
+          description: No Content
         "400":
           description: Bad Request
           schema:
@@ -444,10 +399,12 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/user.updateEmailRequest'
+          $ref: '#/definitions/user.UpdateEmailRequest'
       produces:
       - application/json
       responses:
+        "200":
+          description: OK
         "400":
           description: Bad Request
           schema:
@@ -475,10 +432,12 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/user.updatePasswordRequest'
+          $ref: '#/definitions/user.UpdatePasswordRequest'
       produces:
       - application/json
       responses:
+        "204":
+          description: No Content
         "400":
           description: Bad Request
           schema:
@@ -506,10 +465,12 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/user.sendVerificationCodeRequest'
+          $ref: '#/definitions/user.SendVerificationCodeRequest'
       produces:
       - application/json
       responses:
+        "204":
+          description: No Content
         "400":
           description: Bad Request
           schema:

@@ -25,7 +25,7 @@ func NewHandler(validator *httputil.Validator, service *Service) *Handler {
 //	@Accept		json
 //	@Produce	json
 //	@Param		input	body		RegisterCredentials	true	"Registration credentials"
-//	@Success	200		{object}	TokenSuccessResponse
+//	@Success	200		{object}	Tokens
 //	@Failure	400		{object}	httputil.ErrorResponse
 //	@Failure	500		{object}	httputil.ErrorResponse
 //	@Router		/auth/register [post]
@@ -67,7 +67,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 //	@Accept		json
 //	@Produce	json
 //	@Param		input	body		LoginCredentials	true	"Login credentials"
-//	@Success	200		{object}	TokenSuccessResponse
+//	@Success	200		{object}	Tokens
 //	@Failure	400		{object}	httputil.ErrorResponse
 //	@Failure	401		{object}	httputil.ErrorResponse
 //	@Failure	500		{object}	httputil.ErrorResponse
@@ -103,7 +103,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 //	@Summary	Refresh access token
 //	@Tags		auth
 //	@Produce	json
-//	@Success	200	{object}	TokenSuccessResponse
+//	@Success	200	{object}	Tokens
 //	@Failure	401	{object}	httputil.ErrorResponse
 //	@Router		/auth/refresh [post]
 func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
@@ -128,7 +128,7 @@ func (h *Handler) Refresh(w http.ResponseWriter, r *http.Request) {
 //	@Summary	Logout a user
 //	@Tags		auth
 //	@Produce	json
-//	@Success	200	{object}	httputil.Response
+//	@Success	200
 //	@Failure	401	{object}	httputil.ErrorResponse
 //	@Failure	500	{object}	httputil.ErrorResponse
 //	@Router		/auth/logout [post]

@@ -4,16 +4,11 @@ import (
 	"github.com/google/uuid"
 )
 
-type createChatParams struct {
+type CreateParams struct {
 	Name string `json:"name,omitempty"`
 	Type string `json:"type"`
 }
 
-type createChatResponse struct {
+type CreateResponse struct {
 	ID uuid.UUID `json:"id"`
-}
-
-type CreateChatSuccessResponse struct {
-	Success bool               `json:"success" default:"true"`
-	Data    createChatResponse `json:"data"`
 }

@@ -9,7 +9,7 @@ import {isTokenExpired} from "../utils.ts";
 import axios from "axios";
 import NotFound from "./NotFound.tsx";
 import {UserAvatar} from "../components/UserAvatar.tsx";
-import {WS_BASE_URL} from "../config.ts";
+import {API_AVATARS_BASE_URL, API_UPLOADS_BASE_URL, WS_BASE_URL} from "../config.ts";
 
 interface Sender {
     id: string;
@@ -56,9 +56,9 @@ export default function Chat() {
             const scrollContainer = viewportRef.current;
             const prevScrollHeight = scrollContainer.scrollHeight;
 
-            setMessages(prev => [...data?.data?.messages?.reverse() ?? [], ...prev]);
+            setMessages(prev => [...data.messages?.reverse() ?? [], ...prev]);
 
-            setNextCursor(data?.data?.nextCursor ?? null);
+            setNextCursor(data.nextCursor ?? null);
 
             setTimeout(() => {
                 const newScrollHeight = scrollContainer.scrollHeight;
@@ -101,8 +101,8 @@ export default function Chat() {
         (async () => {
             try {
                 const {data} = await messageApi.chatsChatIDMessagesGet(chatId);
-                setMessages(data.data?.messages?.reverse() ?? []);
-                setNextCursor(data.data?.nextCursor ?? null);
+                setMessages(data.messages?.reverse() ?? []);
+                setNextCursor(data.nextCursor ?? null);
             } catch (error) {
                 if (axios.isAxiosError(error)) {
                     if (error.response?.status === 404) {
@@ -127,7 +127,7 @@ export default function Chat() {
             if (!currentToken || isTokenExpired(currentToken)) {
                 try {
                     const {data} = await authApi.authRefreshPost();
-                    const newToken = data.data.accessToken;
+                    const newToken = data.accessToken;
                     setToken(newToken);
                     return;
                 } catch {
@@ -143,6 +143,38 @@ export default function Chat() {
         prepareSocket();
     }, [chatId, token, setToken, logout]);
 
+
+    useEffect(() => {
+        if ("Notification" in window && Notification.permission === "default") {
+            Notification.requestPermission();
+        }
+    }, []);
+
+    const showNotification = (message: ChatMessage) => {
+        if (!("Notification" in window)) return;
+        if (Notification.permission !== "granted") return;
+        console.log(message.sender?.avatarUrl)
+        new Notification(message.sender?.username ?? "New message", {
+            body: message.content,
+            icon: API_AVATARS_BASE_URL + message.sender?.avatarUrl,
+        });
+    };
+    const [isTabVisible, setIsTabVisible] = useState(
+        document.visibilityState === "visible"
+    );
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            setIsTabVisible(document.visibilityState === "visible");
+        };
+
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
+    }, []);
+
+
     const {sendMessage: wsSendMessage} = useWebSocket(
         socketUrl,
         {
@@ -154,11 +186,18 @@ export default function Chat() {
                 setMessages(prev => [...prev, data]);
 
                 const isMe = data.sender?.username === user?.username;
-
+                if (!isMe) {
+                    const audio = new Audio(API_UPLOADS_BASE_URL + "message-pop.mp3")
+                    audio.play()
+                }
                 if (isMe || isAtBottom) {
                     setTimeout(scrollToBottom, 100);
                 } else {
+                    showNotification(data);
                     setUnreadCount(c => c + 1);
+                }
+                if (!isMe && !isTabVisible) {
+                    showNotification(data);
                 }
             }
         }
@@ -207,7 +246,7 @@ export default function Chat() {
             return d.toLocaleString(navigator.language, {
                 weekday: 'short',
                 year: 'numeric',
-                month: 'short', 
+                month: 'short',
                 day: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
@@ -324,11 +363,11 @@ export default function Chat() {
                             value={value}
                             onChange={(e) => setValue(e.currentTarget.value)}
                             onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                sendMessage();
-                            }
-                        }}
+                                if (e.key === "Enter" && !e.shiftKey) {
+                                    e.preventDefault();
+                                    sendMessage();
+                                }
+                            }}
                             radius="md"
                             size="md"
                             minRows={1}

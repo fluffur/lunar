@@ -25,7 +25,7 @@ func NewHandler(validator *httputil.Validator, service *Service) *Handler {
 //	@Tags		user
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Success	200	{object}	SuccessResponse
+//	@Success	200	{object}	model.User
 //	@Failure	400	{object}	httputil.ErrorResponse
 //	@Failure	401	{object}	httputil.ErrorResponse
 //	@Failure	500	{object}	httputil.ErrorResponse
@@ -44,19 +44,19 @@ func (h *Handler) CurrentUser(w http.ResponseWriter, r *http.Request) {
 
 // UpdateEmail updates the user's email
 //
-//	@Summary		Update user email
-//	@Tags			user
-//	@Accept			json
-//	@Produce		json
-//	@Security		BearerAuth
-//	@Param			input	body		updateEmailRequest	true	"Email update request"
-//	@SuccessData	200																																																																																																																																																													{object}			httputil.Response
-//	@Failure		400		{object}	httputil.ErrorResponse
-//	@Failure		401		{object}	httputil.ErrorResponse
-//	@Failure		500		{object}	httputil.ErrorResponse
-//	@Router			/users/me/email [put]
+//	@Summary	Update user email
+//	@Tags		user
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		input	body	UpdateEmailRequest	true	"Email update request"
+//	@Success	200
+//	@Failure	400	{object}	httputil.ErrorResponse
+//	@Failure	401	{object}	httputil.ErrorResponse
+//	@Failure	500	{object}	httputil.ErrorResponse
+//	@Router		/users/me/email [put]
 func (h *Handler) UpdateEmail(w http.ResponseWriter, r *http.Request) {
-	var req updateEmailRequest
+	var req UpdateEmailRequest
 	if err := httputil.Read(r, &req); err != nil {
 		httputil.InvalidRequestBody(w)
 		return
@@ -94,19 +94,19 @@ func (h *Handler) UpdateEmail(w http.ResponseWriter, r *http.Request) {
 
 // ChangePassword changes the user's password
 //
-//	@Summary		Change user password
-//	@Tags			user
-//	@Accept			json
-//	@Produce		json
-//	@Security		BearerAuth
-//	@Param			input	body	updatePasswordRequest	true	"Password change request"
-//	@SuccessData	204
-//	@Failure		400	{object}	httputil.ErrorResponse
-//	@Failure		401	{object}	httputil.ErrorResponse
-//	@Failure		500	{object}	httputil.ErrorResponse
-//	@Router			/users/me/password [put]
+//	@Summary	Change user password
+//	@Tags		user
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		input	body	UpdatePasswordRequest	true	"Password change request"
+//	@Success	204
+//	@Failure	400	{object}	httputil.ErrorResponse
+//	@Failure	401	{object}	httputil.ErrorResponse
+//	@Failure	500	{object}	httputil.ErrorResponse
+//	@Router		/users/me/password [put]
 func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
-	var req updatePasswordRequest
+	var req UpdatePasswordRequest
 	if err := httputil.Read(r, &req); err != nil {
 		httputil.InvalidRequestBody(w)
 		return
@@ -132,16 +132,16 @@ func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
 
 // UploadAvatar uploads a new avatar for the user
 //
-//	@Summary		Upload user avatar
-//	@Tags			user
-//	@Accept			multipart/form-data
-//	@Produce		json
-//	@Security		BearerAuth
-//	@Param			avatar	formData	file	true	"Avatar file"
-//	@SuccessData	204
-//	@Failure		400	{object}	httputil.ErrorResponse
-//	@Failure		500	{object}	httputil.ErrorResponse
-//	@Router			/users/me/avatar [post]
+//	@Summary	Upload user avatar
+//	@Tags		user
+//	@Accept		multipart/form-data
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		avatar	formData	file	true	"Avatar file"
+//	@Success	204
+//	@Failure	400	{object}	httputil.ErrorResponse
+//	@Failure	500	{object}	httputil.ErrorResponse
+//	@Router		/users/me/avatar [post]
 func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, 5<<20)
 	if err := r.ParseMultipartForm(5 << 20); err != nil {
@@ -179,18 +179,18 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 // SendVerificationCode sends a verification code to the user's email
 //
-//	@Summary		Send verification code
-//	@Tags			user
-//	@Accept			json
-//	@Produce		json
-//	@Security		BearerAuth
-//	@Param			input	body	sendVerificationCodeRequest	true	"Verification request"
-//	@SuccessData	204
-//	@Failure		400	{object}	httputil.ErrorResponse
-//	@Failure		500	{object}	httputil.ErrorResponse
-//	@Router			/users/me/verification-code [post]
+//	@Summary	Send verification code
+//	@Tags		user
+//	@Accept		json
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		input	body	SendVerificationCodeRequest	true	"Verification request"
+//	@Success	204
+//	@Failure	400	{object}	httputil.ErrorResponse
+//	@Failure	500	{object}	httputil.ErrorResponse
+//	@Router		/users/me/verification-code [post]
 func (h *Handler) SendVerificationCode(w http.ResponseWriter, r *http.Request) {
-	var req sendVerificationCodeRequest
+	var req SendVerificationCodeRequest
 	if err := httputil.Read(r, &req); err != nil {
 		httputil.InvalidRequestBody(w)
 		return

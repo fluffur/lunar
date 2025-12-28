@@ -10,7 +10,7 @@ All URIs are relative to *http://localhost*
 |[**authRegisterPost**](#authregisterpost) | **POST** /auth/register | Register a new user|
 
 # **authLoginPost**
-> AuthTokenSuccessResponse authLoginPost(input)
+> AuthTokens authLoginPost(input)
 
 
 ### Example
@@ -41,7 +41,7 @@ const { status, data } = await apiInstance.authLoginPost(
 
 ### Return type
 
-**AuthTokenSuccessResponse**
+**AuthTokens**
 
 ### Authorization
 
@@ -64,7 +64,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authLogoutPost**
-> HttputilResponse authLogoutPost()
+> authLogoutPost()
 
 
 ### Example
@@ -87,7 +87,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**HttputilResponse**
+void (empty response body)
 
 ### Authorization
 
@@ -109,7 +109,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authRefreshPost**
-> AuthTokenSuccessResponse authRefreshPost()
+> AuthTokens authRefreshPost()
 
 
 ### Example
@@ -132,7 +132,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**AuthTokenSuccessResponse**
+**AuthTokens**
 
 ### Authorization
 
@@ -153,7 +153,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authRegisterPost**
-> AuthTokenSuccessResponse authRegisterPost(input)
+> AuthTokens authRegisterPost(input)
 
 
 ### Example
@@ -184,7 +184,7 @@ const { status, data } = await apiInstance.authRegisterPost(
 
 ### Return type
 
-**AuthTokenSuccessResponse**
+**AuthTokens**
 
 ### Authorization
 

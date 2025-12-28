@@ -29,7 +29,7 @@ func NewHandler(validator *httputil.Validator, service *Service) *Handler {
 //	@Param		chatID	path		string	true	"Chat ID"
 //	@Param		limit	query		int		false	"Limit"
 //	@Param		cursor	query		string	false	"Cursor"
-//	@Success	200		{object}	MessagesSuccessResponse
+//	@Success	200		{object}	GetPagingResponse
 //	@Failure	400		{object}	httputil.ErrorResponse
 //	@Failure	500		{object}	httputil.ErrorResponse
 //	@Router		/chats/{chatID}/messages [get]
@@ -63,7 +63,7 @@ func (h *Handler) ListMessages(w http.ResponseWriter, r *http.Request) {
 		nextCursor = h.service.GenerateCursor(messages[len(messages)-1])
 	}
 
-	httputil.SuccessData(w, messagesResponse{
+	httputil.SuccessData(w, GetPagingResponse{
 		Messages:   messages,
 		NextCursor: nextCursor,
 	})

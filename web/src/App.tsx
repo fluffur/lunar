@@ -8,18 +8,20 @@ import Chats from "./pages/Chats.tsx";
 import {Header} from "./components/Header.tsx";
 import {useSessionStore} from "./stores/sessionStore.ts";
 import {useEffect} from "react";
-import {userApi} from "./api.ts";
+import {authApi, userApi} from "./api.ts";
 import Chat from "./pages/Chat.tsx";
 import Profile from "./pages/Profile.tsx";
 
 function App() {
-    const {setUser, logout, setInitialized} = useSessionStore();
+    const {setUser, logout, setInitialized, setToken} = useSessionStore();
 
     useEffect(() => {
         const requestAuth = async () => {
             try {
+                const {data: authData} = await authApi.authRefreshPost();
+                setToken(authData.accessToken)
                 const {data} = await userApi.usersMeGet();
-                setUser(data.data);
+                setUser(data);
             } catch {
                 logout();
             } finally {
@@ -28,7 +30,7 @@ function App() {
         }
 
         requestAuth();
-    }, [logout, setInitialized, setUser]);
+    }, [logout, setInitialized, setUser, setToken]);
 
     return (
         <>

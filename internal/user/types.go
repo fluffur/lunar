@@ -2,7 +2,6 @@ package user
 
 import (
 	"errors"
-	"lunar/internal/model"
 )
 
 var (
@@ -13,20 +12,15 @@ var (
 	ErrUploadAvatar           = errors.New("failed to upload avatar")
 )
 
-type updateEmailRequest struct {
+type UpdateEmailRequest struct {
 	Email string `json:"email" validate:"required,email"`
 }
 
-type updatePasswordRequest struct {
+type UpdatePasswordRequest struct {
 	CurrentPassword string `json:"currentPassword" validate:"required,min=6"`
 	NewPassword     string `json:"newPassword" validate:"required,min=6"`
 }
 
-type sendVerificationCodeRequest struct {
+type SendVerificationCodeRequest struct {
 	Email string `json:"email" validate:"required,email"`
-}
-
-type SuccessResponse struct {
-	Success bool       `json:"success" default:"true" binding:"required"`
-	Data    model.User `json:"data" binding:"required"`
 }

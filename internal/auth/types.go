@@ -23,11 +23,6 @@ type Tokens struct {
 	RefreshToken string `json:"refreshToken" binding:"required"`
 }
 
-type TokenSuccessResponse struct {
-	Success bool   `json:"success" default:"true" binding:"required"`
-	Data    Tokens `json:"data" binding:"required"`
-}
-
 type RefreshTokenRepository interface {
 	Issue(ctx context.Context, userID uuid.UUID) (string, error)
 	Consume(ctx context.Context, token string) (uuid.UUID, error)

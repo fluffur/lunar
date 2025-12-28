@@ -17,8 +17,8 @@ export default function Chats() {
             type: "public"
         })
         console.log(data)
-        if (data?.data?.id) {
-            navigate(`/chats/${data.data.id}`);
+        if (data.id) {
+            navigate(`/chats/${data.id}`);
         }
 
     };

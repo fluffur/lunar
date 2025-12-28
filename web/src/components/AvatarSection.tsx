@@ -48,7 +48,7 @@ export default function AvatarSection() {
             setPreview(null);
             setCropModalOpened(false);
             const {data} = await userApi.usersMeGet();
-            setUser(data.data)
+            setUser(data)
         } catch (err) {
             console.error(err);
         } finally {
@@ -68,6 +68,7 @@ export default function AvatarSection() {
                 username={user?.username ?? ""}
                 avatarUrl={preview || user?.avatarUrl}
                 size={100}
+                radius={100}
                 loading={uploading}
                 onClick={() => fileInputRef.current?.click()}
             />

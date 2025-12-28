@@ -26,20 +26,21 @@ export default function Register() {
         try {
             const {data} = await authApi.authRegisterPost(user)
 
-            const token = data?.data?.accessToken;
+            const token = data.accessToken;
             setToken(token ?? "");
 
             const {data: userData} = await userApi.usersMeGet()
-            setUser(userData?.data ?? null);
+            setUser(userData);
 
             navigate('/chats')
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                const message = error.response?.data?.error?.message ?? 'Registration failed';
-                setGeneralError(message)
                 const errors = error.response?.data?.error?.fields;
                 if (errors) {
                     form.setErrors(errors)
+                } else {
+                    const message = error.response?.data?.error?.message ?? 'Registration failed';
+                    setGeneralError(message)
                 }
             }
             throw error

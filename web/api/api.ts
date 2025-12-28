@@ -33,24 +33,16 @@ export interface AuthRegisterCredentials {
     'password': string;
     'username': string;
 }
-export interface AuthTokenSuccessResponse {
-    'data': AuthTokens;
-    'success': boolean;
-}
 export interface AuthTokens {
     'accessToken': string;
     'refreshToken': string;
 }
-export interface ChatCreateChatParams {
+export interface ChatCreateParams {
     'name'?: string;
     'type'?: string;
 }
-export interface ChatCreateChatResponse {
+export interface ChatCreateResponse {
     'id'?: string;
-}
-export interface ChatCreateChatSuccessResponse {
-    'data'?: ChatCreateChatResponse;
-    'success'?: boolean;
 }
 export interface HttputilErrorBody {
     'code'?: string;
@@ -59,18 +51,10 @@ export interface HttputilErrorBody {
 }
 export interface HttputilErrorResponse {
     'error'?: HttputilErrorBody;
-    'success'?: boolean;
 }
-export interface HttputilResponse {
-    'success'?: boolean;
-}
-export interface MessageMessagesResponse {
+export interface MessageGetPagingResponse {
     'messages'?: Array<ModelMessage>;
     'nextCursor'?: string;
-}
-export interface MessageMessagesSuccessResponse {
-    'data'?: MessageMessagesResponse;
-    'success'?: boolean;
 }
 export interface ModelMessage {
     'chatId': string;
@@ -88,10 +72,6 @@ export interface ModelUser {
 }
 export interface UserSendVerificationCodeRequest {
     'email': string;
-}
-export interface UserSuccessResponse {
-    'data': ModelUser;
-    'success': boolean;
 }
 export interface UserUpdateEmailRequest {
     'email': string;
@@ -252,7 +232,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authLoginPost(input: AuthLoginCredentials, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthTokenSuccessResponse>> {
+        async authLoginPost(input: AuthLoginCredentials, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthTokens>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authLoginPost(input, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authLoginPost']?.[localVarOperationServerIndex]?.url;
@@ -264,7 +244,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authLogoutPost(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<HttputilResponse>> {
+        async authLogoutPost(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authLogoutPost(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authLogoutPost']?.[localVarOperationServerIndex]?.url;
@@ -276,7 +256,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authRefreshPost(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthTokenSuccessResponse>> {
+        async authRefreshPost(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthTokens>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authRefreshPost(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authRefreshPost']?.[localVarOperationServerIndex]?.url;
@@ -289,7 +269,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authRegisterPost(input: AuthRegisterCredentials, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthTokenSuccessResponse>> {
+        async authRegisterPost(input: AuthRegisterCredentials, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthTokens>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authRegisterPost(input, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authRegisterPost']?.[localVarOperationServerIndex]?.url;
@@ -311,7 +291,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authLoginPost(input: AuthLoginCredentials, options?: RawAxiosRequestConfig): AxiosPromise<AuthTokenSuccessResponse> {
+        authLoginPost(input: AuthLoginCredentials, options?: RawAxiosRequestConfig): AxiosPromise<AuthTokens> {
             return localVarFp.authLoginPost(input, options).then((request) => request(axios, basePath));
         },
         /**
@@ -320,7 +300,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authLogoutPost(options?: RawAxiosRequestConfig): AxiosPromise<HttputilResponse> {
+        authLogoutPost(options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.authLogoutPost(options).then((request) => request(axios, basePath));
         },
         /**
@@ -329,7 +309,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authRefreshPost(options?: RawAxiosRequestConfig): AxiosPromise<AuthTokenSuccessResponse> {
+        authRefreshPost(options?: RawAxiosRequestConfig): AxiosPromise<AuthTokens> {
             return localVarFp.authRefreshPost(options).then((request) => request(axios, basePath));
         },
         /**
@@ -339,7 +319,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authRegisterPost(input: AuthRegisterCredentials, options?: RawAxiosRequestConfig): AxiosPromise<AuthTokenSuccessResponse> {
+        authRegisterPost(input: AuthRegisterCredentials, options?: RawAxiosRequestConfig): AxiosPromise<AuthTokens> {
             return localVarFp.authRegisterPost(input, options).then((request) => request(axios, basePath));
         },
     };
@@ -439,11 +419,11 @@ export const ChatApiAxiosParamCreator = function (configuration?: Configuration)
         /**
          * 
          * @summary Create a new chat
-         * @param {ChatCreateChatParams} input Chat creation params
+         * @param {ChatCreateParams} input Chat creation params
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        chatsPost: async (input: ChatCreateChatParams, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        chatsPost: async (input: ChatCreateParams, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'input' is not null or undefined
             assertParamExists('chatsPost', 'input', input)
             const localVarPath = `/chats`;
@@ -499,11 +479,11 @@ export const ChatApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @summary Create a new chat
-         * @param {ChatCreateChatParams} input Chat creation params
+         * @param {ChatCreateParams} input Chat creation params
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async chatsPost(input: ChatCreateChatParams, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ChatCreateChatSuccessResponse>> {
+        async chatsPost(input: ChatCreateParams, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ChatCreateResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.chatsPost(input, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ChatApi.chatsPost']?.[localVarOperationServerIndex]?.url;
@@ -531,11 +511,11 @@ export const ChatApiFactory = function (configuration?: Configuration, basePath?
         /**
          * 
          * @summary Create a new chat
-         * @param {ChatCreateChatParams} input Chat creation params
+         * @param {ChatCreateParams} input Chat creation params
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        chatsPost(input: ChatCreateChatParams, options?: RawAxiosRequestConfig): AxiosPromise<ChatCreateChatSuccessResponse> {
+        chatsPost(input: ChatCreateParams, options?: RawAxiosRequestConfig): AxiosPromise<ChatCreateResponse> {
             return localVarFp.chatsPost(input, options).then((request) => request(axios, basePath));
         },
     };
@@ -559,11 +539,11 @@ export class ChatApi extends BaseAPI {
     /**
      * 
      * @summary Create a new chat
-     * @param {ChatCreateChatParams} input Chat creation params
+     * @param {ChatCreateParams} input Chat creation params
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public chatsPost(input: ChatCreateChatParams, options?: RawAxiosRequestConfig) {
+    public chatsPost(input: ChatCreateParams, options?: RawAxiosRequestConfig) {
         return ChatApiFp(this.configuration).chatsPost(input, options).then((request) => request(this.axios, this.basePath));
     }
 }
@@ -640,7 +620,7 @@ export const MessageApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async chatsChatIDMessagesGet(chatID: string, limit?: number, cursor?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MessageMessagesSuccessResponse>> {
+        async chatsChatIDMessagesGet(chatID: string, limit?: number, cursor?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MessageGetPagingResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.chatsChatIDMessagesGet(chatID, limit, cursor, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['MessageApi.chatsChatIDMessagesGet']?.[localVarOperationServerIndex]?.url;
@@ -664,7 +644,7 @@ export const MessageApiFactory = function (configuration?: Configuration, basePa
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        chatsChatIDMessagesGet(chatID: string, limit?: number, cursor?: string, options?: RawAxiosRequestConfig): AxiosPromise<MessageMessagesSuccessResponse> {
+        chatsChatIDMessagesGet(chatID: string, limit?: number, cursor?: string, options?: RawAxiosRequestConfig): AxiosPromise<MessageGetPagingResponse> {
             return localVarFp.chatsChatIDMessagesGet(chatID, limit, cursor, options).then((request) => request(axios, basePath));
         },
     };
@@ -926,7 +906,7 @@ export const UserApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async usersMeGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UserSuccessResponse>> {
+        async usersMeGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ModelUser>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.usersMeGet(options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['UserApi.usersMeGet']?.[localVarOperationServerIndex]?.url;
@@ -993,7 +973,7 @@ export const UserApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        usersMeGet(options?: RawAxiosRequestConfig): AxiosPromise<UserSuccessResponse> {
+        usersMeGet(options?: RawAxiosRequestConfig): AxiosPromise<ModelUser> {
             return localVarFp.usersMeGet(options).then((request) => request(axios, basePath));
         },
         /**

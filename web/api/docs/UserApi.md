@@ -56,6 +56,7 @@ void (empty response body)
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
+|**204** | No Content |  -  |
 |**400** | Bad Request |  -  |
 |**500** | Internal Server Error |  -  |
 
@@ -108,6 +109,7 @@ void (empty response body)
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
+|**200** | OK |  -  |
 |**400** | Bad Request |  -  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal Server Error |  -  |
@@ -115,7 +117,7 @@ void (empty response body)
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **usersMeGet**
-> UserSuccessResponse usersMeGet()
+> ModelUser usersMeGet()
 
 
 ### Example
@@ -138,7 +140,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**UserSuccessResponse**
+**ModelUser**
 
 ### Authorization
 
@@ -207,6 +209,7 @@ void (empty response body)
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
+|**204** | No Content |  -  |
 |**400** | Bad Request |  -  |
 |**401** | Unauthorized |  -  |
 |**500** | Internal Server Error |  -  |
@@ -260,6 +263,7 @@ void (empty response body)
 ### HTTP response details
 | Status code | Description | Response headers |
 |-------------|-------------|------------------|
+|**204** | No Content |  -  |
 |**400** | Bad Request |  -  |
 |**500** | Internal Server Error |  -  |
 

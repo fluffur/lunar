@@ -6,7 +6,6 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **error** | [**HttputilErrorBody**](HttputilErrorBody.md) |  | [optional] [default to undefined]
-**success** | **boolean** |  | [optional] [default to false]
 
 ## Example
 
@@ -15,7 +14,6 @@ import { HttputilErrorResponse } from './api';
 
 const instance: HttputilErrorResponse = {
     error,
-    success,
 };
 ```
 

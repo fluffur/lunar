@@ -36,7 +36,7 @@ api.interceptors.response.use(
             originalRequest._retry = true;
             try {
                 const {data} = await authApi.authRefreshPost();
-                const newToken = data.data.accessToken;
+                const newToken = data.accessToken;
                 useSessionStore.getState().setToken(newToken);
 
                 originalRequest.headers.Authorization = `Bearer ${newToken}`;

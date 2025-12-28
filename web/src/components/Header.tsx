@@ -1,9 +1,10 @@
 import {Link} from 'react-router-dom';
-import {Button, Container, Group, Menu, Text, UnstyledButton} from '@mantine/core';
+import {ActionIcon, Button, Container, Group, Menu, Text, UnstyledButton} from '@mantine/core';
 import {useSessionStore} from "../stores/sessionStore.ts";
 import {authApi} from "../api.ts";
 import {UserAvatar} from "./UserAvatar.tsx";
-import {IconLogout, IconUserFilled} from "@tabler/icons-react";
+import {IconLogout, IconMoonStars, IconSun, IconUserFilled} from "@tabler/icons-react";
+import {useUiStore} from "../stores/uiStore.ts";
 
 export function Header() {
     const {user, logout} = useSessionStore();
@@ -13,14 +14,13 @@ export function Header() {
         logout();
     }
 
+    const {colorScheme, setColorScheme} = useUiStore()
 
     return (
         <header style={{
             position: 'sticky',
             top: 0,
             zIndex: 100,
-            background: 'rgba(20, 20, 20, 0.7)',
-            backdropFilter: 'blur(10px)',
             borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
             padding: '12px 0'
         }}>
@@ -78,11 +78,25 @@ export function Header() {
                             </>
                         ) : (
                             <Group>
-                                <Button variant="subtle" color="gray" component={Link} to="/login">Log in</Button>
+                                <Button variant="subtle" component={Link} to="/login">Log in</Button>
                                 <Button component={Link}
                                         to="/register">Sign up</Button>
                             </Group>
                         )}
+
+
+                        <ActionIcon
+                            variant="subtle"
+                            radius="xl"
+                            size="lg"
+                            onClick={() =>
+                                setColorScheme(colorScheme === 'dark' ? 'light' : 'dark')
+                            }
+                        >
+                            {colorScheme === 'dark'
+                                ? <IconSun size={18}/>
+                                : <IconMoonStars size={18}/>}
+                        </ActionIcon>
                     </Group>
                 </Group>
             </Container>
