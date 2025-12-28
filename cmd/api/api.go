@@ -78,6 +78,7 @@ func (app *application) mount() http.Handler {
 		})
 
 		r.Route("/chats", func(r chi.Router) {
+			r.Get("/", chatHandler.ListChats)
 			r.Post("/", chatHandler.CreateChat)
 			r.Route("/{chatID:[0-9a-fA-F-]{36}}", func(r chi.Router) {
 				r.Post("/", chatHandler.JoinCurrentUser)

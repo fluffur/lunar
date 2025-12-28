@@ -20,6 +20,7 @@ type Querier interface {
 	GetMessagesPaging(ctx context.Context, arg GetMessagesPagingParams) ([]GetMessagesPagingRow, error)
 	GetUser(ctx context.Context, id uuid.UUID) (User, error)
 	GetUserByLogin(ctx context.Context, login string) (User, error)
+	GetUserChats(ctx context.Context, userID uuid.UUID) ([]Chat, error)
 	IsUserChatMember(ctx context.Context, arg IsUserChatMemberParams) (bool, error)
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error
 	UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) error

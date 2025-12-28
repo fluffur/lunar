@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	db "lunar/internal/db/sqlc"
+	"lunar/internal/model"
 	"time"
 
 	"github.com/google/uuid"
@@ -19,18 +20,34 @@ func NewService(q db.Querier) *Service {
 	}
 }
 
-func (s *Service) GetChat(ctx context.Context, id uuid.UUID) (db.Chat, error) {
-	return s.queries.GetChat(ctx, id)
+func mapChats(chats []db.Chat) []model.Chat {
+	c := make([]model.Chat, len(chats))
+	for i, chat := range chats {
+		c[i] = model.Chat{
+			Name: chat.Name.String,
+			Type: chat.Type,
+		}
+	}
+	return c
 }
 
-func (s *Service) CreateChat(ctx context.Context, params CreateParams) (uuid.UUID, error) {
+func (s *Service) ListChats(ctx context.Context, userID uuid.UUID) ([]model.Chat, error) {
+	chats, err := s.queries.GetUserChats(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapChats(chats), nil
+}
+
+func (s *Service) CreateChat(ctx context.Context, chat model.Chat) (uuid.UUID, error) {
 	return s.queries.CreateChat(ctx, db.CreateChatParams{
 		ID: uuid.Must(uuid.NewV7()),
 		Name: pgtype.Text{
-			String: params.Name,
+			String: chat.Name,
 			Valid:  true,
 		},
-		Type: params.Type,
+		Type: chat.Type,
 		CreatedAt: pgtype.Timestamptz{
 			Time:  time.Now(),
 			Valid: true,

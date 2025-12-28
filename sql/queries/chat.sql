@@ -3,6 +3,12 @@ SELECT *
 FROM chats
 WHERE id = $1;
 
+-- name: GetUserChats :many
+SELECT c.*
+FROM chats c
+         JOIN chat_members cm ON cm.chat_id = c.id
+WHERE cm.user_id = $1;
+
 -- name: CreateChat :one
 INSERT INTO chats (id, name, type, created_at)
 VALUES ($1, $2, $3, $4)

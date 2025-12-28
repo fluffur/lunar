@@ -41,17 +41,21 @@ definitions:
     - accessToken
     - refreshToken
     type: object
-  chat.CreateParams:
-    properties:
-      name:
-        type: string
-      type:
-        type: string
-    type: object
   chat.CreateResponse:
     properties:
       id:
         type: string
+    required:
+    - id
+    type: object
+  chat.ListResponse:
+    properties:
+      chats:
+        items:
+          $ref: '#/definitions/model.Chat'
+        type: array
+    required:
+    - chats
     type: object
   httputil.ErrorBody:
     properties:
@@ -74,6 +78,15 @@ definitions:
         type: array
       nextCursor:
         type: string
+    type: object
+  model.Chat:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+    required:
+    - type
     type: object
   model.Message:
     properties:
@@ -241,6 +254,25 @@ paths:
       tags:
       - auth
   /chats:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/chat.ListResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List user chats
+      tags:
+      - chat
     post:
       consumes:
       - application/json
@@ -250,7 +282,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/chat.CreateParams'
+          $ref: '#/definitions/model.Chat'
       produces:
       - application/json
       responses:

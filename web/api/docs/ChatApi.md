@@ -5,6 +5,7 @@ All URIs are relative to *http://localhost*
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
 |[**chatsChatIDPost**](#chatschatidpost) | **POST** /chats/{chatID} | Join current user to chat|
+|[**chatsGet**](#chatsget) | **GET** /chats | List user chats|
 |[**chatsPost**](#chatspost) | **POST** /chats | Create a new chat|
 
 # **chatsChatIDPost**
@@ -59,6 +60,51 @@ void (empty response body)
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **chatsGet**
+> ChatListResponse chatsGet()
+
+
+### Example
+
+```typescript
+import {
+    ChatApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new ChatApi(configuration);
+
+const { status, data } = await apiInstance.chatsGet();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**ChatListResponse**
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: */*
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | OK |  -  |
+|**401** | Unauthorized |  -  |
+|**500** | Internal Server Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **chatsPost**
 > ChatCreateResponse chatsPost(input)
 
@@ -69,13 +115,13 @@ void (empty response body)
 import {
     ChatApi,
     Configuration,
-    ChatCreateParams
+    ModelChat
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new ChatApi(configuration);
 
-let input: ChatCreateParams; //Chat creation params
+let input: ModelChat; //Chat creation params
 
 const { status, data } = await apiInstance.chatsPost(
     input
@@ -86,7 +132,7 @@ const { status, data } = await apiInstance.chatsPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **input** | **ChatCreateParams**| Chat creation params | |
+| **input** | **ModelChat**| Chat creation params | |
 
 
 ### Return type

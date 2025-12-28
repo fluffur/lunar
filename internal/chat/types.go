@@ -1,14 +1,15 @@
 package chat
 
 import (
+	"lunar/internal/model"
+
 	"github.com/google/uuid"
 )
 
-type CreateParams struct {
-	Name string `json:"name,omitempty"`
-	Type string `json:"type"`
+type CreateResponse struct {
+	ID uuid.UUID `json:"id" binding:"required"`
 }
 
-type CreateResponse struct {
-	ID uuid.UUID `json:"id"`
+type ListResponse struct {
+	Chats []model.Chat `json:"chats" binding:"required"`
 }

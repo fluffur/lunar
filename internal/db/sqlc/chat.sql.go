@@ -91,6 +91,38 @@ func (q *Queries) GetChat(ctx context.Context, id uuid.UUID) (Chat, error) {
 	return i, err
 }
 
+const getUserChats = `-- name: GetUserChats :many
+SELECT c.id, c.name, c.type, c.created_at
+FROM chats c
+         JOIN chat_members cm ON cm.chat_id = c.id
+WHERE cm.user_id = $1
+`
+
+func (q *Queries) GetUserChats(ctx context.Context, userID uuid.UUID) ([]Chat, error) {
+	rows, err := q.db.Query(ctx, getUserChats, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []Chat{}
+	for rows.Next() {
+		var i Chat
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Type,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const isUserChatMember = `-- name: IsUserChatMember :one
 SELECT EXISTS (SELECT 1
                FROM chat_members

@@ -3,6 +3,7 @@ package chat
 import (
 	"log/slog"
 	"lunar/internal/httputil"
+	"lunar/internal/model"
 	"lunar/internal/ws"
 	"net/http"
 
@@ -23,21 +24,42 @@ func NewHandler(validator *httputil.Validator, service *Service, wsService *ws.S
 	}
 }
 
-// CreateChat creates a new chat
+// ListChats godoc
+//
+//	@Summary	List user chats
+//	@Tags		chat
+//	@Security	BearerAuth
+//	@Success	200	{object}	ListResponse
+//	@Failure	401	{object}	httputil.ErrorResponse
+//	@Failure	500	{object}	httputil.ErrorResponse
+//	@Router		/chats [get]
+func (h *Handler) ListChats(w http.ResponseWriter, r *http.Request) {
+	user := httputil.UserFromRequest(r)
+
+	chats, err := h.service.ListChats(r.Context(), user.ID)
+	if err != nil {
+		httputil.InternalError(w, r, err)
+		return
+	}
+
+	httputil.SuccessData(w, ListResponse{Chats: chats})
+}
+
+// CreateChat godoc
 //
 //	@Summary	Create a new chat
 //	@Tags		chat
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		input	body		CreateParams	true	"Chat creation params"
+//	@Param		input	body		model.Chat	true	"Chat creation params"
 //	@Success	201		{object}	CreateResponse
 //	@Failure	400		{object}	httputil.ErrorResponse
 //	@Failure	401		{object}	httputil.ErrorResponse
 //	@Failure	500		{object}	httputil.ErrorResponse
 //	@Router		/chats [post]
 func (h *Handler) CreateChat(w http.ResponseWriter, r *http.Request) {
-	var params CreateParams
+	var params model.Chat
 
 	if err := httputil.Read(r, &params); err != nil {
 		httputil.InvalidRequestBody(w)
@@ -53,7 +75,7 @@ func (h *Handler) CreateChat(w http.ResponseWriter, r *http.Request) {
 	httputil.Created(w, CreateResponse{ID: chatID})
 }
 
-// JoinCurrentUser joins the current user to a chat
+// JoinCurrentUser godoc
 //
 //	@Summary	Join current user to chat
 //	@Tags		chat
@@ -74,6 +96,7 @@ func (h *Handler) JoinCurrentUser(w http.ResponseWriter, r *http.Request) {
 
 	httputil.Success(w)
 }
+
 func (h *Handler) Websocket(w http.ResponseWriter, r *http.Request) {
 	user := httputil.UserFromRequest(r)
 	chatID := uuid.MustParse(r.PathValue("chatID"))

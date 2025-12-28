@@ -165,6 +165,37 @@ const docTemplate = `{
             }
         },
         "/chats": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "chat"
+                ],
+                "summary": "List user chats",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/chat.ListResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
@@ -188,7 +219,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/chat.CreateParams"
+                            "$ref": "#/definitions/model.Chat"
                         }
                     }
                 ],
@@ -617,22 +648,28 @@ const docTemplate = `{
                 }
             }
         },
-        "chat.CreateParams": {
+        "chat.CreateResponse": {
             "type": "object",
+            "required": [
+                "id"
+            ],
             "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "type": {
+                "id": {
                     "type": "string"
                 }
             }
         },
-        "chat.CreateResponse": {
+        "chat.ListResponse": {
             "type": "object",
+            "required": [
+                "chats"
+            ],
             "properties": {
-                "id": {
-                    "type": "string"
+                "chats": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Chat"
+                    }
                 }
             }
         },
@@ -666,6 +703,20 @@ const docTemplate = `{
                     }
                 },
                 "nextCursor": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Chat": {
+            "type": "object",
+            "required": [
+                "type"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
                     "type": "string"
                 }
             }

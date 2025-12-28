@@ -9,12 +9,13 @@ docs/AuthLoginCredentials.md
 docs/AuthRegisterCredentials.md
 docs/AuthTokens.md
 docs/ChatApi.md
-docs/ChatCreateParams.md
 docs/ChatCreateResponse.md
+docs/ChatListResponse.md
 docs/HttputilErrorBody.md
 docs/HttputilErrorResponse.md
 docs/MessageApi.md
 docs/MessageGetPagingResponse.md
+docs/ModelChat.md
 docs/ModelMessage.md
 docs/ModelUser.md
 docs/UserApi.md
