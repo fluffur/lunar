@@ -17,6 +17,8 @@
     "@tabler/icons": "^3.36.0",
     "@tabler/icons-react": "^3.36.0",
     "axios": "^1.13.2",
+    "emoji-picker-react": "^4.16.1",
+    "emoji-regex": "^10.6.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-easy-crop": "^5.5.6",

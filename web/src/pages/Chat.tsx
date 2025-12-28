@@ -1,20 +1,22 @@
-import { useEffect, useRef, useState } from "react";
-import { ActionIcon, Box, Button, Flex, Group, Paper, ScrollArea, Stack, Text, Textarea } from "@mantine/core";
-import { useNavigate, useParams } from "react-router-dom";
-import { useSessionStore } from "../stores/sessionStore.ts";
-import { authApi, messageApi } from "../api.ts";
-import { IconArrowDown, IconSend2 } from "@tabler/icons-react";
+import {useEffect, useRef, useState} from "react";
+import {ActionIcon, Box, Button, Flex, Group, Paper, Popover, ScrollArea, Stack, Text, Textarea} from "@mantine/core";
+import {useNavigate, useParams} from "react-router-dom";
+import {useSessionStore} from "../stores/sessionStore.ts";
+import {authApi, messageApi} from "../api.ts";
+import {IconArrowDown, IconMoodSmile, IconSend2} from "@tabler/icons-react";
 import useWebSocket from "react-use-websocket";
-import { isTokenExpired } from "../utils/isTokenExpired.ts";
+import {isTokenExpired} from "../utils/isTokenExpired.ts";
 import axios from "axios";
 import NotFound from "./NotFound.tsx";
-import { UserAvatar } from "../components/UserAvatar.tsx";
-import { API_AVATARS_BASE_URL, WS_BASE_URL } from "../config.ts";
+import {UserAvatar} from "../components/UserAvatar.tsx";
+import {API_AVATARS_BASE_URL, WS_BASE_URL} from "../config.ts";
 import messagePopAudio from "../assets/message-pop.mp3"
-import { formatMessageDate } from "../utils/formatMessageDate.ts";
-import { useUiStore } from "../stores/uiStore.ts";
-import { useMediaQuery } from "@mantine/hooks";
-import { ScreenShareBlock } from "../components/ScreenShareBlock.tsx";
+import {formatMessageDate} from "../utils/formatMessageDate.ts";
+import {useUiStore} from "../stores/uiStore.ts";
+import {useMediaQuery} from "@mantine/hooks";
+import {ScreenShareBlock} from "../components/ScreenShareBlock.tsx";
+import {EmojiPicker} from "../components/EmojiPicker.tsx";
+import {isEmojiOnly} from "../utils/isEmojiOnly.ts";
 
 interface Sender {
     id: string;
@@ -31,14 +33,14 @@ interface ChatMessage {
 
 
 export default function Chat() {
-    const { chatId } = useParams<string>();
+    const {chatId} = useParams<string>();
     const [messages, setMessages] = useState<ChatMessage[]>([]);
-    const { token, user, setToken, logout } = useSessionStore()
+    const {token, user, setToken, logout} = useSessionStore()
     const [value, setValue] = useState("");
 
     const viewportRef = useRef<HTMLDivElement | null>(null);
     const [notFound, setNotFound] = useState(false);
-    const { colorScheme, primaryColor } = useUiStore();
+    const {colorScheme, primaryColor} = useUiStore();
     const isMobile = useMediaQuery('(max-width: 768px)');
 
     const navigate = useNavigate();
@@ -54,7 +56,7 @@ export default function Chat() {
 
         setLoading(true);
         try {
-            const { data } = await messageApi.chatsChatIDMessagesGet(
+            const {data} = await messageApi.chatsChatIDMessagesGet(
                 chatId ?? "",
                 50,
                 encodeURIComponent(nextCursor),
@@ -94,7 +96,7 @@ export default function Chat() {
             loadOlderMessages();
         }
 
-        const { scrollHeight, clientHeight } = viewportRef.current;
+        const {scrollHeight, clientHeight} = viewportRef.current;
         const isBottom = scrollHeight - position.y - clientHeight < 100;
         setIsAtBottom(isBottom);
         if (isBottom) {
@@ -107,7 +109,7 @@ export default function Chat() {
         setNotFound(false);
         (async () => {
             try {
-                const { data } = await messageApi.chatsChatIDMessagesGet(chatId);
+                const {data} = await messageApi.chatsChatIDMessagesGet(chatId);
                 setMessages(data.messages?.reverse() ?? []);
                 setNextCursor(data.nextCursor ?? null);
             } catch (error) {
@@ -133,7 +135,7 @@ export default function Chat() {
 
             if (!currentToken || isTokenExpired(currentToken)) {
                 try {
-                    const { data } = await authApi.authRefreshPost();
+                    const {data} = await authApi.authRefreshPost();
                     const newToken = data.accessToken;
                     setToken(newToken);
                     return;
@@ -182,7 +184,7 @@ export default function Chat() {
     }, []);
 
 
-    const { sendMessage: wsSendMessage } = useWebSocket(
+    const {sendMessage: wsSendMessage} = useWebSocket(
         socketUrl,
         {
             shouldReconnect: () => true,
@@ -228,33 +230,46 @@ export default function Chat() {
 
     if (notFound) {
         return (
-            <NotFound />
+            <NotFound/>
         )
 
     }
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+    const handleEmojiClick = (emojiData: any) => {
+        const emoji = emojiData.emoji;
+        const cursor = textareaRef.current?.selectionStart || value.length;
+        const newValue = value.slice(0, cursor) + emoji + value.slice(cursor);
+        setValue(newValue);
+        setShowEmojiPicker(false);
+    };
+
     return (
         <Flex h="100%" w="100%" direction={isMobile ? "column" : "row"} gap={isMobile ? 0 : "md"}>
-            <Box style={{ flex: isMobile ? 'none' : 1, width: isMobile ? '100%' : 'auto' }}>
-                <ScreenShareBlock />
+            <Box style={{flex: isMobile ? 'none' : 1, width: isMobile ? '100%' : 'auto'}}>
+                <ScreenShareBlock/>
             </Box>
-            <Paper w={isMobile ? "100%" : 300} h={isMobile ? "auto" : "100%"} shadow="xl" radius={isMobile ? 0 : "lg"} withBorder={!isMobile}
-                display="flex"
-                style={{
-                    flexDirection: 'column',
-                    overflow: 'hidden',
-                    position: 'relative',
-                    flex: isMobile ? 1 : 'none'
-                }}>
-                <ScrollArea style={{ flex: 1 }} viewportRef={viewportRef} onScrollPositionChange={handleScroll} p="md" pt={0}>
+            <Paper w={isMobile ? "100%" : 300} h={isMobile ? "auto" : "100%"} shadow="xl" radius={isMobile ? 0 : "lg"}
+                   withBorder={!isMobile}
+                   display="flex"
+                   style={{
+                       flexDirection: 'column',
+                       overflow: 'hidden',
+                       position: 'relative',
+                       flex: isMobile ? 1 : 'none'
+                   }}>
+                <ScrollArea style={{flex: 1}} viewportRef={viewportRef} onScrollPositionChange={handleScroll} p="md"
+                            pt={isMobile ? 0 : "md"}>
                     <Stack gap="md">
                         {messages.map((m, i) => {
                             const isMe = m.sender?.username === user?.username;
                             return (
                                 <Group key={i} align="flex-end" justify={isMe ? 'flex-end' : 'flex-start'} gap="xs"
-                                    wrap="nowrap">
+                                       wrap="nowrap">
                                     {!isMe && m.sender?.username && (
                                         <UserAvatar username={m.sender.username} avatarUrl={m.sender.avatarUrl}
-                                            size={32} />
+                                                    size={32}/>
 
                                     )}
 
@@ -267,18 +282,21 @@ export default function Chat() {
                                         <Paper
                                             p="xs"
                                             px="sm"
-                                            bg={colorScheme === 'dark' ?
-                                                isMe ? 'dark.4' : 'dark.6'
-                                                : isMe ? `${primaryColor}.1` : 'gray.1'
-                                            }
+                                            bg={
+                                                isEmojiOnly(m.content) ? "none" :
+                                                    (colorScheme === 'dark' ?
+                                                            isMe ? 'dark.4' : 'dark.6'
+                                                            : isMe ? `${primaryColor}.1` : 'gray.1'
+                                                    )}
                                             c={colorScheme === 'dark' ?
                                                 isMe ? 'white' : 'gray.1'
                                                 : 'black'
                                             }
                                         >
-                                            <Text size="sm" style={{
+                                            <Text size={isEmojiOnly(m.content) ? "2rem" : "sm"} style={{
                                                 wordBreak: 'break-word',
-                                                whiteSpace: 'pre-wrap'
+                                                whiteSpace: 'pre-wrap',
+                                                lineHeight: isEmojiOnly(m.content) ? 1.2 : undefined
                                             }}>
                                                 {m.content}
                                             </Text>
@@ -314,7 +332,7 @@ export default function Chat() {
                             radius="xl"
                             size="xs"
                             variant="filled"
-                            leftSection={<IconArrowDown size={14} />}
+                            leftSection={<IconArrowDown size={14}/>}
                         >
                             {unreadCount} new messages
                         </Button>
@@ -322,23 +340,42 @@ export default function Chat() {
                 )}
 
                 {!isAtBottom && unreadCount === 0 && (
-                    <div style={{ position: 'absolute', bottom: 80, right: 20, zIndex: 10 }}>
+                    <div style={{position: 'absolute', bottom: 80, right: 20, zIndex: 10}}>
                         <ActionIcon
                             onClick={scrollToBottom}
                             radius="xl"
                             size="lg"
                             variant="default"
-                            style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                            style={{boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}}
                         >
-                            <IconArrowDown size={18} />
+                            <IconArrowDown size={18}/>
                         </ActionIcon>
                     </div>
                 )}
 
-                <Paper p="md">
+                <Paper p="md" style={{position: 'relative'}}>
 
-                    <Group gap="sm">
+                    <Popover opened={showEmojiPicker} onChange={setShowEmojiPicker} position="top-start" withArrow
+                             shadow="md">
+                        <Popover.Target>
+                            <ActionIcon
+                                variant="subtle"
+                                color="gray"
+                                size="lg"
+                                onClick={() => setShowEmojiPicker((o) => !o)}
+                                style={{position: 'absolute', left: 16, top: 24, zIndex: 5}}
+                            >
+                                <IconMoodSmile size={20}/>
+                            </ActionIcon>
+                        </Popover.Target>
+                        <Popover.Dropdown p={0}>
+                            <EmojiPicker onEmojiClick={handleEmojiClick}/>
+                        </Popover.Dropdown>
+                    </Popover>
+
+                    <Group gap="sm" align="flex-end">
                         <Textarea
+                            ref={textareaRef}
                             placeholder="Type a message..."
                             value={value}
                             onChange={(e) => setValue(e.currentTarget.value)}
@@ -353,8 +390,8 @@ export default function Chat() {
                             minRows={1}
                             maxRows={5}
                             autosize
-                            style={{ flex: 1 }}
-
+                            style={{flex: 1}}
+                            pl={40}
                         />
                         <ActionIcon
                             size={38}
@@ -362,8 +399,9 @@ export default function Chat() {
                             variant="filled"
                             onClick={sendMessage}
                             disabled={!value.trim()}
+                            mb={4}
                         >
-                            <IconSend2 />
+                            <IconSend2/>
                         </ActionIcon>
                     </Group>
                 </Paper>

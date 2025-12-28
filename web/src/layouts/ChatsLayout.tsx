@@ -1,9 +1,9 @@
 import { Outlet, useParams } from "react-router-dom";
-import { ActionIcon, Box, Flex } from "@mantine/core";
+import { ActionIcon, Flex, Paper } from "@mantine/core";
 import { ChatsSidebar } from "../components/ChatsSidebar.tsx";
 import { useMediaQuery } from "@mantine/hooks";
 import { useState } from "react";
-import { IconLayoutSidebarLeftCollapse, IconLayoutSidebarLeftExpand } from "@tabler/icons-react";
+import { IconLayoutSidebarLeftExpand } from "@tabler/icons-react";
 
 export function ChatsLayout() {
     const isMobile = useMediaQuery('(max-width: 768px)');
@@ -15,20 +15,24 @@ export function ChatsLayout() {
 
     return (
         <Flex h="calc(100vh - 60px)" style={{ position: 'relative', overflow: 'hidden' }}>
-            {showSidebar && (
-                <Box
+            {(isMobile ? showSidebar : true) && (
+                <Paper
                     w={isMobile ? "100%" : 300}
+                    withBorder
                     style={{
                         position: isMobile ? 'static' : 'absolute',
-                        left: 0,
-                        top: 0,
-                        bottom: 0,
+                        left: 10,
+                        top: 15,
+                        bottom: 15,
                         zIndex: 200,
-                        flexShrink: 0
+                        flexShrink: 0,
+                        transform: isMobile ? 'none' : (sidebarOpen ? 'translateX(0)' : 'translateX(-110%)'),
+                        transition: 'transform 0.3s ease',
+                        opacity: isMobile ? 1 : (sidebarOpen ? 1 : 0),
                     }}
                 >
-                    <ChatsSidebar />
-                </Box>
+                    <ChatsSidebar onClose={() => setSidebarOpen(false)} />
+                </Paper>
             )}
 
             {showContent && (
@@ -37,16 +41,18 @@ export function ChatsLayout() {
                         <ActionIcon
                             variant="subtle"
                             color="gray"
-                            onClick={() => setSidebarOpen(!sidebarOpen)}
+                            onClick={() => setSidebarOpen(true)}
                             style={{
                                 position: 'absolute',
-                                left: sidebarOpen ? 310 : 10,
-                                top: 15,
+                                left: 10,
+                                top: 35,
                                 zIndex: 201,
-                                transition: 'left 0.2s ease'
+                                opacity: sidebarOpen ? 0 : 1,
+                                pointerEvents: sidebarOpen ? 'none' : 'auto',
+                                transition: 'opacity 0.3s ease',
                             }}
                         >
-                            {sidebarOpen ? <IconLayoutSidebarLeftCollapse /> : <IconLayoutSidebarLeftExpand />}
+                            <IconLayoutSidebarLeftExpand size={20} />
                         </ActionIcon>
                     )}
                     <Outlet />
