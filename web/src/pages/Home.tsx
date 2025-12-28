@@ -1,7 +1,10 @@
 import {Button, Container, Group, Text, Title} from "@mantine/core";
 import {Link} from "react-router-dom";
+import {useSessionStore} from "../stores/sessionStore.ts";
 
 export default function Home() {
+    const {user} = useSessionStore();
+
     return (
         <Container size="md" style={{
             display: 'flex',
@@ -32,7 +35,7 @@ export default function Home() {
                 dolore magna aliqua.
             </Text>
             <Group>
-                <Button size="xl" component={Link} to="/register">
+                <Button size="xl" component={Link} to={user ? '/chats' : '/register'}>
                     Get Started
                 </Button>
                 <Button size="xl" variant="default" component={Link} to="/login ">

@@ -1,66 +1,11 @@
-import {useState} from 'react';
-import {Button, Center, Stack, Text, TextInput, Title} from '@mantine/core';
-import {useNavigate} from 'react-router-dom';
-import {chatApi} from "../api.ts";
+import { Center, Stack, Text, Title } from '@mantine/core';
 
 export default function Chats() {
-    const [chatId, setChatId] = useState('');
-    const navigate = useNavigate();
-
-    const handleJoinChat = () => {
-        if (!chatId) return;
-        navigate(`/chats/${chatId}`);
-    };
-
-    const handleCreateChat = async () => {
-        const {data} = await chatApi.chatsPost({
-            type: "public"
-        })
-        console.log(data)
-        if (data.id) {
-            navigate(`/chats/${data.id}`);
-        }
-
-    };
-
-    const handleChange = (value: string) => {
-        const validValue = value.replace(/[^a-z0-9-]/gi, '');
-        setChatId(validValue);
-    };
-
     return (
-        <Center h="90vh">
-            <Stack w={300}>
-                <Title order={1}>Chat form</Title>
-
-                <TextInput
-                    description="Enter chat url to join an existing chat"
-                    value={chatId}
-                    size="lg"
-                    onChange={(event) => handleChange(event.currentTarget.value)}
-                />
-
-
-                <Button
-                    fullWidth
-                    size="lg"
-                    onClick={handleJoinChat}
-                    disabled={!chatId}
-                >
-                    Join Chat
-                </Button>
-
-                <Text c="dimmed" size="sm" ta="center">
-                    or
-                </Text>
-                <Button
-                    fullWidth
-                    size="lg"
-                    variant="outline"
-                    onClick={handleCreateChat}
-                >
-                    Create a new Chat
-                </Button>
+        <Center h="100%" w="100%">
+            <Stack align="center" gap="xs">
+                <Title order={2} c="dimmed">Select a chat</Title>
+                <Text c="dimmed">Choose a chat from the sidebar or create a new one to start messaging</Text>
             </Stack>
         </Center>
     );

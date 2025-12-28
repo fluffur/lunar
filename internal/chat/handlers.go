@@ -52,7 +52,7 @@ func (h *Handler) ListChats(w http.ResponseWriter, r *http.Request) {
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		input	body		model.Chat	true	"Chat creation params"
+//	@Param		input	body		CreateRequest	true	"Chat creation params"
 //	@Success	201		{object}	CreateResponse
 //	@Failure	400		{object}	httputil.ErrorResponse
 //	@Failure	401		{object}	httputil.ErrorResponse

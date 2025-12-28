@@ -115,13 +115,13 @@ This endpoint does not have any parameters.
 import {
     ChatApi,
     Configuration,
-    ModelChat
+    ChatCreateRequest
 } from './api';
 
 const configuration = new Configuration();
 const apiInstance = new ChatApi(configuration);
 
-let input: ModelChat; //Chat creation params
+let input: ChatCreateRequest; //Chat creation params
 
 const { status, data } = await apiInstance.chatsPost(
     input
@@ -132,7 +132,7 @@ const { status, data } = await apiInstance.chatsPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **input** | **ModelChat**| Chat creation params | |
+| **input** | **ChatCreateRequest**| Chat creation params | |
 
 
 ### Return type

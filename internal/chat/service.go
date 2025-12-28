@@ -24,6 +24,7 @@ func mapChats(chats []db.Chat) []model.Chat {
 	c := make([]model.Chat, len(chats))
 	for i, chat := range chats {
 		c[i] = model.Chat{
+			ID:   chat.ID,
 			Name: chat.Name.String,
 			Type: chat.Type,
 		}

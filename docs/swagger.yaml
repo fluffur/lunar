@@ -41,6 +41,15 @@ definitions:
     - accessToken
     - refreshToken
     type: object
+  chat.CreateRequest:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+    required:
+    - type
+    type: object
   chat.CreateResponse:
     properties:
       id:
@@ -81,11 +90,14 @@ definitions:
     type: object
   model.Chat:
     properties:
+      id:
+        type: string
       name:
         type: string
       type:
         type: string
     required:
+    - id
     - type
     type: object
   model.Message:
@@ -282,7 +294,7 @@ paths:
         name: input
         required: true
         schema:
-          $ref: '#/definitions/model.Chat'
+          $ref: '#/definitions/chat.CreateRequest'
       produces:
       - application/json
       responses:

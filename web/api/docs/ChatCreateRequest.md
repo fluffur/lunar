@@ -1,21 +1,19 @@
-# ModelChat
+# ChatCreateRequest
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**id** | **string** |  | [default to undefined]
 **name** | **string** |  | [optional] [default to undefined]
 **type** | **string** |  | [default to undefined]
 
 ## Example
 
 ```typescript
-import { ModelChat } from './api';
+import { ChatCreateRequest } from './api';
 
-const instance: ModelChat = {
-    id,
+const instance: ChatCreateRequest = {
     name,
     type,
 };

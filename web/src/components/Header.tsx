@@ -1,35 +1,35 @@
-import {Link} from 'react-router-dom';
-import {ActionIcon, Button, Container, Group, Menu, Text, UnstyledButton} from '@mantine/core';
-import {useSessionStore} from "../stores/sessionStore.ts";
-import {authApi} from "../api.ts";
-import {UserAvatar} from "./UserAvatar.tsx";
-import {IconLogout, IconMoonStars, IconSun, IconUserFilled} from "@tabler/icons-react";
-import {useUiStore} from "../stores/uiStore.ts";
+import { Link } from 'react-router-dom';
+import { ActionIcon, Button, Container, Group, Menu, Text, UnstyledButton } from '@mantine/core';
+import { useSessionStore } from "../stores/sessionStore.ts";
+import { authApi } from "../api.ts";
+import { UserAvatar } from "./UserAvatar.tsx";
+import { IconLogout, IconMoonStars, IconSun, IconUserFilled } from "@tabler/icons-react";
+import { useUiStore } from "../stores/uiStore.ts";
 
 export function Header() {
-    const {user, logout} = useSessionStore();
+    const { user, logout } = useSessionStore();
 
     const handleLogout = async () => {
         await authApi.authLogoutPost()
         logout();
     }
 
-    const {colorScheme, setColorScheme} = useUiStore()
+    const { colorScheme, setColorScheme } = useUiStore()
 
     return (
         <header style={{
             position: 'sticky',
             top: 0,
             zIndex: 100,
-            borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-            padding: '12px 0'
+            borderBottom: '1px solid var(--mantine-color-default-border)',
+            height: 60,
         }}>
-            <Container size="md">
+            <Container size="md" h="100%" maw={1200}>
                 <Group justify="space-between" h="100%">
                     <Text
                         size="xl"
                         fw={900}
-                        style={{cursor: 'pointer', letterSpacing: '-1px'}}
+                        style={{ cursor: 'pointer', letterSpacing: '-1px' }}
                         component={Link} to="/"
                     >
                         LUNAR
@@ -47,11 +47,11 @@ export function Header() {
                                                 borderRadius: '8px',
                                                 transition: 'background 0.2s ease'
                                             }}
-                                                   onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                                                   onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                                                onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                                             >
                                                 <UserAvatar username={user.username} avatarUrl={user.avatarUrl}
-                                                            size={32}/>
+                                                    size={32} />
                                                 <Text fw={600} size="sm" lh={1} mr={3}>
                                                     {user.username}
                                                 </Text>
@@ -62,15 +62,15 @@ export function Header() {
                                     <Menu.Dropdown>
 
                                         <Menu.Item component={Link} to="/profile"
-                                                   leftSection={<IconUserFilled size={16}/>}>
+                                            leftSection={<IconUserFilled size={16} />}>
                                             Profile
                                         </Menu.Item>
 
 
-                                        <Menu.Divider/>
+                                        <Menu.Divider />
 
                                         <Menu.Item color="red" onClick={handleLogout}
-                                                   leftSection={<IconLogout size={16}/>}>
+                                            leftSection={<IconLogout size={16} />}>
                                             Logout
                                         </Menu.Item>
                                     </Menu.Dropdown>
@@ -80,7 +80,7 @@ export function Header() {
                             <Group>
                                 <Button variant="subtle" component={Link} to="/login">Log in</Button>
                                 <Button component={Link}
-                                        to="/register">Sign up</Button>
+                                    to="/register">Sign up</Button>
                             </Group>
                         )}
 
@@ -94,8 +94,8 @@ export function Header() {
                             }
                         >
                             {colorScheme === 'dark'
-                                ? <IconSun size={18}/>
-                                : <IconMoonStars size={18}/>}
+                                ? <IconSun size={18} />
+                                : <IconMoonStars size={18} />}
                         </ActionIcon>
                     </Group>
                 </Group>

@@ -219,7 +219,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.Chat"
+                            "$ref": "#/definitions/chat.CreateRequest"
                         }
                     }
                 ],
@@ -648,6 +648,20 @@ const docTemplate = `{
                 }
             }
         },
+        "chat.CreateRequest": {
+            "type": "object",
+            "required": [
+                "type"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "chat.CreateResponse": {
             "type": "object",
             "required": [
@@ -710,9 +724,13 @@ const docTemplate = `{
         "model.Chat": {
             "type": "object",
             "required": [
+                "id",
                 "type"
             ],
             "properties": {
+                "id": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },

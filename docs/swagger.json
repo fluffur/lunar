@@ -210,7 +210,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/model.Chat"
+                            "$ref": "#/definitions/chat.CreateRequest"
                         }
                     }
                 ],
@@ -639,6 +639,20 @@
                 }
             }
         },
+        "chat.CreateRequest": {
+            "type": "object",
+            "required": [
+                "type"
+            ],
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "chat.CreateResponse": {
             "type": "object",
             "required": [
@@ -701,9 +715,13 @@
         "model.Chat": {
             "type": "object",
             "required": [
+                "id",
                 "type"
             ],
             "properties": {
+                "id": {
+                    "type": "string"
+                },
                 "name": {
                     "type": "string"
                 },

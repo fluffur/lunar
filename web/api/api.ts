@@ -37,6 +37,10 @@ export interface AuthTokens {
     'accessToken': string;
     'refreshToken': string;
 }
+export interface ChatCreateRequest {
+    'name'?: string;
+    'type': string;
+}
 export interface ChatCreateResponse {
     'id': string;
 }
@@ -56,6 +60,7 @@ export interface MessageGetPagingResponse {
     'nextCursor'?: string;
 }
 export interface ModelChat {
+    'id': string;
     'name'?: string;
     'type': string;
 }
@@ -455,11 +460,11 @@ export const ChatApiAxiosParamCreator = function (configuration?: Configuration)
         /**
          * 
          * @summary Create a new chat
-         * @param {ModelChat} input Chat creation params
+         * @param {ChatCreateRequest} input Chat creation params
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        chatsPost: async (input: ModelChat, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        chatsPost: async (input: ChatCreateRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'input' is not null or undefined
             assertParamExists('chatsPost', 'input', input)
             const localVarPath = `/chats`;
@@ -527,11 +532,11 @@ export const ChatApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @summary Create a new chat
-         * @param {ModelChat} input Chat creation params
+         * @param {ChatCreateRequest} input Chat creation params
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async chatsPost(input: ModelChat, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ChatCreateResponse>> {
+        async chatsPost(input: ChatCreateRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ChatCreateResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.chatsPost(input, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ChatApi.chatsPost']?.[localVarOperationServerIndex]?.url;
@@ -568,11 +573,11 @@ export const ChatApiFactory = function (configuration?: Configuration, basePath?
         /**
          * 
          * @summary Create a new chat
-         * @param {ModelChat} input Chat creation params
+         * @param {ChatCreateRequest} input Chat creation params
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        chatsPost(input: ModelChat, options?: RawAxiosRequestConfig): AxiosPromise<ChatCreateResponse> {
+        chatsPost(input: ChatCreateRequest, options?: RawAxiosRequestConfig): AxiosPromise<ChatCreateResponse> {
             return localVarFp.chatsPost(input, options).then((request) => request(axios, basePath));
         },
     };
@@ -606,11 +611,11 @@ export class ChatApi extends BaseAPI {
     /**
      * 
      * @summary Create a new chat
-     * @param {ModelChat} input Chat creation params
+     * @param {ChatCreateRequest} input Chat creation params
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public chatsPost(input: ModelChat, options?: RawAxiosRequestConfig) {
+    public chatsPost(input: ChatCreateRequest, options?: RawAxiosRequestConfig) {
         return ChatApiFp(this.configuration).chatsPost(input, options).then((request) => request(this.axios, this.basePath));
     }
 }
