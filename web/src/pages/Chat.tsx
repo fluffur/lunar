@@ -5,11 +5,13 @@ import {useSessionStore} from "../stores/sessionStore.ts";
 import {authApi, messageApi} from "../api.ts";
 import {IconArrowDown, IconSend2} from "@tabler/icons-react";
 import useWebSocket from "react-use-websocket";
-import {isTokenExpired} from "../utils.ts";
+import {isTokenExpired} from "../utils/isTokenExpired.ts";
 import axios from "axios";
 import NotFound from "./NotFound.tsx";
 import {UserAvatar} from "../components/UserAvatar.tsx";
 import {API_AVATARS_BASE_URL, API_UPLOADS_BASE_URL, WS_BASE_URL} from "../config.ts";
+import {formatMessageDate} from "../utils/formatMessageDate.ts";
+import {useUiStore} from "../stores/uiStore.ts";
 
 interface Sender {
     id: string;
@@ -19,8 +21,8 @@ interface Sender {
 
 interface ChatMessage {
     content: string;
-    chatId?: string;
-    sender?: Sender
+    chatId: string;
+    sender: Sender
     createdAt?: string;
 }
 
@@ -33,6 +35,7 @@ export default function Chat() {
 
     const viewportRef = useRef<HTMLDivElement | null>(null);
     const [notFound, setNotFound] = useState(false);
+    const {colorScheme, primaryColor} = useUiStore();
 
     const navigate = useNavigate();
 
@@ -218,45 +221,7 @@ export default function Chat() {
         setValue("");
     };
 
-    const formatMessageDate = (date?: string) => {
-        if (!date) return "";
-
-        const d = new Date(date);
-        const now = new Date();
-
-        const isToday = d.toDateString() === now.toDateString();
-
-        const isYesterday = d.getDate() === now.getDate() - 1 &&
-            d.getMonth() === now.getMonth() &&
-            d.getFullYear() === now.getFullYear();
-
-        if (isToday) {
-            return d.toLocaleTimeString(navigator.language, {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            });
-        } else if (isYesterday) {
-            return `Yesterday, ${d.toLocaleTimeString(navigator.language, {
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            })}`;
-        } else {
-            return d.toLocaleString(navigator.language, {
-                weekday: 'short',
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-                hour12: true
-            });
-        }
-    };
-
     const [windowHeight, _] = useState(window.innerHeight);
-
 
     if (notFound) {
         return (
@@ -264,7 +229,6 @@ export default function Chat() {
         )
 
     }
-
     return (
         <Center h={windowHeight - 80} p="md">
             <Paper w="100%" maw={500} h="100%" shadow="xl" radius="lg" withBorder display="flex"
@@ -291,22 +255,26 @@ export default function Chat() {
                                         <Paper
                                             p="xs"
                                             px="sm"
-                                            bg={isMe ? 'dark.4' : 'dark.6'}
-                                            c={isMe ? 'white' : 'gray.1'}
+                                            bg={colorScheme === 'dark' ?
+                                                isMe ? 'dark.4' : 'dark.6'
+                                                : isMe ? `${primaryColor}.1` : 'gray.1'
+                                            }
+                                            c={colorScheme === 'dark' ?
+                                                isMe ? 'white' : 'gray.1'
+                                                : 'black'
+                                            }
                                         >
                                             <Text size="sm" style={{
                                                 wordBreak: 'break-word',
                                                 whiteSpace: 'pre-wrap'
-                                            }}>{m.content}
-
-
+                                            }}>
+                                                {m.content}
                                             </Text>
 
                                         </Paper>
                                         {m.createdAt && (
                                             <Text
                                                 size="xs"
-                                                c={isMe ? 'gray.4' : 'gray.5'}
                                                 style={{
                                                     userSelect: 'none',
                                                 }}
