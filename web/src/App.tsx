@@ -3,7 +3,7 @@ import Home from "./pages/Home.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import Login from "./pages/Login.tsx";
 import Register from "./pages/Register.tsx";
-import {ProtectedRoute} from "./routes/ProtectedRoute.tsx";
+import {ProtectedRoute} from "./layouts/ProtectedRoute.tsx";
 import Chats from "./pages/Chats.tsx";
 import {Header} from "./components/Header.tsx";
 import {useSessionStore} from "./stores/sessionStore.ts";

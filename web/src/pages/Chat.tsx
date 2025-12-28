@@ -9,7 +9,8 @@ import {isTokenExpired} from "../utils/isTokenExpired.ts";
 import axios from "axios";
 import NotFound from "./NotFound.tsx";
 import {UserAvatar} from "../components/UserAvatar.tsx";
-import {API_AVATARS_BASE_URL, API_UPLOADS_BASE_URL, WS_BASE_URL} from "../config.ts";
+import {API_AVATARS_BASE_URL, WS_BASE_URL} from "../config.ts";
+import messagePopAudio from "../assets/message-pop.mp3"
 import {formatMessageDate} from "../utils/formatMessageDate.ts";
 import {useUiStore} from "../stores/uiStore.ts";
 
@@ -190,7 +191,7 @@ export default function Chat() {
 
                 const isMe = data.sender?.username === user?.username;
                 if (!isMe) {
-                    const audio = new Audio(API_UPLOADS_BASE_URL + "message-pop.mp3")
+                    const audio = new Audio(messagePopAudio)
                     audio.play()
                 }
                 if (isMe || isAtBottom) {
