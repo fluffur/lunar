@@ -8,8 +8,8 @@ import (
 	"image"
 	"image/jpeg"
 	"log/slog"
+	db2 "lunar/internal/db/postgres/sqlc"
 	"lunar/internal/db/redis"
-	db "lunar/internal/db/sqlc"
 	"math/big"
 	"mime/multipart"
 	"os"
@@ -24,24 +24,24 @@ import (
 )
 
 type Service struct {
-	queries          db.Querier
+	queries          db2.Querier
 	avatarsUploadDir string
 	emailQueue       *redis.EmailQueue
 }
 
-func NewService(queries db.Querier, avatarsUploadDir string) *Service {
+func NewService(queries db2.Querier, avatarsUploadDir string) *Service {
 	return &Service{
 		queries:          queries,
 		avatarsUploadDir: avatarsUploadDir,
 	}
 }
 
-func (s *Service) GetUser(ctx context.Context, id uuid.UUID) (db.User, error) {
+func (s *Service) GetUser(ctx context.Context, id uuid.UUID) (db2.User, error) {
 	return s.queries.GetUser(ctx, id)
 }
 
 func (s *Service) UpdateAvatar(ctx context.Context, id uuid.UUID, url string) error {
-	return s.queries.UpdateUserAvatar(ctx, db.UpdateUserAvatarParams{
+	return s.queries.UpdateUserAvatar(ctx, db2.UpdateUserAvatarParams{
 		ID: id,
 		AvatarUrl: pgtype.Text{
 			String: url,
@@ -51,7 +51,7 @@ func (s *Service) UpdateAvatar(ctx context.Context, id uuid.UUID, url string) er
 }
 
 func (s *Service) UpdateEmail(ctx context.Context, id uuid.UUID, email string) error {
-	err := s.queries.UpdateUserEmail(ctx, db.UpdateUserEmailParams{
+	err := s.queries.UpdateUserEmail(ctx, db2.UpdateUserEmailParams{
 		ID:    id,
 		Email: email,
 	})
@@ -81,7 +81,7 @@ func (s *Service) UpdatePassword(ctx context.Context, id uuid.UUID, currentPassw
 		return err
 	}
 
-	return s.queries.UpdateUserPassword(ctx, db.UpdateUserPasswordParams{
+	return s.queries.UpdateUserPassword(ctx, db2.UpdateUserPasswordParams{
 		ID: id,
 		PasswordHash: pgtype.Text{
 			String: string(newPasswordHash),
@@ -133,7 +133,7 @@ func (s *Service) SendVerificationCode(ctx context.Context, id uuid.UUID) error 
 		return err
 	}
 
-	if err := s.queries.UpsertEmailVerificationCode(ctx, db.UpsertEmailVerificationCodeParams{
+	if err := s.queries.UpsertEmailVerificationCode(ctx, db2.UpsertEmailVerificationCodeParams{
 		UserID:   id,
 		CodeHash: string(codeHash),
 		ExpiresAt: pgtype.Timestamptz{

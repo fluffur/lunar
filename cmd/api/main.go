@@ -6,8 +6,8 @@ import (
 	"lunar/internal/auth"
 	"lunar/internal/chat"
 	"lunar/internal/config"
+	db "lunar/internal/db/postgres/sqlc"
 	redis2 "lunar/internal/db/redis"
-	db "lunar/internal/db/sqlc"
 	"lunar/internal/httputil"
 	"lunar/internal/message"
 	"lunar/internal/user"
@@ -20,9 +20,18 @@ import (
 
 // @title						Lunar API
 // @version					1.0.0
+//
 // @securityDefinitions.apikey	BearerAuth
 // @in							header
 // @name						Authorization
+//
+// @securityDefinitions.apikey	RefreshCookieAuth
+// @in							cookie
+// @name						refresh_token
+//
+// @securityDefinitions.apikey	WebSocketQueryAuth
+// @in							query
+// @name						token
 func main() {
 	ctx := context.Background()
 

@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 	"errors"
-	db "lunar/internal/db/sqlc"
+	db2 "lunar/internal/db/postgres/sqlc"
 	"time"
 
 	"github.com/google/uuid"
@@ -20,14 +20,14 @@ var (
 )
 
 type Service struct {
-	queries        *db.Queries
+	queries        *db2.Queries
 	db             *pgxpool.Pool
 	authenticator  *Authenticator
 	refreshService RefreshTokenRepository
 }
 
 func NewService(
-	queries *db.Queries,
+	queries *db2.Queries,
 	db *pgxpool.Pool,
 	authenticator *Authenticator,
 	refreshService RefreshTokenRepository,
@@ -66,7 +66,7 @@ func (s *Service) Register(ctx context.Context, credentials RegisterCredentials)
 		return Tokens{}, err
 	}
 
-	user, err := qtx.CreateUser(ctx, db.CreateUserParams{
+	user, err := qtx.CreateUser(ctx, db2.CreateUserParams{
 		ID:            uuid.Must(uuid.NewV7()),
 		Username:      credentials.Username,
 		Email:         credentials.Email,

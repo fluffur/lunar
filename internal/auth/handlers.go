@@ -103,6 +103,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 //	@Summary	Refresh access token
 //	@Tags		auth
 //	@Produce	json
+//	@Security	RefreshCookieAuth
 //	@Success	200	{object}	Tokens
 //	@Failure	401	{object}	httputil.ErrorResponse
 //	@Router		/auth/refresh [post]

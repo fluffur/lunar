@@ -97,6 +97,17 @@ func (h *Handler) JoinCurrentUser(w http.ResponseWriter, r *http.Request) {
 	httputil.Success(w)
 }
 
+// Websocket sockets
+//
+//	@Summary		Connect to the websocket in a chat
+//	@Tags			chat
+//	@Param			chatID	path	string	true	"Chat ID"
+//	@Security		WebSocketQueryAuth
+//	@Description	Connect to the websocket to receive real-time notifications in a chat
+//	@Schemes		ws
+//	@Failure		401	{object}	httputil.ErrorResponse
+//	@Failure		500	{object}	httputil.ErrorResponse
+//	@Router			/chats/{chatID}/ws [get]
 func (h *Handler) Websocket(w http.ResponseWriter, r *http.Request) {
 	user := httputil.UserFromRequest(r)
 	chatID := uuid.MustParse(r.PathValue("chatID"))

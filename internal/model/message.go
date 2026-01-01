@@ -1,7 +1,7 @@
 package model
 
 import (
-	db "lunar/internal/db/sqlc"
+	db2 "lunar/internal/db/postgres/sqlc"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,8 +16,8 @@ type Message struct {
 }
 
 func MessageFromRepo(
-	msg db.Message,
-	sender db.User,
+	msg db2.Message,
+	sender db2.User,
 ) Message {
 	return Message{
 		ID:        msg.ID,
@@ -28,7 +28,7 @@ func MessageFromRepo(
 	}
 }
 
-func MessagesFromRepo(rows []db.GetMessagesPagingRow) []Message {
+func MessagesFromRepo(rows []db2.GetMessagesPagingRow) []Message {
 	result := make([]Message, 0, len(rows))
 	for _, r := range rows {
 		result = append(result, Message{

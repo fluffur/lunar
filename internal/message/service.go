@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	db "lunar/internal/db/sqlc"
+	db2 "lunar/internal/db/postgres/sqlc"
 	"lunar/internal/model"
 	"strconv"
 
@@ -16,7 +16,7 @@ import (
 )
 
 type Service struct {
-	queries *db.Queries
+	queries *db2.Queries
 	db      *pgxpool.Pool
 }
 
@@ -24,7 +24,7 @@ var (
 	ErrChatNotFound = errors.New("chat not found")
 )
 
-func NewService(queries *db.Queries, db *pgxpool.Pool) *Service {
+func NewService(queries *db2.Queries, db *pgxpool.Pool) *Service {
 	return &Service{
 		queries: queries,
 		db:      db,
@@ -48,7 +48,7 @@ func (s *Service) ListMessages(ctx context.Context, chatID uuid.UUID, limit int,
 		return nil, ErrChatNotFound
 	}
 
-	params := db.GetMessagesPagingParams{
+	params := db2.GetMessagesPagingParams{
 		ChatID: chatID,
 		Limit:  int32(limit),
 	}

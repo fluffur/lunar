@@ -1,7 +1,7 @@
 package model
 
 import (
-	db "lunar/internal/db/sqlc"
+	db "lunar/internal/db/postgres/sqlc"
 
 	"github.com/google/uuid"
 )

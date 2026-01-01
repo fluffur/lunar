@@ -96,6 +96,11 @@ const docTemplate = `{
         },
         "/auth/refresh": {
             "post": {
+                "security": [
+                    {
+                        "RefreshCookieAuth": []
+                    }
+                ],
                 "produces": [
                     "application/json"
                 ],
@@ -334,6 +339,43 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chats/{chatID}/ws": {
+            "get": {
+                "security": [
+                    {
+                        "WebSocketQueryAuth": []
+                    }
+                ],
+                "description": "Connect to the websocket to receive real-time notifications in a chat",
+                "tags": [
+                    "chat"
+                ],
+                "summary": "Connect to the websocket in a chat",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Chat ID",
+                        "name": "chatID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/httputil.ErrorResponse"
                         }
@@ -838,6 +880,16 @@ const docTemplate = `{
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"
+        },
+        "RefreshCookieAuth": {
+            "type": "apiKey",
+            "name": "refresh_token",
+            "in": "cookie"
+        },
+        "WebSocketQueryAuth": {
+            "type": "apiKey",
+            "name": "token",
+            "in": "query"
         }
     }
 }`

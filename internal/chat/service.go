@@ -2,7 +2,7 @@ package chat
 
 import (
 	"context"
-	db "lunar/internal/db/sqlc"
+	db2 "lunar/internal/db/postgres/sqlc"
 	"lunar/internal/model"
 	"time"
 
@@ -11,16 +11,16 @@ import (
 )
 
 type Service struct {
-	queries db.Querier
+	queries db2.Querier
 }
 
-func NewService(q db.Querier) *Service {
+func NewService(q db2.Querier) *Service {
 	return &Service{
 		queries: q,
 	}
 }
 
-func mapChats(chats []db.Chat) []model.Chat {
+func mapChats(chats []db2.Chat) []model.Chat {
 	c := make([]model.Chat, len(chats))
 	for i, chat := range chats {
 		c[i] = model.Chat{
@@ -42,7 +42,7 @@ func (s *Service) ListChats(ctx context.Context, userID uuid.UUID) ([]model.Chat
 }
 
 func (s *Service) CreateChat(ctx context.Context, chat model.Chat) (uuid.UUID, error) {
-	return s.queries.CreateChat(ctx, db.CreateChatParams{
+	return s.queries.CreateChat(ctx, db2.CreateChatParams{
 		ID: uuid.Must(uuid.NewV7()),
 		Name: pgtype.Text{
 			String: chat.Name,
@@ -57,7 +57,7 @@ func (s *Service) CreateChat(ctx context.Context, chat model.Chat) (uuid.UUID, e
 }
 
 func (s *Service) JoinUserToChat(ctx context.Context, userID uuid.UUID, chatID uuid.UUID) error {
-	return s.queries.AddUserToChat(ctx, db.AddUserToChatParams{
+	return s.queries.AddUserToChat(ctx, db2.AddUserToChatParams{
 		ID:     uuid.Must(uuid.NewV7()),
 		ChatID: chatID,
 		UserID: userID,

@@ -425,6 +425,43 @@ export const ChatApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
+         * Connect to the websocket to receive real-time notifications in a chat
+         * @summary Connect to the websocket in a chat
+         * @param {string} chatID Chat ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        chatsChatIDWsGet: async (chatID: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'chatID' is not null or undefined
+            assertParamExists('chatsChatIDWsGet', 'chatID', chatID)
+            const localVarPath = `/chats/{chatID}/ws`
+                .replace(`{${"chatID"}}`, encodeURIComponent(String(chatID)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication WebSocketQueryAuth required
+            await setApiKeyToObject(localVarQueryParameter, "token", configuration)
+
+            localVarHeaderParameter['Accept'] = '*/*';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
          * @summary List user chats
          * @param {*} [options] Override http request option.
@@ -518,6 +555,19 @@ export const ChatApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Connect to the websocket to receive real-time notifications in a chat
+         * @summary Connect to the websocket in a chat
+         * @param {string} chatID Chat ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async chatsChatIDWsGet(chatID: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.chatsChatIDWsGet(chatID, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ChatApi.chatsChatIDWsGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * 
          * @summary List user chats
          * @param {*} [options] Override http request option.
@@ -562,6 +612,16 @@ export const ChatApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.chatsChatIDPost(chatID, options).then((request) => request(axios, basePath));
         },
         /**
+         * Connect to the websocket to receive real-time notifications in a chat
+         * @summary Connect to the websocket in a chat
+         * @param {string} chatID Chat ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        chatsChatIDWsGet(chatID: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.chatsChatIDWsGet(chatID, options).then((request) => request(axios, basePath));
+        },
+        /**
          * 
          * @summary List user chats
          * @param {*} [options] Override http request option.
@@ -596,6 +656,17 @@ export class ChatApi extends BaseAPI {
      */
     public chatsChatIDPost(chatID: string, options?: RawAxiosRequestConfig) {
         return ChatApiFp(this.configuration).chatsChatIDPost(chatID, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Connect to the websocket to receive real-time notifications in a chat
+     * @summary Connect to the websocket in a chat
+     * @param {string} chatID Chat ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public chatsChatIDWsGet(chatID: string, options?: RawAxiosRequestConfig) {
+        return ChatApiFp(this.configuration).chatsChatIDWsGet(chatID, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	db "lunar/internal/db/sqlc"
+	db2 "lunar/internal/db/postgres/sqlc"
 	"lunar/internal/model"
 	"net/http"
 	"time"
@@ -18,11 +18,11 @@ import (
 
 type Service struct {
 	rdb      *redis.Client
-	queries  db.Querier
+	queries  db2.Querier
 	upgrader *websocket.Upgrader
 }
 
-func NewService(rdb *redis.Client, queries db.Querier, allowedOrigins []string) *Service {
+func NewService(rdb *redis.Client, queries db2.Querier, allowedOrigins []string) *Service {
 	return &Service{
 		rdb:     rdb,
 		queries: queries,
@@ -87,7 +87,7 @@ func (s *Service) handleIncoming(
 	ctx context.Context,
 	conn *websocket.Conn,
 	chatID uuid.UUID,
-	user db.User,
+	user db2.User,
 	errChan chan error,
 ) {
 	for {
@@ -111,7 +111,7 @@ func (s *Service) handleIncoming(
 				continue
 			}
 
-			createdMessage, err := s.queries.CreateMessage(ctx, db.CreateMessageParams{
+			createdMessage, err := s.queries.CreateMessage(ctx, db2.CreateMessageParams{
 				ID:       uuid.Must(uuid.NewV7()),
 				ChatID:   chatID,
 				SenderID: user.ID,

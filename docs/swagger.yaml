@@ -233,6 +233,8 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - RefreshCookieAuth: []
       summary: Refresh access token
       tags:
       - auth
@@ -379,6 +381,30 @@ paths:
       summary: List messages in a chat
       tags:
       - message
+  /chats/{chatID}/ws:
+    get:
+      description: Connect to the websocket to receive real-time notifications in
+        a chat
+      parameters:
+      - description: Chat ID
+        in: path
+        name: chatID
+        required: true
+        type: string
+      responses:
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - WebSocketQueryAuth: []
+      summary: Connect to the websocket in a chat
+      tags:
+      - chat
   /users/me:
     get:
       produces:
@@ -532,5 +558,13 @@ securityDefinitions:
   BearerAuth:
     in: header
     name: Authorization
+    type: apiKey
+  RefreshCookieAuth:
+    in: cookie
+    name: refresh_token
+    type: apiKey
+  WebSocketQueryAuth:
+    in: query
+    name: token
     type: apiKey
 swagger: "2.0"
