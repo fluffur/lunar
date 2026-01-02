@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log/slog"
-	db2 "lunar/internal/db/postgres/sqlc"
 	"lunar/internal/model"
 	"lunar/internal/repository"
 	"net/http"
@@ -18,16 +17,16 @@ import (
 
 type Service struct {
 	rdb         *redis.Client
-	queries     db2.Querier
 	upgrader    *websocket.Upgrader
 	userRepo    repository.UserRepository
 	messageRepo repository.MessageRepository
 }
 
-func NewService(rdb *redis.Client, queries db2.Querier, allowedOrigins []string) *Service {
+func NewService(rdb *redis.Client, userRepo repository.UserRepository, messageRepo repository.MessageRepository, allowedOrigins []string) *Service {
 	return &Service{
-		rdb:     rdb,
-		queries: queries,
+		rdb:         rdb,
+		userRepo:    userRepo,
+		messageRepo: messageRepo,
 		upgrader: &websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,

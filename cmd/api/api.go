@@ -70,8 +70,6 @@ func (app *application) mount() http.Handler {
 			r.Get("/", userHandler.CurrentUser)
 
 			r.Put("/email", userHandler.UpdateEmail)
-			r.Post("/email/verification-code", userHandler.SendVerificationCode)
-			r.Post("/email/verification", userHandler.VerifyEmail)
 
 			r.Put("/password", userHandler.ChangePassword)
 			r.Post("/avatar", userHandler.UploadAvatar)

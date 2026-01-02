@@ -68,7 +68,7 @@ func main() {
 	authService := auth.NewService(authenticator, refreshRepo, userRepo)
 	userService := user.NewService(userRepo, cfg.FileStore.AvatarsPath())
 	chatService := chat.NewService(chatRepo)
-	wsService := ws.NewService(rdb, queries, cfg.CORS.AllowedOrigins)
+	wsService := ws.NewService(rdb, userRepo, messageRepo, cfg.CORS.AllowedOrigins)
 	messageService := message.NewService(chatRepo, messageRepo)
 
 	validator := httputil.NewValidator()
