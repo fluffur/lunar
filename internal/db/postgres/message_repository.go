@@ -18,7 +18,7 @@ func NewMessageRepository(queries *db.Queries) *MessageRepository {
 	return &MessageRepository{queries}
 }
 
-func mapMessage(message db.Message, sender model.User) model.Message {
+func mapMessage(message db.Message, sender model.MessageSender) model.Message {
 	return model.Message{
 		ID:        message.ID,
 		ChatID:    message.ChatID,
@@ -36,13 +36,10 @@ func mapMessages(rows []db.GetMessagesPagingRow) []model.Message {
 			ChatID:    r.ChatID,
 			Content:   r.Content,
 			CreatedAt: r.CreatedAt.Time,
-			Sender: model.User{
-				ID:            r.SenderID,
-				Username:      r.Username,
-				PasswordHash:  r.PasswordHash.String,
-				Email:         r.Email,
-				AvatarURL:     textOrEmpty(r.AvatarUrl),
-				EmailVerified: r.EmailVerified,
+			Sender: model.MessageSender{
+				ID:        r.SenderID,
+				Username:  r.Username,
+				AvatarURL: textOrEmpty(r.AvatarUrl),
 			},
 		})
 	}
