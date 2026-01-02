@@ -1,63 +1,87 @@
 import {Outlet, useParams} from "react-router-dom";
-import {ActionIcon, Flex, Paper} from "@mantine/core";
+import {ActionIcon, Box, Flex, Paper, Transition} from "@mantine/core";
 import {RoomsSidebar} from "../components/RoomsSidebar.tsx";
 import {useMediaQuery} from "@mantine/hooks";
 import {useState} from "react";
-import {IconLayoutSidebarLeftExpand} from "@tabler/icons-react";
+import {IconChevronRight} from "@tabler/icons-react";
 
 export function RoomsLayout() {
     const isMobile = useMediaQuery('(max-width: 768px)');
-    const {roomId} = useParams<string>();
-    const [sidebarOpen, setSidebarOpen] = useState(true);
+    const {roomSlug} = useParams<string>();
+    const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+    const [prevRoomSlug, setPrevRoomSlug] = useState(roomSlug);
 
-    const showSidebar = isMobile ? !roomId : sidebarOpen;
-    const showContent = isMobile ? !!roomId : true;
+    if (roomSlug !== prevRoomSlug) {
+        setPrevRoomSlug(roomSlug);
+        if (isMobile && roomSlug) {
+            setSidebarOpen(false);
+        }
+    }
+
 
     return (
         <Flex h="calc(100vh - 60px)" style={{position: 'relative', overflow: 'hidden'}}>
-            {(isMobile ? showSidebar : true) && (
-                <Paper
-                    w={isMobile ? "100%" : 300}
-                    withBorder
-                    style={{
-                        position: isMobile ? 'static' : 'absolute',
-                        left: 10,
-                        top: 15,
-                        bottom: 15,
-                        zIndex: 200,
-                        flexShrink: 0,
-                        transform: isMobile ? 'none' : (sidebarOpen ? 'translateX(0)' : 'translateX(-110%)'),
-                        transition: 'transform 0.3s ease',
-                        opacity: isMobile ? 1 : (sidebarOpen ? 1 : 0),
-                    }}
-                >
-                    <RoomsSidebar onClose={() => setSidebarOpen(false)}/>
-                </Paper>
-            )}
-
-            {showContent && (
-                <Flex style={{flex: 1, position: 'relative'}} p={isMobile ? 0 : "md"} justify="center">
-                    {!isMobile && (
-                        <ActionIcon
-                            variant="subtle"
-                            color="gray"
-                            onClick={() => setSidebarOpen(true)}
+            <Box
+                style={{
+                    width: isMobile ? (sidebarOpen ? '100%' : 0) : (sidebarOpen ? 310 : 0),
+                    transition: 'width 0.3s ease',
+                    position: isMobile ? 'absolute' : 'relative',
+                    height: '100%',
+                    zIndex: 200,
+                    overflow: 'hidden',
+                    flexShrink: 0,
+                }}
+            >
+                <Transition mounted={sidebarOpen} transition="slide-right" duration={300} timingFunction="ease">
+                    {(styles) => (
+                        <Paper
+                            withBorder
                             style={{
+                                ...styles,
                                 position: 'absolute',
-                                left: 10,
-                                top: 35,
-                                zIndex: 201,
-                                opacity: sidebarOpen ? 0 : 1,
-                                pointerEvents: sidebarOpen ? 'none' : 'auto',
-                                transition: 'opacity 0.3s ease',
+                                width: 300,
+                                height: isMobile ? '100%' : 'calc(100% - 30px)',
+                                left: isMobile ? 0 : 10,
+                                top: isMobile ? 0 : 15,
+                                zIndex: 200,
+                                borderRadius: isMobile ? 0 : 'var(--mantine-radius-lg)',
                             }}
                         >
-                            <IconLayoutSidebarLeftExpand size={20}/>
-                        </ActionIcon>
+                            <RoomsSidebar onClose={() => setSidebarOpen(false)}/>
+                        </Paper>
                     )}
+                </Transition>
+            </Box>
+
+            <Box style={{
+                flex: 1,
+                position: 'relative',
+                height: '100%',
+                overflow: 'hidden'
+            }}>
+                {!sidebarOpen && (
+                    <ActionIcon
+                        variant="filled"
+                        size="lg"
+                        onClick={() => setSidebarOpen(true)}
+                        style={{
+                            position: 'absolute',
+                            left: 10,
+                            top: isMobile ? 10 : 25,
+                            zIndex: 100,
+                            borderRadius: '50%',
+                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+                        }}
+                    >
+                        <IconChevronRight size={20}/>
+                    </ActionIcon>
+                )}
+                <Flex h="100%" p={isMobile ? 0 : "md"} justify="center" style={{position: 'relative'}}>
                     <Outlet/>
                 </Flex>
-            )}
+            </Box>
         </Flex>
     );
 }
+
+

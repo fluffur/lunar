@@ -16,11 +16,12 @@ import {
 import {useNavigate, useParams} from 'react-router-dom';
 import {roomApi} from "../api.ts";
 import type {ModelRoom} from "../../api";
-import {IconLayoutSidebarLeftCollapse, IconLogout, IconPlus, IconSearch} from "@tabler/icons-react";
+import {IconChevronLeft, IconLogout, IconPlus, IconSearch} from "@tabler/icons-react";
 import {CreateRoomModal} from "./CreateRoomModal.tsx";
 import {useSessionStore} from "../stores/sessionStore.ts";
 import {UserAvatar} from "./UserAvatar.tsx";
 import {useUiStore} from "../stores/uiStore.ts";
+import {useMediaQuery} from "@mantine/hooks";
 
 interface RoomsSidebarProps {
     onClose?: () => void;
@@ -28,12 +29,14 @@ interface RoomsSidebarProps {
 
 export function RoomsSidebar({onClose}: RoomsSidebarProps) {
     const [rooms, setRooms] = useState<ModelRoom[]>([]);
-    const {roomId} = useParams<string >();
+    const {roomSlug} = useParams<string>();
     const navigate = useNavigate();
     const [createModalOpen, setCreateModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const {user, logout} = useSessionStore();
     const {primaryColor} = useUiStore()
+    const isMobile = useMediaQuery('(max-width: 768px)');
+
     useEffect(() => {
         const fetchRooms = async () => {
             try {
@@ -51,6 +54,13 @@ export function RoomsSidebar({onClose}: RoomsSidebarProps) {
         (room.name || room.id).toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    const handleRoomClick = (slug: string) => {
+        navigate(`/r/${slug}`);
+        if (isMobile && onClose) {
+            onClose();
+        }
+    };
+
     return (
         <Box h="100%" p="md" display="flex" style={{flexDirection: 'column', gap: 'var(--mantine-spacing-md)'}}>
             <Group justify="space-between">
@@ -61,7 +71,7 @@ export function RoomsSidebar({onClose}: RoomsSidebarProps) {
                     </ActionIcon>
                     {onClose && (
                         <ActionIcon variant="subtle" color="gray" onClick={onClose}>
-                            <IconLayoutSidebarLeftCollapse size={20}/>
+                            <IconChevronLeft size={20}/>
                         </ActionIcon>
                     )}
                 </Group>
@@ -82,8 +92,8 @@ export function RoomsSidebar({onClose}: RoomsSidebarProps) {
                             <NavLink
                                 key={room.id}
                                 label={room.name || room.slug}
-                                active={room.id === roomId}
-                                onClick={() => navigate(`/r/${room.slug}`)}
+                                active={room.slug === roomSlug}
+                                onClick={() => room.slug && handleRoomClick(room.slug)}
                                 leftSection={
                                     <Avatar radius="xl" size="sm" color={primaryColor}>
                                         {(room.name || room.id).slice(0, 2).toUpperCase()}
