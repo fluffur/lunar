@@ -25,7 +25,7 @@ export default function Room() {
     const [messages, setMessages] = useState<ModelMessage[]>([]);
     const {token, user, setToken, logout} = useSessionStore()
     const [value, setValue] = useState("");
-
+    const messageAudioRef = useRef(new Audio(messagePopAudio));
     const viewportRef = useRef<HTMLDivElement | null>(null);
     const [notFound, setNotFound] = useState(false);
     const {colorScheme, primaryColor} = useUiStore();
@@ -196,8 +196,7 @@ export default function Room() {
 
                 const isMe = data.sender?.username === user?.username;
                 if (!isMe) {
-                    const audio = new Audio(messagePopAudio)
-                    audio.play()
+                    messageAudioRef.current.play()
                 }
                 if (isMe || isAtBottom) {
                     setTimeout(scrollToBottom, 100);

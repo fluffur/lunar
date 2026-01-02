@@ -37,9 +37,17 @@ export function CreateRoomModal({ opened, onClose }: CreateRoomModalProps) {
     };
 
     const handleChange = (value: string) => {
-        const validValue = value.replace(/[^a-z0-9-]/gi, '');
+        let slug = value;
+
+        const match = value.match(/\/r\/([a-zA-Z0-9-]+)/);
+        if (match) {
+            slug = match[1];
+        }
+
+        const validValue = slug.replace(/[^a-z0-9-]/gi, '');
         setRoomId(validValue);
     };
+
 
     return (
         <Modal opened={opened} onClose={onClose} title="Create or Join room" centered>
