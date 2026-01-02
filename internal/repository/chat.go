@@ -7,9 +7,9 @@ import (
 	"github.com/google/uuid"
 )
 
-type ChatRepository interface {
-	ListUserChats(ctx context.Context, userID uuid.UUID) ([]model.Chat, error)
-	Create(ctx context.Context, chat model.Chat) (model.Chat, error)
-	AddMember(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error
-	ChatExists(ctx context.Context, id uuid.UUID) (bool, error)
+type RoomRepository interface {
+	ListUserChats(ctx context.Context, userID uuid.UUID) ([]model.Room, error)
+	Create(ctx context.Context, room model.Room) (model.Room, error)
+	AddMember(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) error
+	RoomExists(ctx context.Context, id uuid.UUID) (bool, error)
 }

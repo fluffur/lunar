@@ -10,42 +10,42 @@ CREATE TABLE users
     created_at     TIMESTAMPTZ  NOT NULL
 );
 
-CREATE TABLE chats
+CREATE TABLE rooms
 (
     id         UUID PRIMARY KEY,
     name       VARCHAR(100),
-    type       VARCHAR(20) NOT NULL,
+    slug       VARCHAR(16) NOT NULL,
     created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE chat_members
+CREATE TABLE room_members
 (
     id        UUID PRIMARY KEY,
-    chat_id   UUID        NOT NULL REFERENCES chats (id) ON DELETE CASCADE,
+    room_id   UUID        NOT NULL REFERENCES rooms (id) ON DELETE CASCADE,
     user_id   UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     joined_at TIMESTAMPTZ NOT NULL,
-    UNIQUE (chat_id, user_id)
+    UNIQUE (room_id, user_id)
 );
 
 
 CREATE TABLE messages
 (
     id         UUID PRIMARY KEY,
-    chat_id    UUID        NOT NULL REFERENCES chats (id) ON DELETE CASCADE,
+    room_id    UUID        NOT NULL REFERENCES rooms (id) ON DELETE CASCADE,
     sender_id  UUID        NOT NULL REFERENCES users (id) ON DELETE CASCADE,
     content    TEXT        NOT NULL,
     created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE INDEX idx_messages_chat_created
-    ON messages (chat_id, created_at DESC, id DESC);
+CREATE INDEX idx_messages_room_created
+    ON messages (room_id, created_at DESC, id DESC);
 -- +goose StatementEnd
 
 -- +goose Down
 -- +goose StatementBegin
 DROP TABLE users;
-DROP TABLE chats;
-DROP TABLE chat_members;
+DROP TABLE rooms;
+DROP TABLE room_members;
 DROP TABLE messages;
-DROP INDEX idx_messages_chat_created;
+DROP INDEX idx_messages_room_created;
 -- +goose StatementEnd

@@ -7,10 +7,10 @@ import (
 	"log/slog"
 	_ "lunar/docs"
 	"lunar/internal/auth"
-	"lunar/internal/chat"
 	"lunar/internal/config"
 	"lunar/internal/httputil"
 	"lunar/internal/message"
+	"lunar/internal/room"
 	"lunar/internal/user"
 	"lunar/internal/ws"
 	"net/http"
@@ -51,7 +51,7 @@ func (app *application) mount() http.Handler {
 
 	authHandler := auth.NewHandler(app.validator, app.authService)
 	userHandler := user.NewHandler(app.validator, app.userService)
-	chatHandler := chat.NewHandler(app.validator, app.chatService, app.wsService)
+	roomHandler := room.NewHandler(app.validator, app.roomService, app.wsService)
 	messageHandler := message.NewHandler(app.validator, app.messageService)
 
 	r.Mount("/api", r)
@@ -75,18 +75,18 @@ func (app *application) mount() http.Handler {
 			r.Post("/avatar", userHandler.UploadAvatar)
 		})
 
-		r.Route("/chats", func(r chi.Router) {
-			r.Get("/", chatHandler.ListChats)
-			r.Post("/", chatHandler.CreateChat)
-			r.Route("/{chatID:[0-9a-fA-F-]{36}}", func(r chi.Router) {
-				r.Post("/", chatHandler.JoinCurrentUser)
+		r.Route("/rooms", func(r chi.Router) {
+			r.Get("/", roomHandler.ListChats)
+			r.Post("/", roomHandler.CreateChat)
+			r.Route("/{roomID:[0-9a-fA-F-]{36}}", func(r chi.Router) {
+				r.Post("/", roomHandler.JoinCurrentUser)
 				r.Get("/messages", messageHandler.ListMessages)
 			})
 		})
 	})
 
 	r.With(wsAuthMw).
-		Get("/chats/{chatID:[0-9a-fA-F-]{36}}/ws", chatHandler.Websocket)
+		Get("/rooms/{roomID:[0-9a-fA-F-]{36}}/ws", roomHandler.Websocket)
 
 	return r
 }
@@ -146,7 +146,7 @@ type application struct {
 	authenticator  *auth.Authenticator
 	authService    *auth.Service
 	userService    *user.Service
-	chatService    *chat.Service
+	roomService    *room.Service
 	wsService      *ws.Service
 	messageService *message.Service
 	validator      *httputil.Validator

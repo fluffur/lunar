@@ -47,7 +47,7 @@ func NewService(rdb *redis.Client, userRepo repository.UserRepository, messageRe
 func (s *Service) HandleWebSocket(
 	w http.ResponseWriter,
 	r *http.Request,
-	chatID uuid.UUID,
+	roomID uuid.UUID,
 	userID uuid.UUID,
 ) error {
 	user, err := s.userRepo.GetByID(r.Context(), userID)
@@ -64,13 +64,13 @@ func (s *Service) HandleWebSocket(
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	sub := s.rdb.Subscribe(ctx, chatID.String())
+	sub := s.rdb.Subscribe(ctx, roomID.String())
 	defer sub.Close()
 
 	inErr := make(chan error, 1)
 	outErr := make(chan error, 1)
 
-	go s.handleIncoming(ctx, conn, chatID, user, inErr)
+	go s.handleIncoming(ctx, conn, roomID, user, inErr)
 	go s.handleOutgoing(ctx, conn, sub.Channel(), outErr)
 
 	select {
@@ -87,7 +87,7 @@ func (s *Service) HandleWebSocket(
 func (s *Service) handleIncoming(
 	ctx context.Context,
 	conn *websocket.Conn,
-	chatID uuid.UUID,
+	roomID uuid.UUID,
 	user model.User,
 	errChan chan error,
 ) {
@@ -107,7 +107,7 @@ func (s *Service) handleIncoming(
 				continue
 			}
 
-			message, err := s.processMessage(ctx, chatID, string(msgBytes), user)
+			message, err := s.processMessage(ctx, roomID, string(msgBytes), user)
 			if err != nil {
 				slog.Warn("Error creating message", "err", err)
 				continue
@@ -119,14 +119,14 @@ func (s *Service) handleIncoming(
 				continue
 			}
 
-			s.rdb.Publish(ctx, chatID.String(), payload)
+			s.rdb.Publish(ctx, roomID.String(), payload)
 
 		}
 	}
 }
 
-func (s *Service) processMessage(ctx context.Context, chatID uuid.UUID, content string, sender model.User) (model.Message, error) {
-	msg, err := model.NewMessage(chatID, content, sender)
+func (s *Service) processMessage(ctx context.Context, roomID uuid.UUID, content string, sender model.User) (model.Message, error) {
+	msg, err := model.NewMessage(roomID, content, sender)
 	if err != nil {
 		return model.Message{}, err
 	}

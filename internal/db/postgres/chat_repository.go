@@ -9,62 +9,62 @@ import (
 	"github.com/google/uuid"
 )
 
-type ChatRepository struct {
+type RoomRepository struct {
 	queries db.Querier
 }
 
-func NewChatRepository(queries db.Querier) repository.ChatRepository {
-	return &ChatRepository{queries}
+func NewRoomRepository(queries db.Querier) repository.RoomRepository {
+	return &RoomRepository{queries}
 }
 
-func mapChat(chat db.Chat) model.Chat {
-	return model.Chat{
-		ID:   chat.ID,
-		Name: chat.Name.String,
-		Type: chat.Type,
+func mapRoom(room db.Room) model.Room {
+	return model.Room{
+		ID:   room.ID,
+		Name: room.Name.String,
+		Slug: room.Slug,
 	}
 }
 
-func mapChats(chats []db.Chat) []model.Chat {
-	result := make([]model.Chat, len(chats))
-	for i, chat := range chats {
-		result[i] = mapChat(chat)
+func mapRooms(rooms []db.Room) []model.Room {
+	result := make([]model.Room, len(rooms))
+	for i, room := range rooms {
+		result[i] = mapRoom(room)
 	}
 	return result
 }
 
-func (r *ChatRepository) ListUserChats(ctx context.Context, userID uuid.UUID) ([]model.Chat, error) {
-	chats, err := r.queries.GetUserChats(ctx, userID)
+func (r *RoomRepository) ListUserChats(ctx context.Context, userID uuid.UUID) ([]model.Room, error) {
+	rooms, err := r.queries.GetUserRooms(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
-	return mapChats(chats), nil
+	return mapRooms(rooms), nil
 }
 
-func (r *ChatRepository) Create(ctx context.Context, chat model.Chat) (model.Chat, error) {
-	createdChat, err := r.queries.CreateChat(ctx, db.CreateChatParams{
-		ID:        chat.ID,
-		Name:      textFromString(chat.Name),
-		Type:      chat.Type,
-		CreatedAt: timestampFromTime(chat.CreatedAt),
+func (r *RoomRepository) Create(ctx context.Context, room model.Room) (model.Room, error) {
+	createdChat, err := r.queries.CreateRoom(ctx, db.CreateRoomParams{
+		ID:        room.ID,
+		Name:      textFromString(room.Name),
+		Slug:      room.Slug,
+		CreatedAt: timestampFromTime(room.CreatedAt),
 	})
 	if err != nil {
-		return model.Chat{}, err
+		return model.Room{}, err
 	}
-	return mapChat(createdChat), nil
+	return mapRoom(createdChat), nil
 
 }
 
-func (r *ChatRepository) ChatExists(ctx context.Context, id uuid.UUID) (bool, error) {
-	return r.queries.ChatExists(ctx, id)
+func (r *RoomRepository) RoomExists(ctx context.Context, id uuid.UUID) (bool, error) {
+	return r.queries.RoomExists(ctx, id)
 }
 
-func (r *ChatRepository) AddMember(ctx context.Context, chatID uuid.UUID, userID uuid.UUID) error {
-	member := model.NewChatMember(chatID, userID)
+func (r *RoomRepository) AddMember(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) error {
+	member := model.NewRoomMember(roomID, userID)
 
-	return r.queries.AddUserToChat(ctx, db.AddUserToChatParams{
+	return r.queries.AddRoomMember(ctx, db.AddRoomMemberParams{
 		ID:       member.ID,
-		ChatID:   member.ChatID,
+		RoomID:   member.RoomID,
 		UserID:   member.UserID,
 		JoinedAt: timestampFromTime(member.JoinedAt),
 	})

@@ -6,35 +6,35 @@ import (
 	"github.com/google/uuid"
 )
 
-type Chat struct {
+type Room struct {
 	ID        uuid.UUID    `json:"id" binding:"required"`
 	Name      string       `json:"name,omitempty"`
-	Type      string       `json:"type" binding:"required"`
-	Members   []ChatMember `json:"members,omitempty"`
+	Slug      string       `json:"slug" binding:"required"`
+	Members   []RoomMember `json:"members,omitempty"`
 	CreatedAt time.Time    `json:"-"`
 }
 
-func NewChat(name, type_ string) Chat {
-	return Chat{
+func NewRoom(name, slug string) Room {
+	return Room{
 		ID:        uuid.Must(uuid.NewV7()),
 		Name:      name,
-		Type:      type_,
+		Slug:      slug,
 		CreatedAt: time.Now(),
 	}
 }
 
-type ChatMember struct {
+type RoomMember struct {
 	ID       uuid.UUID `json:"id" binding:"required"`
 	UserID   uuid.UUID `json:"userID" binding:"required"`
-	ChatID   uuid.UUID `json:"chatID" binding:"required"`
+	RoomID   uuid.UUID `json:"roomID" binding:"required"`
 	JoinedAt time.Time `json:"-"`
 }
 
-func NewChatMember(userID uuid.UUID, chatID uuid.UUID) ChatMember {
-	return ChatMember{
+func NewRoomMember(userID uuid.UUID, roomID uuid.UUID) RoomMember {
+	return RoomMember{
 		ID:       uuid.Must(uuid.NewV7()),
 		UserID:   userID,
-		ChatID:   chatID,
+		RoomID:   roomID,
 		JoinedAt: time.Now(),
 	}
 }

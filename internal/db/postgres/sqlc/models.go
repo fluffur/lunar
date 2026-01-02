@@ -9,20 +9,6 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
-type Chat struct {
-	ID        uuid.UUID          `db:"id" json:"id"`
-	Name      pgtype.Text        `db:"name" json:"name"`
-	Type      string             `db:"type" json:"type"`
-	CreatedAt pgtype.Timestamptz `db:"created_at" json:"createdAt"`
-}
-
-type ChatMember struct {
-	ID       uuid.UUID          `db:"id" json:"id"`
-	ChatID   uuid.UUID          `db:"chat_id" json:"chatId"`
-	UserID   uuid.UUID          `db:"user_id" json:"userId"`
-	JoinedAt pgtype.Timestamptz `db:"joined_at" json:"joinedAt"`
-}
-
 type EmailVerificationCode struct {
 	UserID    uuid.UUID          `db:"user_id" json:"userId"`
 	CodeHash  string             `db:"code_hash" json:"codeHash"`
@@ -33,10 +19,24 @@ type EmailVerificationCode struct {
 
 type Message struct {
 	ID        uuid.UUID          `db:"id" json:"id"`
-	ChatID    uuid.UUID          `db:"chat_id" json:"chatId"`
+	RoomID    uuid.UUID          `db:"room_id" json:"roomId"`
 	SenderID  uuid.UUID          `db:"sender_id" json:"senderId"`
 	Content   string             `db:"content" json:"content"`
 	CreatedAt pgtype.Timestamptz `db:"created_at" json:"createdAt"`
+}
+
+type Room struct {
+	ID        uuid.UUID          `db:"id" json:"id"`
+	Name      pgtype.Text        `db:"name" json:"name"`
+	Slug      string             `db:"slug" json:"slug"`
+	CreatedAt pgtype.Timestamptz `db:"created_at" json:"createdAt"`
+}
+
+type RoomMember struct {
+	ID       uuid.UUID          `db:"id" json:"id"`
+	RoomID   uuid.UUID          `db:"room_id" json:"roomId"`
+	UserID   uuid.UUID          `db:"user_id" json:"userId"`
+	JoinedAt pgtype.Timestamptz `db:"joined_at" json:"joinedAt"`
 }
 
 type User struct {

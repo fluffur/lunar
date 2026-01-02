@@ -11,17 +11,17 @@ import (
 )
 
 type Querier interface {
-	AddUserToChat(ctx context.Context, arg AddUserToChatParams) error
-	ChatExists(ctx context.Context, chatID uuid.UUID) (bool, error)
-	CreateChat(ctx context.Context, arg CreateChatParams) (Chat, error)
+	AddRoomMember(ctx context.Context, arg AddRoomMemberParams) error
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
+	CreateRoom(ctx context.Context, arg CreateRoomParams) (Room, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
-	GetChat(ctx context.Context, id uuid.UUID) (Chat, error)
 	GetMessagesPaging(ctx context.Context, arg GetMessagesPagingParams) ([]GetMessagesPagingRow, error)
+	GetRoom(ctx context.Context, id uuid.UUID) (Room, error)
 	GetUser(ctx context.Context, id uuid.UUID) (User, error)
 	GetUserByLogin(ctx context.Context, login string) (User, error)
-	GetUserChats(ctx context.Context, userID uuid.UUID) ([]Chat, error)
-	IsUserChatMember(ctx context.Context, arg IsUserChatMemberParams) (bool, error)
+	GetUserRooms(ctx context.Context, userID uuid.UUID) ([]Room, error)
+	IsUserRoomMember(ctx context.Context, arg IsUserRoomMemberParams) (bool, error)
+	RoomExists(ctx context.Context, id uuid.UUID) (bool, error)
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error
 	UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) error
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error

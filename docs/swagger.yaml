@@ -41,31 +41,6 @@ definitions:
     - accessToken
     - refreshToken
     type: object
-  chat.CreateRequest:
-    properties:
-      name:
-        type: string
-      type:
-        type: string
-    required:
-    - type
-    type: object
-  chat.CreateResponse:
-    properties:
-      id:
-        type: string
-    required:
-    - id
-    type: object
-  chat.ListResponse:
-    properties:
-      chats:
-        items:
-          $ref: '#/definitions/model.Chat'
-        type: array
-    required:
-    - chats
-    type: object
   httputil.ErrorBody:
     properties:
       code:
@@ -88,36 +63,62 @@ definitions:
       nextCursor:
         type: string
     type: object
-  model.Chat:
-    properties:
-      id:
-        type: string
-      name:
-        type: string
-      type:
-        type: string
-    required:
-    - id
-    - type
-    type: object
   model.Message:
     properties:
-      chatId:
-        type: string
       content:
         type: string
       createdAt:
         type: string
       id:
         type: string
+      roomID:
+        type: string
       sender:
-        $ref: '#/definitions/model.User'
+        $ref: '#/definitions/model.MessageSender'
     required:
-    - chatId
     - content
     - createdAt
     - id
+    - roomID
     - sender
+    type: object
+  model.MessageSender:
+    properties:
+      avatarUrl:
+        type: string
+      id:
+        type: string
+      username:
+        type: string
+    type: object
+  model.Room:
+    properties:
+      id:
+        type: string
+      members:
+        items:
+          $ref: '#/definitions/model.RoomMember'
+        type: array
+      name:
+        type: string
+      slug:
+        type: string
+    required:
+    - id
+    - slug
+    type: object
+  model.RoomMember:
+    properties:
+      id:
+        type: string
+      roomID:
+        type: string
+      userID:
+        type: string
+    required:
+    - id
+    - roomID
+    - userID
     type: object
   model.User:
     properties:
@@ -138,12 +139,30 @@ definitions:
     - id
     - username
     type: object
-  user.SendVerificationCodeRequest:
+  room.CreateRequest:
     properties:
-      email:
+      name:
+        type: string
+      type:
         type: string
     required:
-    - email
+    - type
+    type: object
+  room.CreateResponse:
+    properties:
+      id:
+        type: string
+    required:
+    - id
+    type: object
+  room.ListResponse:
+    properties:
+      rooms:
+        items:
+          $ref: '#/definitions/model.Room'
+        type: array
+    required:
+    - rooms
     type: object
   user.UpdateEmailRequest:
     properties:
@@ -267,90 +286,12 @@ paths:
       summary: Register a new user
       tags:
       - auth
-  /chats:
-    get:
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/chat.ListResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: List user chats
-      tags:
-      - chat
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Chat creation params
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/chat.CreateRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/chat.CreateResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Create a new chat
-      tags:
-      - chat
-  /chats/{chatID}:
-    post:
-      parameters:
-      - description: Chat ID
-        in: path
-        name: chatID
-        required: true
-        type: string
-      responses:
-        "200":
-          description: OK
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Join current user to chat
-      tags:
-      - chat
-  /chats/{chatID}/messages:
+  /room/{roomID}/messages:
     get:
       parameters:
       - description: Chat ID
         in: path
-        name: chatID
+        name: roomID
         required: true
         type: string
       - description: Limit
@@ -378,17 +319,95 @@ paths:
             $ref: '#/definitions/httputil.ErrorResponse'
       security:
       - BearerAuth: []
-      summary: List messages in a chat
+      summary: List messages in a room
       tags:
       - message
-  /chats/{chatID}/ws:
+  /rooms:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/room.ListResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List user rooms
+      tags:
+      - room
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Chat creation params
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/room.CreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/room.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new room
+      tags:
+      - room
+  /rooms/{roomID}:
+    post:
+      parameters:
+      - description: Room ID
+        in: path
+        name: roomID
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Join current user to room
+      tags:
+      - room
+  /rooms/{roomID}/ws:
     get:
       description: Connect to the websocket to receive real-time notifications in
-        a chat
+        a room
       parameters:
       - description: Chat ID
         in: path
-        name: chatID
+        name: roomID
         required: true
         type: string
       responses:
@@ -402,9 +421,9 @@ paths:
             $ref: '#/definitions/httputil.ErrorResponse'
       security:
       - WebSocketQueryAuth: []
-      summary: Connect to the websocket in a chat
+      summary: Connect to the websocket in a room
       tags:
-      - chat
+      - room
   /users/me:
     get:
       produces:
@@ -525,46 +544,9 @@ paths:
       summary: Change user password
       tags:
       - user
-  /users/me/verification-code:
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Verification request
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/user.SendVerificationCodeRequest'
-      produces:
-      - application/json
-      responses:
-        "204":
-          description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Send verification code
-      tags:
-      - user
 securityDefinitions:
   BearerAuth:
     in: header
     name: Authorization
-    type: apiKey
-  RefreshCookieAuth:
-    in: cookie
-    name: refresh_token
-    type: apiKey
-  WebSocketQueryAuth:
-    in: query
-    name: token
     type: apiKey
 swagger: "2.0"

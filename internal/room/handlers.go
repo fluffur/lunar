@@ -1,4 +1,4 @@
-package chat
+package room
 
 import (
 	"log/slog"
@@ -25,29 +25,29 @@ func NewHandler(validator *httputil.Validator, service *Service, wsService *ws.S
 
 // ListChats godoc
 //
-//	@Summary	List user chats
-//	@Tags		chat
+//	@Summary	List user rooms
+//	@Tags		room
 //	@Security	BearerAuth
 //	@Success	200	{object}	ListResponse
 //	@Failure	401	{object}	httputil.ErrorResponse
 //	@Failure	500	{object}	httputil.ErrorResponse
-//	@Router		/chats [get]
+//	@Router		/rooms [get]
 func (h *Handler) ListChats(w http.ResponseWriter, r *http.Request) {
 	user := httputil.UserFromRequest(r)
 
-	chats, err := h.service.ListChats(r.Context(), user.ID)
+	rooms, err := h.service.ListUserRooms(r.Context(), user.ID)
 	if err != nil {
 		httputil.InternalError(w, r, err)
 		return
 	}
 
-	httputil.SuccessData(w, ListResponse{Chats: chats})
+	httputil.SuccessData(w, ListResponse{Rooms: rooms})
 }
 
 // CreateChat godoc
 //
-//	@Summary	Create a new chat
-//	@Tags		chat
+//	@Summary	Create a new room
+//	@Tags		room
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
@@ -56,7 +56,7 @@ func (h *Handler) ListChats(w http.ResponseWriter, r *http.Request) {
 //	@Failure	400		{object}	httputil.ErrorResponse
 //	@Failure	401		{object}	httputil.ErrorResponse
 //	@Failure	500		{object}	httputil.ErrorResponse
-//	@Router		/chats [post]
+//	@Router		/rooms [post]
 func (h *Handler) CreateChat(w http.ResponseWriter, r *http.Request) {
 	var params CreateRequest
 
@@ -76,19 +76,19 @@ func (h *Handler) CreateChat(w http.ResponseWriter, r *http.Request) {
 
 // JoinCurrentUser godoc
 //
-//	@Summary	Join current user to chat
-//	@Tags		chat
-//	@Param		chatID	path	string	true	"Chat ID"
+//	@Summary	Join current user to room
+//	@Tags		room
+//	@Param		roomID	path	string	true	"Room ID"
 //	@Security	BearerAuth
 //	@Success	200
 //	@Failure	401	{object}	httputil.ErrorResponse
 //	@Failure	500	{object}	httputil.ErrorResponse
-//	@Router		/chats/{chatID} [post]
+//	@Router		/rooms/{roomID} [post]
 func (h *Handler) JoinCurrentUser(w http.ResponseWriter, r *http.Request) {
 	user := httputil.UserFromRequest(r)
-	chatID := uuid.MustParse(r.PathValue("chatID"))
+	roomID := uuid.MustParse(r.PathValue("roomID"))
 
-	if err := h.service.JoinUserToChat(r.Context(), user.ID, chatID); err != nil {
+	if err := h.service.JoinUserToChat(r.Context(), user.ID, roomID); err != nil {
 		httputil.InternalError(w, r, err)
 		return
 	}
@@ -98,25 +98,25 @@ func (h *Handler) JoinCurrentUser(w http.ResponseWriter, r *http.Request) {
 
 // Websocket sockets
 //
-//	@Summary		Connect to the websocket in a chat
-//	@Tags			chat
-//	@Param			chatID	path	string	true	"Chat ID"
+//	@Summary		Connect to the websocket in a room
+//	@Tags			room
+//	@Param			roomID	path	string	true	"Chat ID"
 //	@Security		WebSocketQueryAuth
-//	@Description	Connect to the websocket to receive real-time notifications in a chat
+//	@Description	Connect to the websocket to receive real-time notifications in a room
 //	@Schemes		ws
 //	@Failure		401	{object}	httputil.ErrorResponse
 //	@Failure		500	{object}	httputil.ErrorResponse
-//	@Router			/chats/{chatID}/ws [get]
+//	@Router			/rooms/{roomID}/ws [get]
 func (h *Handler) Websocket(w http.ResponseWriter, r *http.Request) {
 	user := httputil.UserFromRequest(r)
-	chatID := uuid.MustParse(r.PathValue("chatID"))
+	roomID := uuid.MustParse(r.PathValue("roomID"))
 
-	if err := h.service.JoinUserToChat(r.Context(), user.ID, chatID); err != nil {
+	if err := h.service.JoinUserToChat(r.Context(), user.ID, roomID); err != nil {
 		httputil.InternalError(w, r, err)
 		return
 	}
 
-	if err := h.wsService.HandleWebSocket(w, r, chatID, user.ID); err != nil {
+	if err := h.wsService.HandleWebSocket(w, r, roomID, user.ID); err != nil {
 		slog.Error("websocket error", "err", err)
 	}
 }

@@ -9,6 +9,6 @@ import (
 )
 
 type MessageRepository interface {
-	ListMessages(ctx context.Context, chatID uuid.UUID, limit int, cursor *pagination.Cursor) ([]model.Message, error)
+	ListMessages(ctx context.Context, roomID uuid.UUID, limit int, cursor *pagination.Cursor) ([]model.Message, error)
 	CreateMessage(ctx context.Context, msg model.Message) (model.Message, error)
 }

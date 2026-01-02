@@ -389,7 +389,7 @@ export const ChatApiAxiosParamCreator = function (configuration?: Configuration)
     return {
         /**
          * 
-         * @summary Join current user to chat
+         * @summary Join current user to room
          * @param {string} chatID Chat ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -425,8 +425,8 @@ export const ChatApiAxiosParamCreator = function (configuration?: Configuration)
             };
         },
         /**
-         * Connect to the websocket to receive real-time notifications in a chat
-         * @summary Connect to the websocket in a chat
+         * Connect to the websocket to receive real-time notifications in a room
+         * @summary Connect to the websocket in a room
          * @param {string} chatID Chat ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -496,7 +496,7 @@ export const ChatApiAxiosParamCreator = function (configuration?: Configuration)
         },
         /**
          * 
-         * @summary Create a new chat
+         * @summary Create a new room
          * @param {ChatCreateRequest} input Chat creation params
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -543,7 +543,7 @@ export const ChatApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
-         * @summary Join current user to chat
+         * @summary Join current user to room
          * @param {string} chatID Chat ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -555,8 +555,8 @@ export const ChatApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
-         * Connect to the websocket to receive real-time notifications in a chat
-         * @summary Connect to the websocket in a chat
+         * Connect to the websocket to receive real-time notifications in a room
+         * @summary Connect to the websocket in a room
          * @param {string} chatID Chat ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -581,7 +581,7 @@ export const ChatApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @summary Create a new chat
+         * @summary Create a new room
          * @param {ChatCreateRequest} input Chat creation params
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -603,7 +603,7 @@ export const ChatApiFactory = function (configuration?: Configuration, basePath?
     return {
         /**
          * 
-         * @summary Join current user to chat
+         * @summary Join current user to room
          * @param {string} chatID Chat ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -612,8 +612,8 @@ export const ChatApiFactory = function (configuration?: Configuration, basePath?
             return localVarFp.chatsChatIDPost(chatID, options).then((request) => request(axios, basePath));
         },
         /**
-         * Connect to the websocket to receive real-time notifications in a chat
-         * @summary Connect to the websocket in a chat
+         * Connect to the websocket to receive real-time notifications in a room
+         * @summary Connect to the websocket in a room
          * @param {string} chatID Chat ID
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -632,7 +632,7 @@ export const ChatApiFactory = function (configuration?: Configuration, basePath?
         },
         /**
          * 
-         * @summary Create a new chat
+         * @summary Create a new room
          * @param {ChatCreateRequest} input Chat creation params
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -649,7 +649,7 @@ export const ChatApiFactory = function (configuration?: Configuration, basePath?
 export class ChatApi extends BaseAPI {
     /**
      * 
-     * @summary Join current user to chat
+     * @summary Join current user to room
      * @param {string} chatID Chat ID
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -659,8 +659,8 @@ export class ChatApi extends BaseAPI {
     }
 
     /**
-     * Connect to the websocket to receive real-time notifications in a chat
-     * @summary Connect to the websocket in a chat
+     * Connect to the websocket to receive real-time notifications in a room
+     * @summary Connect to the websocket in a room
      * @param {string} chatID Chat ID
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -681,7 +681,7 @@ export class ChatApi extends BaseAPI {
 
     /**
      * 
-     * @summary Create a new chat
+     * @summary Create a new room
      * @param {ChatCreateRequest} input Chat creation params
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -700,7 +700,7 @@ export const MessageApiAxiosParamCreator = function (configuration?: Configurati
     return {
         /**
          * 
-         * @summary List messages in a chat
+         * @summary List messages in a room
          * @param {string} chatID Chat ID
          * @param {number} [limit] Limit
          * @param {string} [cursor] Cursor
@@ -756,7 +756,7 @@ export const MessageApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
-         * @summary List messages in a chat
+         * @summary List messages in a room
          * @param {string} chatID Chat ID
          * @param {number} [limit] Limit
          * @param {string} [cursor] Cursor
@@ -780,7 +780,7 @@ export const MessageApiFactory = function (configuration?: Configuration, basePa
     return {
         /**
          * 
-         * @summary List messages in a chat
+         * @summary List messages in a room
          * @param {string} chatID Chat ID
          * @param {number} [limit] Limit
          * @param {string} [cursor] Cursor
@@ -799,7 +799,7 @@ export const MessageApiFactory = function (configuration?: Configuration, basePa
 export class MessageApi extends BaseAPI {
     /**
      * 
-     * @summary List messages in a chat
+     * @summary List messages in a room
      * @param {string} chatID Chat ID
      * @param {number} [limit] Limit
      * @param {string} [cursor] Cursor

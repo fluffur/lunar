@@ -169,133 +169,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/chats": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "tags": [
-                    "chat"
-                ],
-                "summary": "List user chats",
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/chat.ListResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
-                        }
-                    }
-                }
-            },
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "chat"
-                ],
-                "summary": "Create a new chat",
-                "parameters": [
-                    {
-                        "description": "Chat creation params",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/chat.CreateRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/chat.CreateResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/chats/{chatID}": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "tags": [
-                    "chat"
-                ],
-                "summary": "Join current user to chat",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Chat ID",
-                        "name": "chatID",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK"
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/chats/{chatID}/messages": {
+        "/room/{roomID}/messages": {
             "get": {
                 "security": [
                     {
@@ -308,12 +182,12 @@ const docTemplate = `{
                 "tags": [
                     "message"
                 ],
-                "summary": "List messages in a chat",
+                "summary": "List messages in a room",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Chat ID",
-                        "name": "chatID",
+                        "name": "roomID",
                         "in": "path",
                         "required": true
                     },
@@ -352,23 +226,149 @@ const docTemplate = `{
                 }
             }
         },
-        "/chats/{chatID}/ws": {
+        "/rooms": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "room"
+                ],
+                "summary": "List user rooms",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/room.ListResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "room"
+                ],
+                "summary": "Create a new room",
+                "parameters": [
+                    {
+                        "description": "Chat creation params",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/room.CreateRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/room.CreateResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rooms/{roomID}": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "tags": [
+                    "room"
+                ],
+                "summary": "Join current user to room",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Room ID",
+                        "name": "roomID",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rooms/{roomID}/ws": {
             "get": {
                 "security": [
                     {
                         "WebSocketQueryAuth": []
                     }
                 ],
-                "description": "Connect to the websocket to receive real-time notifications in a chat",
+                "description": "Connect to the websocket to receive real-time notifications in a room",
                 "tags": [
-                    "chat"
+                    "room"
                 ],
-                "summary": "Connect to the websocket in a chat",
+                "summary": "Connect to the websocket in a room",
                 "parameters": [
                     {
                         "type": "string",
                         "description": "Chat ID",
-                        "name": "chatID",
+                        "name": "roomID",
                         "in": "path",
                         "required": true
                     }
@@ -581,53 +581,6 @@ const docTemplate = `{
                     }
                 }
             }
-        },
-        "/users/me/verification-code": {
-            "post": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "user"
-                ],
-                "summary": "Send verification code",
-                "parameters": [
-                    {
-                        "description": "Verification request",
-                        "name": "input",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/user.SendVerificationCodeRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "204": {
-                        "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
-                        }
-                    }
-                }
-            }
         }
     },
     "definitions": {
@@ -690,45 +643,6 @@ const docTemplate = `{
                 }
             }
         },
-        "chat.CreateRequest": {
-            "type": "object",
-            "required": [
-                "type"
-            ],
-            "properties": {
-                "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "chat.CreateResponse": {
-            "type": "object",
-            "required": [
-                "id"
-            ],
-            "properties": {
-                "id": {
-                    "type": "string"
-                }
-            }
-        },
-        "chat.ListResponse": {
-            "type": "object",
-            "required": [
-                "chats"
-            ],
-            "properties": {
-                "chats": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/model.Chat"
-                    }
-                }
-            }
-        },
         "httputil.ErrorBody": {
             "type": "object",
             "properties": {
@@ -763,37 +677,16 @@ const docTemplate = `{
                 }
             }
         },
-        "model.Chat": {
-            "type": "object",
-            "required": [
-                "id",
-                "type"
-            ],
-            "properties": {
-                "id": {
-                    "type": "string"
-                },
-                "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
         "model.Message": {
             "type": "object",
             "required": [
-                "chatId",
                 "content",
                 "createdAt",
                 "id",
+                "roomID",
                 "sender"
             ],
             "properties": {
-                "chatId": {
-                    "type": "string"
-                },
                 "content": {
                     "type": "string"
                 },
@@ -803,8 +696,68 @@ const docTemplate = `{
                 "id": {
                     "type": "string"
                 },
+                "roomID": {
+                    "type": "string"
+                },
                 "sender": {
-                    "$ref": "#/definitions/model.User"
+                    "$ref": "#/definitions/model.MessageSender"
+                }
+            }
+        },
+        "model.MessageSender": {
+            "type": "object",
+            "properties": {
+                "avatarUrl": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "username": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Room": {
+            "type": "object",
+            "required": [
+                "id",
+                "slug"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "members": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.RoomMember"
+                    }
+                },
+                "name": {
+                    "type": "string"
+                },
+                "slug": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.RoomMember": {
+            "type": "object",
+            "required": [
+                "id",
+                "roomID",
+                "userID"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "roomID": {
+                    "type": "string"
+                },
+                "userID": {
+                    "type": "string"
                 }
             }
         },
@@ -835,14 +788,42 @@ const docTemplate = `{
                 }
             }
         },
-        "user.SendVerificationCodeRequest": {
+        "room.CreateRequest": {
             "type": "object",
             "required": [
-                "email"
+                "type"
             ],
             "properties": {
-                "email": {
+                "name": {
                     "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "room.CreateResponse": {
+            "type": "object",
+            "required": [
+                "id"
+            ],
+            "properties": {
+                "id": {
+                    "type": "string"
+                }
+            }
+        },
+        "room.ListResponse": {
+            "type": "object",
+            "required": [
+                "rooms"
+            ],
+            "properties": {
+                "rooms": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Room"
+                    }
                 }
             }
         },
@@ -880,16 +861,6 @@ const docTemplate = `{
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"
-        },
-        "RefreshCookieAuth": {
-            "type": "apiKey",
-            "name": "refresh_token",
-            "in": "cookie"
-        },
-        "WebSocketQueryAuth": {
-            "type": "apiKey",
-            "name": "token",
-            "in": "query"
         }
     }
 }`

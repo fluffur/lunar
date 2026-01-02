@@ -1,4 +1,4 @@
-package chat
+package room
 
 import (
 	"lunar/internal/model"
@@ -16,5 +16,5 @@ type CreateResponse struct {
 }
 
 type ListResponse struct {
-	Chats []model.Chat `json:"chats" binding:"required"`
+	Rooms []model.Room `json:"rooms" binding:"required"`
 }

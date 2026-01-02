@@ -13,14 +13,14 @@ import (
 )
 
 const createMessage = `-- name: CreateMessage :one
-INSERT INTO messages(id, chat_id, sender_id, content, created_at)
+INSERT INTO messages(id, room_id, sender_id, content, created_at)
 VALUES ($1, $2, $3, $4, $5)
-RETURNING id, chat_id, sender_id, content, created_at
+RETURNING id, room_id, sender_id, content, created_at
 `
 
 type CreateMessageParams struct {
 	ID        uuid.UUID          `db:"id" json:"id"`
-	ChatID    uuid.UUID          `db:"chat_id" json:"chatId"`
+	RoomID    uuid.UUID          `db:"room_id" json:"roomId"`
 	SenderID  uuid.UUID          `db:"sender_id" json:"senderId"`
 	Content   string             `db:"content" json:"content"`
 	CreatedAt pgtype.Timestamptz `db:"created_at" json:"createdAt"`
@@ -29,7 +29,7 @@ type CreateMessageParams struct {
 func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error) {
 	row := q.db.QueryRow(ctx, createMessage,
 		arg.ID,
-		arg.ChatID,
+		arg.RoomID,
 		arg.SenderID,
 		arg.Content,
 		arg.CreatedAt,
@@ -37,7 +37,7 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 	var i Message
 	err := row.Scan(
 		&i.ID,
-		&i.ChatID,
+		&i.RoomID,
 		&i.SenderID,
 		&i.Content,
 		&i.CreatedAt,
@@ -46,10 +46,10 @@ func (q *Queries) CreateMessage(ctx context.Context, arg CreateMessageParams) (M
 }
 
 const getMessagesPaging = `-- name: GetMessagesPaging :many
-SELECT m.id, m.chat_id, m.sender_id, m.content, m.created_at, u.id, u.username, u.email, u.email_verified, u.password_hash, u.created_at, u.avatar_url
+SELECT m.id, m.room_id, m.sender_id, m.content, m.created_at, u.id, u.username, u.email, u.email_verified, u.password_hash, u.created_at, u.avatar_url
 FROM messages m
          JOIN users u ON u.id = m.sender_id
-WHERE m.chat_id = $1::uuid
+WHERE m.room_id = $1::uuid
   AND (
       $2::timestamptz IS NULL
       OR
@@ -60,7 +60,7 @@ LIMIT $4
 `
 
 type GetMessagesPagingParams struct {
-	ChatID          uuid.UUID          `db:"chat_id" json:"chatId"`
+	RoomID          uuid.UUID          `db:"room_id" json:"roomId"`
 	CursorCreatedAt pgtype.Timestamptz `db:"cursor_created_at" json:"cursorCreatedAt"`
 	CursorID        uuid.UUID          `db:"cursor_id" json:"cursorId"`
 	Limit           int32              `db:"limit_" json:"limit"`
@@ -68,7 +68,7 @@ type GetMessagesPagingParams struct {
 
 type GetMessagesPagingRow struct {
 	ID            uuid.UUID          `db:"id" json:"id"`
-	ChatID        uuid.UUID          `db:"chat_id" json:"chatId"`
+	RoomID        uuid.UUID          `db:"room_id" json:"roomId"`
 	SenderID      uuid.UUID          `db:"sender_id" json:"senderId"`
 	Content       string             `db:"content" json:"content"`
 	CreatedAt     pgtype.Timestamptz `db:"created_at" json:"createdAt"`
@@ -83,7 +83,7 @@ type GetMessagesPagingRow struct {
 
 func (q *Queries) GetMessagesPaging(ctx context.Context, arg GetMessagesPagingParams) ([]GetMessagesPagingRow, error) {
 	rows, err := q.db.Query(ctx, getMessagesPaging,
-		arg.ChatID,
+		arg.RoomID,
 		arg.CursorCreatedAt,
 		arg.CursorID,
 		arg.Limit,
@@ -97,7 +97,7 @@ func (q *Queries) GetMessagesPaging(ctx context.Context, arg GetMessagesPagingPa
 		var i GetMessagesPagingRow
 		if err := rows.Scan(
 			&i.ID,
-			&i.ChatID,
+			&i.RoomID,
 			&i.SenderID,
 			&i.Content,
 			&i.CreatedAt,

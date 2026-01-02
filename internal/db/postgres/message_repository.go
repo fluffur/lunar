@@ -21,7 +21,7 @@ func NewMessageRepository(queries *db.Queries) *MessageRepository {
 func mapMessage(message db.Message, sender model.MessageSender) model.Message {
 	return model.Message{
 		ID:        message.ID,
-		ChatID:    message.ChatID,
+		RoomID:    message.RoomID,
 		Content:   message.Content,
 		Sender:    sender,
 		CreatedAt: message.CreatedAt.Time,
@@ -33,7 +33,7 @@ func mapMessages(rows []db.GetMessagesPagingRow) []model.Message {
 	for _, r := range rows {
 		result = append(result, model.Message{
 			ID:        r.ID,
-			ChatID:    r.ChatID,
+			RoomID:    r.RoomID,
 			Content:   r.Content,
 			CreatedAt: r.CreatedAt.Time,
 			Sender: model.MessageSender{
@@ -49,7 +49,7 @@ func mapMessages(rows []db.GetMessagesPagingRow) []model.Message {
 func (r *MessageRepository) CreateMessage(ctx context.Context, msg model.Message) (model.Message, error) {
 	createdMessage, err := r.queries.CreateMessage(ctx, db.CreateMessageParams{
 		ID:        msg.ID,
-		ChatID:    msg.ChatID,
+		RoomID:    msg.RoomID,
 		SenderID:  msg.Sender.ID,
 		Content:   msg.Content,
 		CreatedAt: timestampFromTime(msg.CreatedAt),
@@ -61,9 +61,10 @@ func (r *MessageRepository) CreateMessage(ctx context.Context, msg model.Message
 	return mapMessage(createdMessage, msg.Sender), err
 }
 
-func (r *MessageRepository) ListMessages(ctx context.Context, chatID uuid.UUID, limit int, cursor *pagination.Cursor) ([]model.Message, error) {
+func (r *MessageRepository) ListMessages(ctx context.Context, roomID uuid.UUID, limit int, cursor *pagination.Cursor) ([]model.Message, error) {
+
 	params := db.GetMessagesPagingParams{
-		ChatID: chatID,
+		RoomID: roomID,
 		Limit:  int32(limit),
 	}
 

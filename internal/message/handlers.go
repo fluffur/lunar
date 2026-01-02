@@ -21,22 +21,22 @@ func NewHandler(validator *httputil.Validator, service *Service) *Handler {
 	}
 }
 
-// ListMessages lists messages in a chat
+// ListMessages lists messages in a room
 //
-//	@Summary	List messages in a chat
+//	@Summary	List messages in a room
 //	@Tags		message
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		chatID	path		string	true	"Chat ID"
+//	@Param		roomID	path		string	true	"Chat ID"
 //	@Param		limit	query		int		false	"Limit"
 //	@Param		cursor	query		string	false	"Cursor"
 //	@Success	200		{object}	GetPagingResponse
 //	@Failure	400		{object}	httputil.ErrorResponse
 //	@Failure	500		{object}	httputil.ErrorResponse
-//	@Router		/chats/{chatID}/messages [get]
+//	@Router		/room/{roomID}/messages [get]
 func (h *Handler) ListMessages(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	chatID := uuid.MustParse(r.PathValue("chatID"))
+	roomID := uuid.MustParse(r.PathValue("roomID"))
 	limit := normalizeLimit(r.URL.Query().Get("limit"), 100, 32)
 
 	var cursor *pagination.Cursor
@@ -49,7 +49,7 @@ func (h *Handler) ListMessages(w http.ResponseWriter, r *http.Request) {
 		cursor = &c
 	}
 
-	messages, err := h.service.ListMessages(ctx, chatID, limit, cursor)
+	messages, err := h.service.ListMessages(ctx, roomID, limit, cursor)
 	if err != nil {
 		if errors.Is(err, ErrChatNotFound) {
 			httputil.BadRequest(w, "Chat not found")

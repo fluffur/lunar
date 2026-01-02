@@ -4,13 +4,13 @@ import (
 	"context"
 	"log/slog"
 	"lunar/internal/auth"
-	"lunar/internal/chat"
 	"lunar/internal/config"
 	"lunar/internal/db/postgres"
 	db "lunar/internal/db/postgres/sqlc"
 	redis2 "lunar/internal/db/redis"
 	"lunar/internal/httputil"
 	"lunar/internal/message"
+	"lunar/internal/room"
 	"lunar/internal/user"
 	"lunar/internal/ws"
 	"os"
@@ -21,18 +21,9 @@ import (
 
 // @title						Lunar API
 // @version					1.0.0
-//
 // @securityDefinitions.apikey	BearerAuth
 // @in							header
 // @name						Authorization
-//
-// @securityDefinitions.apikey	RefreshCookieAuth
-// @in							cookie
-// @name						refresh_token
-//
-// @securityDefinitions.apikey	WebSocketQueryAuth
-// @in							query
-// @name						token
 func main() {
 	ctx := context.Background()
 
@@ -62,14 +53,14 @@ func main() {
 	refreshCfg := cfg.Auth.RefreshToken
 	refreshRepo := redis2.NewRefreshTokenRepository(rdb, refreshCfg.KeyPrefix, refreshCfg.UserKeyPrefix, refreshCfg.TTL)
 	userRepo := postgres.NewUserRepository(queries)
-	chatRepo := postgres.NewChatRepository(queries)
+	roomRepo := postgres.NewRoomRepository(queries)
 	messageRepo := postgres.NewMessageRepository(queries)
 
 	authService := auth.NewService(authenticator, refreshRepo, userRepo)
 	userService := user.NewService(userRepo, cfg.FileStore.AvatarsPath())
-	chatService := chat.NewService(chatRepo)
+	roomService := room.NewService(roomRepo)
 	wsService := ws.NewService(rdb, userRepo, messageRepo, cfg.CORS.AllowedOrigins)
-	messageService := message.NewService(chatRepo, messageRepo)
+	messageService := message.NewService(roomRepo, messageRepo)
 
 	validator := httputil.NewValidator()
 
@@ -80,7 +71,7 @@ func main() {
 		authenticator:  authenticator,
 		authService:    authService,
 		userService:    userService,
-		chatService:    chatService,
+		roomService:    roomService,
 		wsService:      wsService,
 		messageService: messageService,
 		validator:      validator,

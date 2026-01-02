@@ -28,7 +28,7 @@ export function CreateChatModal({ opened, onClose }: CreateChatModalProps) {
                 onClose();
             }
         } catch (error) {
-            console.error("Failed to create chat", error);
+            console.error("Failed to create room", error);
         }
     };
 

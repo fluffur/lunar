@@ -1,5 +1,5 @@
 -- name: CreateMessage :one
-INSERT INTO messages(id, chat_id, sender_id, content, created_at)
+INSERT INTO messages(id, room_id, sender_id, content, created_at)
 VALUES ($1, $2, $3, $4, $5)
 RETURNING *;
 
@@ -7,7 +7,7 @@ RETURNING *;
 SELECT m.*, u.*
 FROM messages m
          JOIN users u ON u.id = m.sender_id
-WHERE m.chat_id = @chat_id::uuid
+WHERE m.room_id = @room_id::uuid
   AND (
       @cursor_created_at::timestamptz IS NULL
       OR

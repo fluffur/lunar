@@ -14,20 +14,20 @@ import (
 )
 
 type Service struct {
-	chatRepo    repository.ChatRepository
+	roomRepo    repository.RoomRepository
 	messageRepo repository.MessageRepository
 }
 
 var (
-	ErrChatNotFound = errors.New("chat not found")
+	ErrChatNotFound = errors.New("room not found")
 )
 
-func NewService(chatRepository repository.ChatRepository, messageRepository repository.MessageRepository) *Service {
-	return &Service{chatRepository, messageRepository}
+func NewService(roomRepo repository.RoomRepository, messageRepo repository.MessageRepository) *Service {
+	return &Service{roomRepo, messageRepo}
 }
 
-func (s *Service) ListMessages(ctx context.Context, chatID uuid.UUID, limit int, cursor *pagination.Cursor) ([]model.Message, error) {
-	exists, err := s.chatRepo.ChatExists(ctx, chatID)
+func (s *Service) ListMessages(ctx context.Context, roomID uuid.UUID, limit int, cursor *pagination.Cursor) ([]model.Message, error) {
+	exists, err := s.roomRepo.RoomExists(ctx, roomID)
 	if err != nil {
 		return nil, err
 	}
@@ -35,7 +35,7 @@ func (s *Service) ListMessages(ctx context.Context, chatID uuid.UUID, limit int,
 		return nil, ErrChatNotFound
 	}
 
-	return s.messageRepo.ListMessages(ctx, chatID, limit, cursor)
+	return s.messageRepo.ListMessages(ctx, roomID, limit, cursor)
 }
 
 func (s *Service) GenerateCursor(message model.Message) string {
