@@ -83,7 +83,7 @@ export interface RoomCreateRequest {
     'name'?: string;
 }
 export interface RoomCreateResponse {
-    'id': string;
+    'slug': string;
 }
 export interface RoomListResponse {
     'rooms': Array<ModelRoom>;
@@ -588,7 +588,7 @@ export const RoomApiAxiosParamCreator = function (configuration?: Configuration)
         /**
          * 
          * @summary Join current user to room
-         * @param {string} roomSlug Room ID
+         * @param {string} roomSlug Room Slug
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -625,7 +625,7 @@ export const RoomApiAxiosParamCreator = function (configuration?: Configuration)
         /**
          * Connect to the websocket to receive real-time notifications in a room
          * @summary Connect to the websocket in a room
-         * @param {string} roomSlug Room ID
+         * @param {string} roomSlug Room Slug
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -693,7 +693,7 @@ export const RoomApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @summary Join current user to room
-         * @param {string} roomSlug Room ID
+         * @param {string} roomSlug Room Slug
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -706,7 +706,7 @@ export const RoomApiFp = function(configuration?: Configuration) {
         /**
          * Connect to the websocket to receive real-time notifications in a room
          * @summary Connect to the websocket in a room
-         * @param {string} roomSlug Room ID
+         * @param {string} roomSlug Room Slug
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -747,7 +747,7 @@ export const RoomApiFactory = function (configuration?: Configuration, basePath?
         /**
          * 
          * @summary Join current user to room
-         * @param {string} roomSlug Room ID
+         * @param {string} roomSlug Room Slug
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -757,7 +757,7 @@ export const RoomApiFactory = function (configuration?: Configuration, basePath?
         /**
          * Connect to the websocket to receive real-time notifications in a room
          * @summary Connect to the websocket in a room
-         * @param {string} roomSlug Room ID
+         * @param {string} roomSlug Room Slug
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -795,7 +795,7 @@ export class RoomApi extends BaseAPI {
     /**
      * 
      * @summary Join current user to room
-     * @param {string} roomSlug Room ID
+     * @param {string} roomSlug Room Slug
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -806,7 +806,7 @@ export class RoomApi extends BaseAPI {
     /**
      * Connect to the websocket to receive real-time notifications in a room
      * @summary Connect to the websocket in a room
-     * @param {string} roomSlug Room ID
+     * @param {string} roomSlug Room Slug
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */

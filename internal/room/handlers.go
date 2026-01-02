@@ -69,14 +69,14 @@ func (h *Handler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httputil.Created(w, CreateResponse{ID: created.ID})
+	httputil.Created(w, CreateResponse{Slug: created.Slug})
 }
 
 // JoinCurrentUser godoc
 //
 //	@Summary	Join current user to room
 //	@Tags		room
-//	@Param		roomSlug	path	string	true	"Room ID"
+//	@Param		roomSlug	path	string	true	"Room Slug"
 //	@Security	BearerAuth
 //	@Success	200
 //	@Failure	401	{object}	httputil.ErrorResponse
@@ -98,7 +98,7 @@ func (h *Handler) JoinCurrentUser(w http.ResponseWriter, r *http.Request) {
 //
 //	@Summary		Connect to the websocket in a room
 //	@Tags			room
-//	@Param			roomSlug	path	string	true	"Room ID"
+//	@Param			roomSlug	path	string	true	"Room Slug"
 //	@Security		WebSocketQueryAuth
 //	@Description	Connect to the websocket to receive real-time notifications in a room
 //	@Schemes		ws

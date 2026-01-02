@@ -261,7 +261,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Room ID",
+                        "description": "Room Slug",
                         "name": "roomSlug",
                         "in": "path",
                         "required": true
@@ -358,7 +358,7 @@
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Room ID",
+                        "description": "Room Slug",
                         "name": "roomSlug",
                         "in": "path",
                         "required": true
@@ -791,10 +791,10 @@
         "room.CreateResponse": {
             "type": "object",
             "required": [
-                "id"
+                "slug"
             ],
             "properties": {
-                "id": {
+                "slug": {
                     "type": "string"
                 }
             }

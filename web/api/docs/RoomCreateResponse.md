@@ -5,7 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**id** | **string** |  | [default to undefined]
+**slug** | **string** |  | [default to undefined]
 
 ## Example
 
@@ -13,7 +13,7 @@ Name | Type | Description | Notes
 import { RoomCreateResponse } from './api';
 
 const instance: RoomCreateResponse = {
-    id,
+    slug,
 };
 ```
 

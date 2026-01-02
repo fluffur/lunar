@@ -27,8 +27,8 @@ export function CreateRoomModal({ opened, onClose }: CreateRoomModalProps) {
                 params.name = newRoomName
             }
             const { data } = await roomApi.roomsPost(params);
-            if (data.id) {
-                navigate(`/r/${data.id}`);
+            if (data.slug) {
+                navigate(`/r/${data.slug}`);
                 onClose();
             }
         } catch (error) {

@@ -270,7 +270,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Room ID",
+                        "description": "Room Slug",
                         "name": "roomSlug",
                         "in": "path",
                         "required": true
@@ -367,7 +367,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Room ID",
+                        "description": "Room Slug",
                         "name": "roomSlug",
                         "in": "path",
                         "required": true
@@ -800,10 +800,10 @@ const docTemplate = `{
         "room.CreateResponse": {
             "type": "object",
             "required": [
-                "id"
+                "slug"
             ],
             "properties": {
-                "id": {
+                "slug": {
                     "type": "string"
                 }
             }

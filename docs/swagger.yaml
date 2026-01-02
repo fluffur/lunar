@@ -147,10 +147,10 @@ definitions:
     type: object
   room.CreateResponse:
     properties:
-      id:
+      slug:
         type: string
     required:
-    - id
+    - slug
     type: object
   room.ListResponse:
     properties:
@@ -340,7 +340,7 @@ paths:
   /rooms/{roomSlug}:
     post:
       parameters:
-      - description: Room ID
+      - description: Room Slug
         in: path
         name: roomSlug
         required: true
@@ -402,7 +402,7 @@ paths:
       description: Connect to the websocket to receive real-time notifications in
         a room
       parameters:
-      - description: Room ID
+      - description: Room Slug
         in: path
         name: roomSlug
         required: true

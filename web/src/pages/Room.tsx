@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState} from "react";
+import {useCallback, useEffect, useMemo, useRef, useState} from "react";
 import {ActionIcon, Box, Button, Flex, Group, Paper, Popover, ScrollArea, Stack, Text, Textarea} from "@mantine/core";
 import {useNavigate, useParams} from "react-router-dom";
 import {useSessionStore} from "../stores/sessionStore.ts";
@@ -40,14 +40,14 @@ export default function Room() {
     const [nextCursor, setNextCursor] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
 
-    const loadOlderMessages = async () => {
+    const loadOlderMessages = useCallback(async () => {
         if (!nextCursor || loading || !viewportRef.current || !roomSlug) return;
 
         setLoading(true);
         try {
             const {data} = await messageApi.roomsRoomSlugMessagesGet(
                 roomSlug,
-                50,
+                5,
                 encodeURIComponent(nextCursor),
             );
 
@@ -67,19 +67,19 @@ export default function Room() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [nextCursor, loading, roomSlug]);
 
 
-    const scrollToBottom = () => {
+    const scrollToBottom = useCallback(() => {
         viewportRef.current?.scrollTo({
             top: viewportRef.current.scrollHeight,
             behavior: "smooth",
         });
         setUnreadCount(0);
         setIsAtBottom(true);
-    };
+    }, []);
 
-    const handleScroll = (position: { x: number; y: number }) => {
+    const handleScroll = useCallback((position: { x: number; y: number }) => {
         if (!viewportRef.current) return;
         if (viewportRef.current.scrollTop < 100 && nextCursor) {
             loadOlderMessages();
@@ -91,14 +91,14 @@ export default function Room() {
         if (isBottom) {
             setUnreadCount(0);
         }
-    };
+    }, [nextCursor, loadOlderMessages]);
 
     useEffect(() => {
         if (!roomSlug) return;
         setNotFound(false);
         (async () => {
             try {
-                const {data} = await messageApi.roomsRoomSlugMessagesGet(roomSlug);
+                const {data} = await messageApi.roomsRoomSlugMessagesGet(roomSlug, 10);
                 setMessages(data.messages?.reverse() ?? []);
                 setNextCursor(data.nextCursor ?? null);
             } catch (error) {
@@ -148,7 +148,7 @@ export default function Room() {
         }
     }, []);
 
-    const showNotification = (message: ModelMessage) => {
+    const showNotification = useCallback((message: ModelMessage) => {
         if (!("Notification" in window)) return;
         if (Notification.permission !== "granted") return;
         console.log(message.sender?.avatarUrl)
@@ -156,7 +156,7 @@ export default function Room() {
             body: message.content,
             icon: API_AVATARS_BASE_URL + message.sender?.avatarUrl,
         });
-    };
+    }, []);
     const [isTabVisible, setIsTabVisible] = useState(
         document.visibilityState === "visible"
     );
@@ -220,11 +220,89 @@ export default function Room() {
         }
     }, [isAtBottom, messages.length]);
 
-    const sendMessage = () => {
+    const sendMessage = useCallback(() => {
         if (!value.trim()) return;
         wsSendMessage(value.trim().replace(/\n\n+/g, '\n\n'));
         setValue("");
-    };
+    }, [value, wsSendMessage]);
+
+
+    const handleEmojiClick = useCallback((emojiData: EmojiClickData) => {
+        const emoji = emojiData.emoji;
+        const cursor = textareaRef.current?.selectionStart || value.length;
+        const newValue = value.slice(0, cursor) + emoji + value.slice(cursor);
+        setValue(newValue);
+        setShowEmojiPicker(false);
+    }, [value]);
+
+    const handleTextareaChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        setValue(e.currentTarget.value);
+    }, []);
+
+    const handleTextareaKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    }, [sendMessage]);
+
+    const renderedMessages = useMemo(() => {
+        return messages.map((m, i) => {
+            const isMe = m.sender?.username === user?.username;
+            const emojiOnly = isEmojiOnly(m.content);
+            return (
+                <Group key={i} align="flex-end" justify={isMe ? 'flex-end' : 'flex-start'} gap="xs"
+                       wrap="nowrap">
+                    {!isMe && m.sender?.username && (
+                        <UserAvatar username={m.sender.username} avatarUrl={m.sender.avatarUrl}
+                                    size={32}/>
+
+                    )}
+
+                    <Stack gap={4} align={isMe ? 'flex-end' : 'flex-start'} maw="70%">
+                        {!isMe && m.sender?.username && (
+                            <Text size="xs" c="dimmed" lh={1}>
+                                {m.sender.username}
+                            </Text>
+                        )}
+                        <Paper
+                            p="xs"
+                            px="sm"
+                            bg={
+                                emojiOnly ? "none" :
+                                    (colorScheme === 'dark' ?
+                                            isMe ? 'dark.4' : 'dark.6'
+                                            : isMe ? `${primaryColor}.1` : 'gray.1'
+                                    )}
+                            c={colorScheme === 'dark' ?
+                                isMe ? 'white' : 'gray.1'
+                                : 'black'
+                            }
+                        >
+                            <Text size={emojiOnly ? "2rem" : "sm"} style={{
+                                wordBreak: 'break-word',
+                                whiteSpace: 'pre-wrap',
+                                lineHeight: emojiOnly ? 1.2 : undefined
+                            }}>
+                                {m.content}
+                            </Text>
+
+                        </Paper>
+                        {m.createdAt && (
+                            <Text
+                                size="xs"
+                                style={{
+                                    userSelect: 'none',
+                                }}
+                            >
+                                {formatMessageDate(m.createdAt)}
+                            </Text>
+                        )}
+                    </Stack>
+                </Group>
+            );
+        });
+    }, [messages, user?.username, colorScheme, primaryColor]);
 
 
     if (notFound) {
@@ -233,15 +311,6 @@ export default function Room() {
         )
 
     }
-
-    const handleEmojiClick = (emojiData: EmojiClickData) => {
-        const emoji = emojiData.emoji;
-        const cursor = textareaRef.current?.selectionStart || value.length;
-        const newValue = value.slice(0, cursor) + emoji + value.slice(cursor);
-        setValue(newValue);
-        setShowEmojiPicker(false);
-    };
-
     return (
         <Flex h="100%" w="100%" direction={isMobile ? "column" : "row"} gap={isMobile ? 0 : "md"}>
             <Box style={{flex: isMobile ? 'none' : 1, width: isMobile ? '100%' : 'auto'}}>
@@ -259,60 +328,7 @@ export default function Room() {
                 <ScrollArea style={{flex: 1}} viewportRef={viewportRef} onScrollPositionChange={handleScroll} p="md"
                             pt={isMobile ? 0 : "md"}>
                     <Stack gap="md">
-                        {messages.map((m, i) => {
-                            const isMe = m.sender?.username === user?.username;
-                            return (
-                                <Group key={i} align="flex-end" justify={isMe ? 'flex-end' : 'flex-start'} gap="xs"
-                                       wrap="nowrap">
-                                    {!isMe && m.sender?.username && (
-                                        <UserAvatar username={m.sender.username} avatarUrl={m.sender.avatarUrl}
-                                                    size={32}/>
-
-                                    )}
-
-                                    <Stack gap={4} align={isMe ? 'flex-end' : 'flex-start'} maw="70%">
-                                        {!isMe && m.sender?.username && (
-                                            <Text size="xs" c="dimmed" lh={1}>
-                                                {m.sender.username}
-                                            </Text>
-                                        )}
-                                        <Paper
-                                            p="xs"
-                                            px="sm"
-                                            bg={
-                                                isEmojiOnly(m.content) ? "none" :
-                                                    (colorScheme === 'dark' ?
-                                                            isMe ? 'dark.4' : 'dark.6'
-                                                            : isMe ? `${primaryColor}.1` : 'gray.1'
-                                                    )}
-                                            c={colorScheme === 'dark' ?
-                                                isMe ? 'white' : 'gray.1'
-                                                : 'black'
-                                            }
-                                        >
-                                            <Text size={isEmojiOnly(m.content) ? "2rem" : "sm"} style={{
-                                                wordBreak: 'break-word',
-                                                whiteSpace: 'pre-wrap',
-                                                lineHeight: isEmojiOnly(m.content) ? 1.2 : undefined
-                                            }}>
-                                                {m.content}
-                                            </Text>
-
-                                        </Paper>
-                                        {m.createdAt && (
-                                            <Text
-                                                size="xs"
-                                                style={{
-                                                    userSelect: 'none',
-                                                }}
-                                            >
-                                                {formatMessageDate(m.createdAt)}
-                                            </Text>
-                                        )}
-                                    </Stack>
-                                </Group>
-                            );
-                        })}
+                        {renderedMessages}
                     </Stack>
                 </ScrollArea>
 
@@ -375,13 +391,8 @@ export default function Room() {
                             ref={textareaRef}
                             placeholder="Type a message..."
                             value={value}
-                            onChange={(e) => setValue(e.currentTarget.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter" && !e.shiftKey) {
-                                    e.preventDefault();
-                                    sendMessage();
-                                }
-                            }}
+                            onChange={handleTextareaChange}
+                            onKeyDown={handleTextareaKeyDown}
                             radius="md"
                             size="md"
                             minRows={1}

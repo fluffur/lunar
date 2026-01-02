@@ -2,8 +2,6 @@ package room
 
 import (
 	"lunar/internal/model"
-
-	"github.com/google/uuid"
 )
 
 type CreateRequest struct {
@@ -11,7 +9,7 @@ type CreateRequest struct {
 }
 
 type CreateResponse struct {
-	ID uuid.UUID `json:"id" binding:"required"`
+	Slug string `json:"slug" binding:"required"`
 }
 
 type ListResponse struct {

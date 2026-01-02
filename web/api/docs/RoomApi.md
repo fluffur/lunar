@@ -123,7 +123,7 @@ import {
 const configuration = new Configuration();
 const apiInstance = new RoomApi(configuration);
 
-let roomSlug: string; //Room ID (default to undefined)
+let roomSlug: string; //Room Slug (default to undefined)
 
 const { status, data } = await apiInstance.roomsRoomSlugPost(
     roomSlug
@@ -134,7 +134,7 @@ const { status, data } = await apiInstance.roomsRoomSlugPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **roomSlug** | [**string**] | Room ID | defaults to undefined|
+| **roomSlug** | [**string**] | Room Slug | defaults to undefined|
 
 
 ### Return type
@@ -176,7 +176,7 @@ import {
 const configuration = new Configuration();
 const apiInstance = new RoomApi(configuration);
 
-let roomSlug: string; //Room ID (default to undefined)
+let roomSlug: string; //Room Slug (default to undefined)
 
 const { status, data } = await apiInstance.roomsRoomSlugWsGet(
     roomSlug
@@ -187,7 +187,7 @@ const { status, data } = await apiInstance.roomsRoomSlugWsGet(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **roomSlug** | [**string**] | Room ID | defaults to undefined|
+| **roomSlug** | [**string**] | Room Slug | defaults to undefined|
 
 
 ### Return type
