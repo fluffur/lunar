@@ -1,6 +1,7 @@
 package model
 
 import (
+	"lunar/internal/util"
 	"time"
 
 	"github.com/google/uuid"
@@ -14,13 +15,18 @@ type Room struct {
 	CreatedAt time.Time    `json:"-"`
 }
 
-func NewRoom(name, slug string) Room {
+func NewRoom(name string) (Room, error) {
+	slug, err := util.GenerateRoomSlug()
+	if err != nil {
+		return Room{}, err
+	}
+
 	return Room{
 		ID:        uuid.Must(uuid.NewV7()),
 		Name:      name,
 		Slug:      slug,
 		CreatedAt: time.Now(),
-	}
+	}, err
 }
 
 type RoomMember struct {

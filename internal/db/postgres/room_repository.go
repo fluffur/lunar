@@ -2,11 +2,13 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	db "lunar/internal/db/postgres/sqlc"
 	"lunar/internal/model"
 	"lunar/internal/repository"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 type RoomRepository struct {
@@ -33,7 +35,7 @@ func mapRooms(rooms []db.Room) []model.Room {
 	return result
 }
 
-func (r *RoomRepository) ListUserChats(ctx context.Context, userID uuid.UUID) ([]model.Room, error) {
+func (r *RoomRepository) ListUserRooms(ctx context.Context, userID uuid.UUID) ([]model.Room, error) {
 	rooms, err := r.queries.GetUserRooms(ctx, userID)
 	if err != nil {
 		return nil, err
@@ -42,7 +44,7 @@ func (r *RoomRepository) ListUserChats(ctx context.Context, userID uuid.UUID) ([
 }
 
 func (r *RoomRepository) Create(ctx context.Context, room model.Room) (model.Room, error) {
-	createdChat, err := r.queries.CreateRoom(ctx, db.CreateRoomParams{
+	createdRoom, err := r.queries.CreateRoom(ctx, db.CreateRoomParams{
 		ID:        room.ID,
 		Name:      textFromString(room.Name),
 		Slug:      room.Slug,
@@ -51,7 +53,7 @@ func (r *RoomRepository) Create(ctx context.Context, room model.Room) (model.Roo
 	if err != nil {
 		return model.Room{}, err
 	}
-	return mapRoom(createdChat), nil
+	return mapRoom(createdRoom), nil
 
 }
 
@@ -68,4 +70,15 @@ func (r *RoomRepository) AddMember(ctx context.Context, roomID uuid.UUID, userID
 		UserID:   member.UserID,
 		JoinedAt: timestampFromTime(member.JoinedAt),
 	})
+}
+
+func (r *RoomRepository) GetBySlug(ctx context.Context, slug string) (model.Room, error) {
+	room, err := r.queries.GetRoomBySlug(ctx, slug)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return model.Room{}, repository.ErrRoomNotFound
+		}
+		return model.Room{}, err
+	}
+	return mapRoom(room), nil
 }

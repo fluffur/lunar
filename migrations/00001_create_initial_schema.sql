@@ -14,7 +14,7 @@ CREATE TABLE rooms
 (
     id         UUID PRIMARY KEY,
     name       VARCHAR(100),
-    slug       VARCHAR(16) NOT NULL,
+    slug       VARCHAR(16) NOT NULL UNIQUE ,
     created_at TIMESTAMPTZ NOT NULL
 );
 

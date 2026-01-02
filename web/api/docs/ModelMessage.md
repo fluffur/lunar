@@ -5,11 +5,11 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**chatId** | **string** |  | [default to undefined]
 **content** | **string** |  | [default to undefined]
 **createdAt** | **string** |  | [default to undefined]
 **id** | **string** |  | [default to undefined]
-**sender** | [**ModelUser**](ModelUser.md) |  | [default to undefined]
+**roomID** | **string** |  | [default to undefined]
+**sender** | [**ModelMessageSender**](ModelMessageSender.md) |  | [default to undefined]
 
 ## Example
 
@@ -17,10 +17,10 @@ Name | Type | Description | Notes
 import { ModelMessage } from './api';
 
 const instance: ModelMessage = {
-    chatId,
     content,
     createdAt,
     id,
+    roomID,
     sender,
 };
 ```

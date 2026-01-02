@@ -1,20 +1,20 @@
-import { Outlet, useParams } from "react-router-dom";
-import { ActionIcon, Flex, Paper } from "@mantine/core";
-import { ChatsSidebar } from "../components/ChatsSidebar.tsx";
-import { useMediaQuery } from "@mantine/hooks";
-import { useState } from "react";
-import { IconLayoutSidebarLeftExpand } from "@tabler/icons-react";
+import {Outlet, useParams} from "react-router-dom";
+import {ActionIcon, Flex, Paper} from "@mantine/core";
+import {RoomsSidebar} from "../components/RoomsSidebar.tsx";
+import {useMediaQuery} from "@mantine/hooks";
+import {useState} from "react";
+import {IconLayoutSidebarLeftExpand} from "@tabler/icons-react";
 
-export function ChatsLayout() {
+export function RoomsLayout() {
     const isMobile = useMediaQuery('(max-width: 768px)');
-    const { chatId } = useParams<{ chatId: string }>();
+    const {roomId} = useParams<string>();
     const [sidebarOpen, setSidebarOpen] = useState(true);
 
-    const showSidebar = isMobile ? !chatId : sidebarOpen;
-    const showContent = isMobile ? !!chatId : true;
+    const showSidebar = isMobile ? !roomId : sidebarOpen;
+    const showContent = isMobile ? !!roomId : true;
 
     return (
-        <Flex h="calc(100vh - 60px)" style={{ position: 'relative', overflow: 'hidden' }}>
+        <Flex h="calc(100vh - 60px)" style={{position: 'relative', overflow: 'hidden'}}>
             {(isMobile ? showSidebar : true) && (
                 <Paper
                     w={isMobile ? "100%" : 300}
@@ -31,12 +31,12 @@ export function ChatsLayout() {
                         opacity: isMobile ? 1 : (sidebarOpen ? 1 : 0),
                     }}
                 >
-                    <ChatsSidebar onClose={() => setSidebarOpen(false)} />
+                    <RoomsSidebar onClose={() => setSidebarOpen(false)}/>
                 </Paper>
             )}
 
             {showContent && (
-                <Flex style={{ flex: 1, position: 'relative' }} p={isMobile ? 0 : "md"} justify="center">
+                <Flex style={{flex: 1, position: 'relative'}} p={isMobile ? 0 : "md"} justify="center">
                     {!isMobile && (
                         <ActionIcon
                             variant="subtle"
@@ -52,10 +52,10 @@ export function ChatsLayout() {
                                 transition: 'opacity 0.3s ease',
                             }}
                         >
-                            <IconLayoutSidebarLeftExpand size={20} />
+                            <IconLayoutSidebarLeftExpand size={20}/>
                         </ActionIcon>
                     )}
-                    <Outlet />
+                    <Outlet/>
                 </Flex>
             )}
         </Flex>

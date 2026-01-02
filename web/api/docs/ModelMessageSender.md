@@ -1,4 +1,4 @@
-# ModelUser
+# ModelMessageSender
 
 
 ## Properties
@@ -6,20 +6,16 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **avatarUrl** | **string** |  | [optional] [default to undefined]
-**email** | **string** |  | [default to undefined]
-**emailVerified** | **boolean** |  | [default to undefined]
-**id** | **string** |  | [default to undefined]
-**username** | **string** |  | [default to undefined]
+**id** | **string** |  | [optional] [default to undefined]
+**username** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
 ```typescript
-import { ModelUser } from './api';
+import { ModelMessageSender } from './api';
 
-const instance: ModelUser = {
+const instance: ModelMessageSender = {
     avatarUrl,
-    email,
-    emailVerified,
     id,
     username,
 };

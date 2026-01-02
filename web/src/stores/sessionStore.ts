@@ -5,7 +5,7 @@ type User = {
     username: string;
     email: string;
     emailVerified: boolean;
-    avatarUrl: string | null;
+    avatarUrl?: string | null;
 }
 
 interface SessionState {

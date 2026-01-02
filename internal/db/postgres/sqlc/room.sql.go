@@ -83,6 +83,25 @@ func (q *Queries) GetRoom(ctx context.Context, id uuid.UUID) (Room, error) {
 	return i, err
 }
 
+const getRoomBySlug = `-- name: GetRoomBySlug :one
+SELECT id, name, slug, created_at
+FROM rooms
+WHERE slug = $1
+LIMIT 1
+`
+
+func (q *Queries) GetRoomBySlug(ctx context.Context, slug string) (Room, error) {
+	row := q.db.QueryRow(ctx, getRoomBySlug, slug)
+	var i Room
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Slug,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
 const getUserRooms = `-- name: GetUserRooms :many
 SELECT r.id, r.name, r.slug, r.created_at
 FROM rooms r

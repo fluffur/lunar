@@ -1,134 +1,30 @@
-# ChatApi
+# RoomApi
 
 All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**chatsChatIDPost**](#chatschatidpost) | **POST** /chats/{chatID} | Join current user to chat|
-|[**chatsChatIDWsGet**](#chatschatidwsget) | **GET** /chats/{chatID}/ws | Connect to the websocket in a chat|
-|[**chatsGet**](#chatsget) | **GET** /chats | List user chats|
-|[**chatsPost**](#chatspost) | **POST** /chats | Create a new chat|
+|[**roomsGet**](#roomsget) | **GET** /rooms | List user rooms|
+|[**roomsPost**](#roomspost) | **POST** /rooms | Create a new room|
+|[**roomsRoomSlugPost**](#roomsroomslugpost) | **POST** /rooms/{roomSlug} | Join current user to room|
+|[**roomsRoomSlugWsGet**](#roomsroomslugwsget) | **GET** /rooms/{roomSlug}/ws | Connect to the websocket in a room|
 
-# **chatsChatIDPost**
-> chatsChatIDPost()
-
-
-### Example
-
-```typescript
-import {
-    ChatApi,
-    Configuration
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new ChatApi(configuration);
-
-let chatID: string; //Chat ID (default to undefined)
-
-const { status, data } = await apiInstance.chatsChatIDPost(
-    chatID
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **chatID** | [**string**] | Chat ID | defaults to undefined|
-
-
-### Return type
-
-void (empty response body)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: */*
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | OK |  -  |
-|**401** | Unauthorized |  -  |
-|**500** | Internal Server Error |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **chatsChatIDWsGet**
-> chatsChatIDWsGet()
-
-Connect to the websocket to receive real-time notifications in a chat
-
-### Example
-
-```typescript
-import {
-    ChatApi,
-    Configuration
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new ChatApi(configuration);
-
-let chatID: string; //Chat ID (default to undefined)
-
-const { status, data } = await apiInstance.chatsChatIDWsGet(
-    chatID
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **chatID** | [**string**] | Chat ID | defaults to undefined|
-
-
-### Return type
-
-void (empty response body)
-
-### Authorization
-
-[WebSocketQueryAuth](../README.md#WebSocketQueryAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: */*
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**401** | Unauthorized |  -  |
-|**500** | Internal Server Error |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **chatsGet**
-> ChatListResponse chatsGet()
+# **roomsGet**
+> RoomListResponse roomsGet()
 
 
 ### Example
 
 ```typescript
 import {
-    ChatApi,
+    RoomApi,
     Configuration
 } from './api';
 
 const configuration = new Configuration();
-const apiInstance = new ChatApi(configuration);
+const apiInstance = new RoomApi(configuration);
 
-const { status, data } = await apiInstance.chatsGet();
+const { status, data } = await apiInstance.roomsGet();
 ```
 
 ### Parameters
@@ -137,7 +33,7 @@ This endpoint does not have any parameters.
 
 ### Return type
 
-**ChatListResponse**
+**RoomListResponse**
 
 ### Authorization
 
@@ -158,25 +54,25 @@ This endpoint does not have any parameters.
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-# **chatsPost**
-> ChatCreateResponse chatsPost(input)
+# **roomsPost**
+> RoomCreateResponse roomsPost(input)
 
 
 ### Example
 
 ```typescript
 import {
-    ChatApi,
+    RoomApi,
     Configuration,
-    ChatCreateRequest
+    RoomCreateRequest
 } from './api';
 
 const configuration = new Configuration();
-const apiInstance = new ChatApi(configuration);
+const apiInstance = new RoomApi(configuration);
 
-let input: ChatCreateRequest; //Chat creation params
+let input: RoomCreateRequest; //Room creation params
 
-const { status, data } = await apiInstance.chatsPost(
+const { status, data } = await apiInstance.roomsPost(
     input
 );
 ```
@@ -185,12 +81,12 @@ const { status, data } = await apiInstance.chatsPost(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **input** | **ChatCreateRequest**| Chat creation params | |
+| **input** | **RoomCreateRequest**| Room creation params | |
 
 
 ### Return type
 
-**ChatCreateResponse**
+**RoomCreateResponse**
 
 ### Authorization
 
@@ -207,6 +103,110 @@ const { status, data } = await apiInstance.chatsPost(
 |-------------|-------------|------------------|
 |**201** | Created |  -  |
 |**400** | Bad Request |  -  |
+|**401** | Unauthorized |  -  |
+|**500** | Internal Server Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **roomsRoomSlugPost**
+> roomsRoomSlugPost()
+
+
+### Example
+
+```typescript
+import {
+    RoomApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new RoomApi(configuration);
+
+let roomSlug: string; //Room ID (default to undefined)
+
+const { status, data } = await apiInstance.roomsRoomSlugPost(
+    roomSlug
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **roomSlug** | [**string**] | Room ID | defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+[BearerAuth](../README.md#BearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: */*
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | OK |  -  |
+|**401** | Unauthorized |  -  |
+|**500** | Internal Server Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **roomsRoomSlugWsGet**
+> roomsRoomSlugWsGet()
+
+Connect to the websocket to receive real-time notifications in a room
+
+### Example
+
+```typescript
+import {
+    RoomApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new RoomApi(configuration);
+
+let roomSlug: string; //Room ID (default to undefined)
+
+const { status, data } = await apiInstance.roomsRoomSlugWsGet(
+    roomSlug
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **roomSlug** | [**string**] | Room ID | defaults to undefined|
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: */*
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
 |**401** | Unauthorized |  -  |
 |**500** | Internal Server Error |  -  |
 

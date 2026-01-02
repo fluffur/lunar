@@ -18,24 +18,11 @@ import {ScreenShareBlock} from "../components/ScreenShareBlock.tsx";
 import {EmojiPicker} from "../components/EmojiPicker.tsx";
 import {isEmojiOnly} from "../utils/isEmojiOnly.ts";
 import type {EmojiClickData} from "emoji-picker-react";
+import type {ModelMessage} from "../../api";
 
-interface Sender {
-    id: string;
-    username: string;
-    avatarUrl?: string;
-}
-
-interface ChatMessage {
-    content: string;
-    chatId: string;
-    sender: Sender
-    createdAt?: string;
-}
-
-
-export default function Chat() {
-    const {chatId} = useParams<string>();
-    const [messages, setMessages] = useState<ChatMessage[]>([]);
+export default function Room() {
+    const {roomSlug} = useParams<string>();
+    const [messages, setMessages] = useState<ModelMessage[]>([]);
     const {token, user, setToken, logout} = useSessionStore()
     const [value, setValue] = useState("");
 
@@ -54,13 +41,12 @@ export default function Chat() {
     const [loading, setLoading] = useState(false);
 
     const loadOlderMessages = async () => {
-        if (!nextCursor || loading) return;
-        if (!viewportRef.current) return;
+        if (!nextCursor || loading || !viewportRef.current || !roomSlug) return;
 
         setLoading(true);
         try {
-            const {data} = await messageApi.chatsChatIDMessagesGet(
-                chatId ?? "",
+            const {data} = await messageApi.roomsRoomSlugMessagesGet(
+                roomSlug,
                 50,
                 encodeURIComponent(nextCursor),
             );
@@ -108,11 +94,11 @@ export default function Chat() {
     };
 
     useEffect(() => {
-        if (!chatId) return;
+        if (!roomSlug) return;
         setNotFound(false);
         (async () => {
             try {
-                const {data} = await messageApi.chatsChatIDMessagesGet(chatId);
+                const {data} = await messageApi.roomsRoomSlugMessagesGet(roomSlug);
                 setMessages(data.messages?.reverse() ?? []);
                 setNextCursor(data.nextCursor ?? null);
             } catch (error) {
@@ -124,12 +110,12 @@ export default function Chat() {
                 console.error(error);
             }
         })();
-    }, [chatId, navigate]);
+    }, [roomSlug, navigate]);
 
     const [socketUrl, setSocketUrl] = useState<string | null>(null);
 
     useEffect(() => {
-        if (!chatId) {
+        if (!roomSlug) {
             return;
         }
 
@@ -149,11 +135,11 @@ export default function Chat() {
                 }
             }
 
-            setSocketUrl(`${WS_BASE_URL}/api/chats/${chatId}/ws?token=${token}`);
+            setSocketUrl(`${WS_BASE_URL}/api/rooms/${roomSlug}/ws?token=${token}`);
         };
 
         prepareSocket();
-    }, [chatId, token, setToken, logout]);
+    }, [roomSlug, token, setToken, logout]);
 
 
     useEffect(() => {
@@ -162,7 +148,7 @@ export default function Chat() {
         }
     }, []);
 
-    const showNotification = (message: ChatMessage) => {
+    const showNotification = (message: ModelMessage) => {
         if (!("Notification" in window)) return;
         if (Notification.permission !== "granted") return;
         console.log(message.sender?.avatarUrl)

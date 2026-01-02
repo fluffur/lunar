@@ -14,47 +14,47 @@ import {
     Title
 } from '@mantine/core';
 import {useNavigate, useParams} from 'react-router-dom';
-import {chatApi} from "../api.ts";
-import type {ModelChat} from "../../api";
+import {roomApi} from "../api.ts";
+import type {ModelRoom} from "../../api";
 import {IconLayoutSidebarLeftCollapse, IconLogout, IconPlus, IconSearch} from "@tabler/icons-react";
-import {CreateChatModal} from "./CreateChatModal.tsx";
+import {CreateRoomModal} from "./CreateRoomModal.tsx";
 import {useSessionStore} from "../stores/sessionStore.ts";
 import {UserAvatar} from "./UserAvatar.tsx";
 import {useUiStore} from "../stores/uiStore.ts";
 
-interface ChatsSidebarProps {
+interface RoomsSidebarProps {
     onClose?: () => void;
 }
 
-export function ChatsSidebar({onClose}: ChatsSidebarProps) {
-    const [chats, setChats] = useState<ModelChat[]>([]);
-    const {chatId} = useParams<{ chatId: string }>();
+export function RoomsSidebar({onClose}: RoomsSidebarProps) {
+    const [rooms, setRooms] = useState<ModelRoom[]>([]);
+    const {roomId} = useParams<string >();
     const navigate = useNavigate();
     const [createModalOpen, setCreateModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const {user, logout} = useSessionStore();
     const {primaryColor} = useUiStore()
     useEffect(() => {
-        const fetchChats = async () => {
+        const fetchRooms = async () => {
             try {
-                const {data} = await chatApi.chatsGet();
-                setChats(data.chats || []);
+                const {data} = await roomApi.roomsGet();
+                setRooms(data.rooms || []);
             } catch (error) {
-                console.error("Failed to fetch chats", error);
+                console.error("Failed to fetch rooms", error);
             }
         };
 
-        fetchChats();
+        fetchRooms();
     }, []);
 
-    const filteredChats = chats.filter(chat =>
-        (chat.name || chat.id).toLowerCase().includes(searchQuery.toLowerCase())
+    const filteredRooms = rooms.filter(room =>
+        (room.name || room.id).toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     return (
         <Box h="100%" p="md" display="flex" style={{flexDirection: 'column', gap: 'var(--mantine-spacing-md)'}}>
             <Group justify="space-between">
-                <Title order={3}>Chats</Title>
+                <Title order={3}>Rooms</Title>
                 <Group gap="xs">
                     <ActionIcon variant="light" size="lg" onClick={() => setCreateModalOpen(true)}>
                         <IconPlus size={20}/>
@@ -68,7 +68,7 @@ export function ChatsSidebar({onClose}: ChatsSidebarProps) {
             </Group>
 
             <TextInput
-                placeholder="Search chats..."
+                placeholder="Search rooms..."
                 leftSection={<IconSearch style={{width: rem(16), height: rem(16)}} stroke={1.5}/>}
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.currentTarget.value)}
@@ -78,15 +78,15 @@ export function ChatsSidebar({onClose}: ChatsSidebarProps) {
                    style={{flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
                 <ScrollArea style={{flex: 1}}>
                     <Stack gap={0}>
-                        {filteredChats.map((chat) => (
+                        {filteredRooms.map((room) => (
                             <NavLink
-                                key={chat.id}
-                                label={chat.name || chat.id}
-                                active={chat.id === chatId}
-                                onClick={() => navigate(`/chats/${chat.id}`)}
+                                key={room.id}
+                                label={room.name || room.slug}
+                                active={room.id === roomId}
+                                onClick={() => navigate(`/r/${room.slug}`)}
                                 leftSection={
                                     <Avatar radius="xl" size="sm" color={primaryColor}>
-                                        {(chat.name || chat.id).slice(0, 2).toUpperCase()}
+                                        {(room.name || room.id).slice(0, 2).toUpperCase()}
                                     </Avatar>
                                 }
                                 variant="light"
@@ -97,9 +97,9 @@ export function ChatsSidebar({onClose}: ChatsSidebarProps) {
                                 }}
                             />
                         ))}
-                        {filteredChats.length === 0 && (
+                        {filteredRooms.length === 0 && (
                             <Text c="dimmed" size="sm" ta="center" py="xl">
-                                {chats.length === 0 ? "No chats found" : "No results"}
+                                {rooms.length === 0 ? "No rooms found" : "No results"}
                             </Text>
                         )}
                     </Stack>
@@ -119,7 +119,7 @@ export function ChatsSidebar({onClose}: ChatsSidebarProps) {
                 </Group>
             </Paper>
 
-            <CreateChatModal opened={createModalOpen} onClose={() => setCreateModalOpen(false)}/>
+            <CreateRoomModal opened={createModalOpen} onClose={() => setCreateModalOpen(false)}/>
         </Box>
     );
 }

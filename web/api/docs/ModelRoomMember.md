@@ -1,19 +1,23 @@
-# ChatCreateChatResponse
+# ModelRoomMember
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**id** | **string** |  | [optional] [default to undefined]
+**id** | **string** |  | [default to undefined]
+**roomID** | **string** |  | [default to undefined]
+**userID** | **string** |  | [default to undefined]
 
 ## Example
 
 ```typescript
-import { ChatCreateChatResponse } from './api';
+import { ModelRoomMember } from './api';
 
-const instance: ChatCreateChatResponse = {
+const instance: ModelRoomMember = {
     id,
+    roomID,
+    userID,
 };
 ```
 

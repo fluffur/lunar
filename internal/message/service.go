@@ -9,8 +9,6 @@ import (
 	"lunar/internal/pagination"
 	"lunar/internal/repository"
 	"strconv"
-
-	"github.com/google/uuid"
 )
 
 type Service struct {
@@ -19,23 +17,23 @@ type Service struct {
 }
 
 var (
-	ErrChatNotFound = errors.New("room not found")
+	ErrRoomNotFound = errors.New("room not found")
 )
 
 func NewService(roomRepo repository.RoomRepository, messageRepo repository.MessageRepository) *Service {
 	return &Service{roomRepo, messageRepo}
 }
 
-func (s *Service) ListMessages(ctx context.Context, roomID uuid.UUID, limit int, cursor *pagination.Cursor) ([]model.Message, error) {
-	exists, err := s.roomRepo.RoomExists(ctx, roomID)
+func (s *Service) ListMessages(ctx context.Context, roomSlug string, limit int, cursor *pagination.Cursor) ([]model.Message, error) {
+	room, err := s.roomRepo.GetBySlug(ctx, roomSlug)
 	if err != nil {
+		if errors.Is(err, repository.ErrRoomNotFound) {
+			return nil, ErrRoomNotFound
+		}
 		return nil, err
 	}
-	if !exists {
-		return nil, ErrChatNotFound
-	}
 
-	return s.messageRepo.ListMessages(ctx, roomID, limit, cursor)
+	return s.messageRepo.ListMessages(ctx, room.ID, limit, cursor)
 }
 
 func (s *Service) GenerateCursor(message model.Message) string {

@@ -5,8 +5,6 @@ import (
 	"lunar/internal/httputil"
 	"lunar/internal/ws"
 	"net/http"
-
-	"github.com/google/uuid"
 )
 
 type Handler struct {
@@ -23,7 +21,7 @@ func NewHandler(validator *httputil.Validator, service *Service, wsService *ws.S
 	}
 }
 
-// ListChats godoc
+// ListRooms godoc
 //
 //	@Summary	List user rooms
 //	@Tags		room
@@ -32,7 +30,7 @@ func NewHandler(validator *httputil.Validator, service *Service, wsService *ws.S
 //	@Failure	401	{object}	httputil.ErrorResponse
 //	@Failure	500	{object}	httputil.ErrorResponse
 //	@Router		/rooms [get]
-func (h *Handler) ListChats(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ListRooms(w http.ResponseWriter, r *http.Request) {
 	user := httputil.UserFromRequest(r)
 
 	rooms, err := h.service.ListUserRooms(r.Context(), user.ID)
@@ -44,20 +42,20 @@ func (h *Handler) ListChats(w http.ResponseWriter, r *http.Request) {
 	httputil.SuccessData(w, ListResponse{Rooms: rooms})
 }
 
-// CreateChat godoc
+// CreateRoom godoc
 //
 //	@Summary	Create a new room
 //	@Tags		room
 //	@Accept		json
 //	@Produce	json
 //	@Security	BearerAuth
-//	@Param		input	body		CreateRequest	true	"Chat creation params"
+//	@Param		input	body		CreateRequest	true	"Room creation params"
 //	@Success	201		{object}	CreateResponse
 //	@Failure	400		{object}	httputil.ErrorResponse
 //	@Failure	401		{object}	httputil.ErrorResponse
 //	@Failure	500		{object}	httputil.ErrorResponse
 //	@Router		/rooms [post]
-func (h *Handler) CreateChat(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) CreateRoom(w http.ResponseWriter, r *http.Request) {
 	var params CreateRequest
 
 	if err := httputil.Read(r, &params); err != nil {
@@ -65,30 +63,30 @@ func (h *Handler) CreateChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdChat, err := h.service.CreateChat(r.Context(), params.Name, params.Type)
+	created, err := h.service.CreateRoom(r.Context(), params.Name)
 	if err != nil {
 		httputil.InternalError(w, r, err)
 		return
 	}
 
-	httputil.Created(w, CreateResponse{ID: createdChat.ID})
+	httputil.Created(w, CreateResponse{ID: created.ID})
 }
 
 // JoinCurrentUser godoc
 //
 //	@Summary	Join current user to room
 //	@Tags		room
-//	@Param		roomID	path	string	true	"Room ID"
+//	@Param		roomSlug	path	string	true	"Room ID"
 //	@Security	BearerAuth
 //	@Success	200
 //	@Failure	401	{object}	httputil.ErrorResponse
 //	@Failure	500	{object}	httputil.ErrorResponse
-//	@Router		/rooms/{roomID} [post]
+//	@Router		/rooms/{roomSlug} [post]
 func (h *Handler) JoinCurrentUser(w http.ResponseWriter, r *http.Request) {
 	user := httputil.UserFromRequest(r)
-	roomID := uuid.MustParse(r.PathValue("roomID"))
+	roomSlug := r.PathValue("roomSlug")
 
-	if err := h.service.JoinUserToChat(r.Context(), user.ID, roomID); err != nil {
+	if _, err := h.service.JoinUserToRoom(r.Context(), user.ID, roomSlug); err != nil {
 		httputil.InternalError(w, r, err)
 		return
 	}
@@ -100,23 +98,24 @@ func (h *Handler) JoinCurrentUser(w http.ResponseWriter, r *http.Request) {
 //
 //	@Summary		Connect to the websocket in a room
 //	@Tags			room
-//	@Param			roomID	path	string	true	"Chat ID"
+//	@Param			roomSlug	path	string	true	"Room ID"
 //	@Security		WebSocketQueryAuth
 //	@Description	Connect to the websocket to receive real-time notifications in a room
 //	@Schemes		ws
 //	@Failure		401	{object}	httputil.ErrorResponse
 //	@Failure		500	{object}	httputil.ErrorResponse
-//	@Router			/rooms/{roomID}/ws [get]
+//	@Router			/rooms/{roomSlug}/ws [get]
 func (h *Handler) Websocket(w http.ResponseWriter, r *http.Request) {
 	user := httputil.UserFromRequest(r)
-	roomID := uuid.MustParse(r.PathValue("roomID"))
+	roomSlug := r.PathValue("roomSlug")
 
-	if err := h.service.JoinUserToChat(r.Context(), user.ID, roomID); err != nil {
+	room, err := h.service.JoinUserToRoom(r.Context(), user.ID, roomSlug)
+	if err != nil {
 		httputil.InternalError(w, r, err)
 		return
 	}
 
-	if err := h.wsService.HandleWebSocket(w, r, roomID, user.ID); err != nil {
+	if err := h.wsService.HandleWebSocket(w, r, room, user.ID); err != nil {
 		slog.Error("websocket error", "err", err)
 	}
 }

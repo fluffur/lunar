@@ -37,16 +37,6 @@ export interface AuthTokens {
     'accessToken': string;
     'refreshToken': string;
 }
-export interface ChatCreateRequest {
-    'name'?: string;
-    'type': string;
-}
-export interface ChatCreateResponse {
-    'id': string;
-}
-export interface ChatListResponse {
-    'chats': Array<ModelChat>;
-}
 export interface HttputilErrorBody {
     'code'?: string;
     'fields'?: object;
@@ -59,27 +49,44 @@ export interface MessageGetPagingResponse {
     'messages'?: Array<ModelMessage>;
     'nextCursor'?: string;
 }
-export interface ModelChat {
-    'id': string;
-    'name'?: string;
-    'type': string;
-}
 export interface ModelMessage {
-    'chatId': string;
     'content': string;
     'createdAt': string;
     'id': string;
-    'sender': ModelUser;
+    'roomID': string;
+    'sender': ModelMessageSender;
+}
+export interface ModelMessageSender {
+    'avatarUrl'?: string;
+    'id'?: string;
+    'username'?: string;
+}
+export interface ModelRoom {
+    'id': string;
+    'members'?: Array<ModelRoomMember>;
+    'name'?: string;
+    'slug': string;
+}
+export interface ModelRoomMember {
+    'id': string;
+    'roomID': string;
+    'userID': string;
 }
 export interface ModelUser {
-    'avatarUrl': string;
+    'avatarUrl'?: string;
     'email': string;
     'emailVerified': boolean;
     'id': string;
     'username': string;
 }
-export interface UserSendVerificationCodeRequest {
-    'email': string;
+export interface RoomCreateRequest {
+    'name'?: string;
+}
+export interface RoomCreateResponse {
+    'id': string;
+}
+export interface RoomListResponse {
+    'rooms': Array<ModelRoom>;
 }
 export interface UserUpdateEmailRequest {
     'email': string;
@@ -383,317 +390,6 @@ export class AuthApi extends BaseAPI {
 
 
 /**
- * ChatApi - axios parameter creator
- */
-export const ChatApiAxiosParamCreator = function (configuration?: Configuration) {
-    return {
-        /**
-         * 
-         * @summary Join current user to room
-         * @param {string} chatID Chat ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        chatsChatIDPost: async (chatID: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'chatID' is not null or undefined
-            assertParamExists('chatsChatIDPost', 'chatID', chatID)
-            const localVarPath = `/chats/{chatID}`
-                .replace(`{${"chatID"}}`, encodeURIComponent(String(chatID)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication BearerAuth required
-            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
-
-            localVarHeaderParameter['Accept'] = '*/*';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * Connect to the websocket to receive real-time notifications in a room
-         * @summary Connect to the websocket in a room
-         * @param {string} chatID Chat ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        chatsChatIDWsGet: async (chatID: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'chatID' is not null or undefined
-            assertParamExists('chatsChatIDWsGet', 'chatID', chatID)
-            const localVarPath = `/chats/{chatID}/ws`
-                .replace(`{${"chatID"}}`, encodeURIComponent(String(chatID)));
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication WebSocketQueryAuth required
-            await setApiKeyToObject(localVarQueryParameter, "token", configuration)
-
-            localVarHeaderParameter['Accept'] = '*/*';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary List user chats
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        chatsGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            const localVarPath = `/chats`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication BearerAuth required
-            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
-
-            localVarHeaderParameter['Accept'] = '*/*';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @summary Create a new room
-         * @param {ChatCreateRequest} input Chat creation params
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        chatsPost: async (input: ChatCreateRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'input' is not null or undefined
-            assertParamExists('chatsPost', 'input', input)
-            const localVarPath = `/chats`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication BearerAuth required
-            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
-
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-            localVarHeaderParameter['Accept'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(input, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-    }
-};
-
-/**
- * ChatApi - functional programming interface
- */
-export const ChatApiFp = function(configuration?: Configuration) {
-    const localVarAxiosParamCreator = ChatApiAxiosParamCreator(configuration)
-    return {
-        /**
-         * 
-         * @summary Join current user to room
-         * @param {string} chatID Chat ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async chatsChatIDPost(chatID: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.chatsChatIDPost(chatID, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ChatApi.chatsChatIDPost']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * Connect to the websocket to receive real-time notifications in a room
-         * @summary Connect to the websocket in a room
-         * @param {string} chatID Chat ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async chatsChatIDWsGet(chatID: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.chatsChatIDWsGet(chatID, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ChatApi.chatsChatIDWsGet']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary List user chats
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async chatsGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ChatListResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.chatsGet(options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ChatApi.chatsGet']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-        /**
-         * 
-         * @summary Create a new room
-         * @param {ChatCreateRequest} input Chat creation params
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async chatsPost(input: ChatCreateRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ChatCreateResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.chatsPost(input, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['ChatApi.chatsPost']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
-    }
-};
-
-/**
- * ChatApi - factory interface
- */
-export const ChatApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
-    const localVarFp = ChatApiFp(configuration)
-    return {
-        /**
-         * 
-         * @summary Join current user to room
-         * @param {string} chatID Chat ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        chatsChatIDPost(chatID: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.chatsChatIDPost(chatID, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * Connect to the websocket to receive real-time notifications in a room
-         * @summary Connect to the websocket in a room
-         * @param {string} chatID Chat ID
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        chatsChatIDWsGet(chatID: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.chatsChatIDWsGet(chatID, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary List user chats
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        chatsGet(options?: RawAxiosRequestConfig): AxiosPromise<ChatListResponse> {
-            return localVarFp.chatsGet(options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Create a new room
-         * @param {ChatCreateRequest} input Chat creation params
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        chatsPost(input: ChatCreateRequest, options?: RawAxiosRequestConfig): AxiosPromise<ChatCreateResponse> {
-            return localVarFp.chatsPost(input, options).then((request) => request(axios, basePath));
-        },
-    };
-};
-
-/**
- * ChatApi - object-oriented interface
- */
-export class ChatApi extends BaseAPI {
-    /**
-     * 
-     * @summary Join current user to room
-     * @param {string} chatID Chat ID
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public chatsChatIDPost(chatID: string, options?: RawAxiosRequestConfig) {
-        return ChatApiFp(this.configuration).chatsChatIDPost(chatID, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * Connect to the websocket to receive real-time notifications in a room
-     * @summary Connect to the websocket in a room
-     * @param {string} chatID Chat ID
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public chatsChatIDWsGet(chatID: string, options?: RawAxiosRequestConfig) {
-        return ChatApiFp(this.configuration).chatsChatIDWsGet(chatID, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @summary List user chats
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public chatsGet(options?: RawAxiosRequestConfig) {
-        return ChatApiFp(this.configuration).chatsGet(options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @summary Create a new room
-     * @param {ChatCreateRequest} input Chat creation params
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public chatsPost(input: ChatCreateRequest, options?: RawAxiosRequestConfig) {
-        return ChatApiFp(this.configuration).chatsPost(input, options).then((request) => request(this.axios, this.basePath));
-    }
-}
-
-
-
-/**
  * MessageApi - axios parameter creator
  */
 export const MessageApiAxiosParamCreator = function (configuration?: Configuration) {
@@ -701,17 +397,17 @@ export const MessageApiAxiosParamCreator = function (configuration?: Configurati
         /**
          * 
          * @summary List messages in a room
-         * @param {string} chatID Chat ID
+         * @param {string} roomSlug Room Slug
          * @param {number} [limit] Limit
          * @param {string} [cursor] Cursor
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        chatsChatIDMessagesGet: async (chatID: string, limit?: number, cursor?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'chatID' is not null or undefined
-            assertParamExists('chatsChatIDMessagesGet', 'chatID', chatID)
-            const localVarPath = `/chats/{chatID}/messages`
-                .replace(`{${"chatID"}}`, encodeURIComponent(String(chatID)));
+        roomsRoomSlugMessagesGet: async (roomSlug: string, limit?: number, cursor?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'roomSlug' is not null or undefined
+            assertParamExists('roomsRoomSlugMessagesGet', 'roomSlug', roomSlug)
+            const localVarPath = `/rooms/{roomSlug}/messages`
+                .replace(`{${"roomSlug"}}`, encodeURIComponent(String(roomSlug)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -757,16 +453,16 @@ export const MessageApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @summary List messages in a room
-         * @param {string} chatID Chat ID
+         * @param {string} roomSlug Room Slug
          * @param {number} [limit] Limit
          * @param {string} [cursor] Cursor
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async chatsChatIDMessagesGet(chatID: string, limit?: number, cursor?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MessageGetPagingResponse>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.chatsChatIDMessagesGet(chatID, limit, cursor, options);
+        async roomsRoomSlugMessagesGet(roomSlug: string, limit?: number, cursor?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<MessageGetPagingResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.roomsRoomSlugMessagesGet(roomSlug, limit, cursor, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['MessageApi.chatsChatIDMessagesGet']?.[localVarOperationServerIndex]?.url;
+            const localVarOperationServerBasePath = operationServerMap['MessageApi.roomsRoomSlugMessagesGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -781,14 +477,14 @@ export const MessageApiFactory = function (configuration?: Configuration, basePa
         /**
          * 
          * @summary List messages in a room
-         * @param {string} chatID Chat ID
+         * @param {string} roomSlug Room Slug
          * @param {number} [limit] Limit
          * @param {string} [cursor] Cursor
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        chatsChatIDMessagesGet(chatID: string, limit?: number, cursor?: string, options?: RawAxiosRequestConfig): AxiosPromise<MessageGetPagingResponse> {
-            return localVarFp.chatsChatIDMessagesGet(chatID, limit, cursor, options).then((request) => request(axios, basePath));
+        roomsRoomSlugMessagesGet(roomSlug: string, limit?: number, cursor?: string, options?: RawAxiosRequestConfig): AxiosPromise<MessageGetPagingResponse> {
+            return localVarFp.roomsRoomSlugMessagesGet(roomSlug, limit, cursor, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -800,14 +496,322 @@ export class MessageApi extends BaseAPI {
     /**
      * 
      * @summary List messages in a room
-     * @param {string} chatID Chat ID
+     * @param {string} roomSlug Room Slug
      * @param {number} [limit] Limit
      * @param {string} [cursor] Cursor
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    public chatsChatIDMessagesGet(chatID: string, limit?: number, cursor?: string, options?: RawAxiosRequestConfig) {
-        return MessageApiFp(this.configuration).chatsChatIDMessagesGet(chatID, limit, cursor, options).then((request) => request(this.axios, this.basePath));
+    public roomsRoomSlugMessagesGet(roomSlug: string, limit?: number, cursor?: string, options?: RawAxiosRequestConfig) {
+        return MessageApiFp(this.configuration).roomsRoomSlugMessagesGet(roomSlug, limit, cursor, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * RoomApi - axios parameter creator
+ */
+export const RoomApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary List user rooms
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        roomsGet: async (options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/rooms`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            localVarHeaderParameter['Accept'] = '*/*';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Create a new room
+         * @param {RoomCreateRequest} input Room creation params
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        roomsPost: async (input: RoomCreateRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'input' is not null or undefined
+            assertParamExists('roomsPost', 'input', input)
+            const localVarPath = `/rooms`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(input, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Join current user to room
+         * @param {string} roomSlug Room ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        roomsRoomSlugPost: async (roomSlug: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'roomSlug' is not null or undefined
+            assertParamExists('roomsRoomSlugPost', 'roomSlug', roomSlug)
+            const localVarPath = `/rooms/{roomSlug}`
+                .replace(`{${"roomSlug"}}`, encodeURIComponent(String(roomSlug)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            localVarHeaderParameter['Accept'] = '*/*';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Connect to the websocket to receive real-time notifications in a room
+         * @summary Connect to the websocket in a room
+         * @param {string} roomSlug Room ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        roomsRoomSlugWsGet: async (roomSlug: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'roomSlug' is not null or undefined
+            assertParamExists('roomsRoomSlugWsGet', 'roomSlug', roomSlug)
+            const localVarPath = `/rooms/{roomSlug}/ws`
+                .replace(`{${"roomSlug"}}`, encodeURIComponent(String(roomSlug)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = '*/*';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * RoomApi - functional programming interface
+ */
+export const RoomApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = RoomApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary List user rooms
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async roomsGet(options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RoomListResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.roomsGet(options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['RoomApi.roomsGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Create a new room
+         * @param {RoomCreateRequest} input Room creation params
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async roomsPost(input: RoomCreateRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RoomCreateResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.roomsPost(input, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['RoomApi.roomsPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Join current user to room
+         * @param {string} roomSlug Room ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async roomsRoomSlugPost(roomSlug: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.roomsRoomSlugPost(roomSlug, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['RoomApi.roomsRoomSlugPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Connect to the websocket to receive real-time notifications in a room
+         * @summary Connect to the websocket in a room
+         * @param {string} roomSlug Room ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async roomsRoomSlugWsGet(roomSlug: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.roomsRoomSlugWsGet(roomSlug, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['RoomApi.roomsRoomSlugWsGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * RoomApi - factory interface
+ */
+export const RoomApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = RoomApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary List user rooms
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        roomsGet(options?: RawAxiosRequestConfig): AxiosPromise<RoomListResponse> {
+            return localVarFp.roomsGet(options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Create a new room
+         * @param {RoomCreateRequest} input Room creation params
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        roomsPost(input: RoomCreateRequest, options?: RawAxiosRequestConfig): AxiosPromise<RoomCreateResponse> {
+            return localVarFp.roomsPost(input, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Join current user to room
+         * @param {string} roomSlug Room ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        roomsRoomSlugPost(roomSlug: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.roomsRoomSlugPost(roomSlug, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Connect to the websocket to receive real-time notifications in a room
+         * @summary Connect to the websocket in a room
+         * @param {string} roomSlug Room ID
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        roomsRoomSlugWsGet(roomSlug: string, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.roomsRoomSlugWsGet(roomSlug, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * RoomApi - object-oriented interface
+ */
+export class RoomApi extends BaseAPI {
+    /**
+     * 
+     * @summary List user rooms
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public roomsGet(options?: RawAxiosRequestConfig) {
+        return RoomApiFp(this.configuration).roomsGet(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Create a new room
+     * @param {RoomCreateRequest} input Room creation params
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public roomsPost(input: RoomCreateRequest, options?: RawAxiosRequestConfig) {
+        return RoomApiFp(this.configuration).roomsPost(input, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Join current user to room
+     * @param {string} roomSlug Room ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public roomsRoomSlugPost(roomSlug: string, options?: RawAxiosRequestConfig) {
+        return RoomApiFp(this.configuration).roomsRoomSlugPost(roomSlug, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Connect to the websocket to receive real-time notifications in a room
+     * @summary Connect to the websocket in a room
+     * @param {string} roomSlug Room ID
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public roomsRoomSlugWsGet(roomSlug: string, options?: RawAxiosRequestConfig) {
+        return RoomApiFp(this.configuration).roomsRoomSlugWsGet(roomSlug, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -970,44 +974,6 @@ export const UserApiAxiosParamCreator = function (configuration?: Configuration)
                 options: localVarRequestOptions,
             };
         },
-        /**
-         * 
-         * @summary Send verification code
-         * @param {UserSendVerificationCodeRequest} input Verification request
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        usersMeVerificationCodePost: async (input: UserSendVerificationCodeRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
-            // verify required parameter 'input' is not null or undefined
-            assertParamExists('usersMeVerificationCodePost', 'input', input)
-            const localVarPath = `/users/me/verification-code`;
-            // use dummy base URL string because the URL constructor only accepts absolute URLs.
-            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
-            let baseOptions;
-            if (configuration) {
-                baseOptions = configuration.baseOptions;
-            }
-
-            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication BearerAuth required
-            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
-
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-            localVarHeaderParameter['Accept'] = 'application/json';
-
-            setSearchParams(localVarUrlObj, localVarQueryParameter);
-            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
-            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
-            localVarRequestOptions.data = serializeDataIfNeeded(input, localVarRequestOptions, configuration)
-
-            return {
-                url: toPathString(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
     }
 };
 
@@ -1068,19 +1034,6 @@ export const UserApiFp = function(configuration?: Configuration) {
             const localVarOperationServerBasePath = operationServerMap['UserApi.usersMePasswordPut']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
-        /**
-         * 
-         * @summary Send verification code
-         * @param {UserSendVerificationCodeRequest} input Verification request
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        async usersMeVerificationCodePost(input: UserSendVerificationCodeRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.usersMeVerificationCodePost(input, options);
-            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
-            const localVarOperationServerBasePath = operationServerMap['UserApi.usersMeVerificationCodePost']?.[localVarOperationServerIndex]?.url;
-            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
-        },
     }
 };
 
@@ -1128,16 +1081,6 @@ export const UserApiFactory = function (configuration?: Configuration, basePath?
          */
         usersMePasswordPut(input: UserUpdatePasswordRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.usersMePasswordPut(input, options).then((request) => request(axios, basePath));
-        },
-        /**
-         * 
-         * @summary Send verification code
-         * @param {UserSendVerificationCodeRequest} input Verification request
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        usersMeVerificationCodePost(input: UserSendVerificationCodeRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
-            return localVarFp.usersMeVerificationCodePost(input, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -1187,17 +1130,6 @@ export class UserApi extends BaseAPI {
      */
     public usersMePasswordPut(input: UserUpdatePasswordRequest, options?: RawAxiosRequestConfig) {
         return UserApiFp(this.configuration).usersMePasswordPut(input, options).then((request) => request(this.axios, this.basePath));
-    }
-
-    /**
-     * 
-     * @summary Send verification code
-     * @param {UserSendVerificationCodeRequest} input Verification request
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     */
-    public usersMeVerificationCodePost(input: UserSendVerificationCodeRequest, options?: RawAxiosRequestConfig) {
-        return UserApiFp(this.configuration).usersMeVerificationCodePost(input, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

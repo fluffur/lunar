@@ -76,9 +76,9 @@ func (app *application) mount() http.Handler {
 		})
 
 		r.Route("/rooms", func(r chi.Router) {
-			r.Get("/", roomHandler.ListChats)
-			r.Post("/", roomHandler.CreateChat)
-			r.Route("/{roomID:[0-9a-fA-F-]{36}}", func(r chi.Router) {
+			r.Get("/", roomHandler.ListRooms)
+			r.Post("/", roomHandler.CreateRoom)
+			r.Route("/{roomSlug:[a-z0-9]{11}}", func(r chi.Router) {
 				r.Post("/", roomHandler.JoinCurrentUser)
 				r.Get("/messages", messageHandler.ListMessages)
 			})
@@ -86,7 +86,7 @@ func (app *application) mount() http.Handler {
 	})
 
 	r.With(wsAuthMw).
-		Get("/rooms/{roomID:[0-9a-fA-F-]{36}}/ws", roomHandler.Websocket)
+		Get("/rooms/{roomSlug:[a-z0-9]{11}}/ws", roomHandler.Websocket)
 
 	return r
 }

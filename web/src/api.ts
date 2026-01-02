@@ -1,7 +1,7 @@
 import axios from "axios";
 import {useSessionStore} from "./stores/sessionStore.ts";
 import {API_BASE_URL} from "./config.ts";
-import {AuthApi, ChatApi, MessageApi, UserApi} from "../api";
+import {AuthApi, RoomApi, MessageApi, UserApi} from "../api";
 
 export const api = axios.create({
     baseURL: API_BASE_URL + '/api',
@@ -54,4 +54,4 @@ api.interceptors.response.use(
 export const authApi = new AuthApi(undefined, undefined, api)
 export const userApi = new UserApi(undefined, undefined, api)
 export const messageApi = new MessageApi(undefined, undefined, api)
-export const chatApi = new ChatApi(undefined, undefined, api)
+export const roomApi = new RoomApi(undefined, undefined, api)

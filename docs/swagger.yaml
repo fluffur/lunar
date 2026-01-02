@@ -133,7 +133,6 @@ definitions:
       username:
         type: string
     required:
-    - avatarUrl
     - email
     - emailVerified
     - id
@@ -142,11 +141,9 @@ definitions:
   room.CreateRequest:
     properties:
       name:
+        maxLength: 50
+        minLength: 3
         type: string
-      type:
-        type: string
-    required:
-    - type
     type: object
   room.CreateResponse:
     properties:
@@ -286,12 +283,90 @@ paths:
       summary: Register a new user
       tags:
       - auth
-  /room/{roomID}/messages:
+  /rooms:
+    get:
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/room.ListResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List user rooms
+      tags:
+      - room
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Room creation params
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/room.CreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/room.CreateResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new room
+      tags:
+      - room
+  /rooms/{roomSlug}:
+    post:
+      parameters:
+      - description: Room ID
+        in: path
+        name: roomSlug
+        required: true
+        type: string
+      responses:
+        "200":
+          description: OK
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Join current user to room
+      tags:
+      - room
+  /rooms/{roomSlug}/messages:
     get:
       parameters:
-      - description: Chat ID
+      - description: Room Slug
         in: path
-        name: roomID
+        name: roomSlug
         required: true
         type: string
       - description: Limit
@@ -322,92 +397,14 @@ paths:
       summary: List messages in a room
       tags:
       - message
-  /rooms:
-    get:
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/room.ListResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: List user rooms
-      tags:
-      - room
-    post:
-      consumes:
-      - application/json
-      parameters:
-      - description: Chat creation params
-        in: body
-        name: input
-        required: true
-        schema:
-          $ref: '#/definitions/room.CreateRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/room.CreateResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Create a new room
-      tags:
-      - room
-  /rooms/{roomID}:
-    post:
-      parameters:
-      - description: Room ID
-        in: path
-        name: roomID
-        required: true
-        type: string
-      responses:
-        "200":
-          description: OK
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-      security:
-      - BearerAuth: []
-      summary: Join current user to room
-      tags:
-      - room
-  /rooms/{roomID}/ws:
+  /rooms/{roomSlug}/ws:
     get:
       description: Connect to the websocket to receive real-time notifications in
         a room
       parameters:
-      - description: Chat ID
+      - description: Room ID
         in: path
-        name: roomID
+        name: roomSlug
         required: true
         type: string
       responses:

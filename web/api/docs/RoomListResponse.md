@@ -1,23 +1,19 @@
-# ModelChat
+# RoomListResponse
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**id** | **string** |  | [default to undefined]
-**name** | **string** |  | [optional] [default to undefined]
-**type** | **string** |  | [default to undefined]
+**rooms** | [**Array&lt;ModelRoom&gt;**](ModelRoom.md) |  | [default to undefined]
 
 ## Example
 
 ```typescript
-import { ModelChat } from './api';
+import { RoomListResponse } from './api';
 
-const instance: ModelChat = {
-    id,
-    name,
-    type,
+const instance: RoomListResponse = {
+    rooms,
 };
 ```
 

@@ -47,7 +47,7 @@ func NewService(rdb *redis.Client, userRepo repository.UserRepository, messageRe
 func (s *Service) HandleWebSocket(
 	w http.ResponseWriter,
 	r *http.Request,
-	roomID uuid.UUID,
+	room model.Room,
 	userID uuid.UUID,
 ) error {
 	user, err := s.userRepo.GetByID(r.Context(), userID)
@@ -64,13 +64,13 @@ func (s *Service) HandleWebSocket(
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	sub := s.rdb.Subscribe(ctx, roomID.String())
+	sub := s.rdb.Subscribe(ctx, room.ID.String())
 	defer sub.Close()
 
 	inErr := make(chan error, 1)
 	outErr := make(chan error, 1)
 
-	go s.handleIncoming(ctx, conn, roomID, user, inErr)
+	go s.handleIncoming(ctx, conn, room.ID, user, inErr)
 	go s.handleOutgoing(ctx, conn, sub.Channel(), outErr)
 
 	select {

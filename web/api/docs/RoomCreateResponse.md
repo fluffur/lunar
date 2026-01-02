@@ -1,21 +1,19 @@
-# UserSuccessResponse
+# RoomCreateResponse
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
-**data** | [**ModelUser**](ModelUser.md) |  | [default to undefined]
-**success** | **boolean** |  | [default to true]
+**id** | **string** |  | [default to undefined]
 
 ## Example
 
 ```typescript
-import { UserSuccessResponse } from './api';
+import { RoomCreateResponse } from './api';
 
-const instance: UserSuccessResponse = {
-    data,
-    success,
+const instance: RoomCreateResponse = {
+    id,
 };
 ```
 

@@ -169,63 +169,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/room/{roomID}/messages": {
-            "get": {
-                "security": [
-                    {
-                        "BearerAuth": []
-                    }
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "message"
-                ],
-                "summary": "List messages in a room",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Chat ID",
-                        "name": "roomID",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "type": "integer",
-                        "description": "Limit",
-                        "name": "limit",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Cursor",
-                        "name": "cursor",
-                        "in": "query"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/message.GetPagingResponse"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
         "/rooms": {
             "get": {
                 "security": [
@@ -276,7 +219,7 @@ const docTemplate = `{
                 "summary": "Create a new room",
                 "parameters": [
                     {
-                        "description": "Chat creation params",
+                        "description": "Room creation params",
                         "name": "input",
                         "in": "body",
                         "required": true,
@@ -313,7 +256,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/rooms/{roomID}": {
+        "/rooms/{roomSlug}": {
             "post": {
                 "security": [
                     {
@@ -328,7 +271,7 @@ const docTemplate = `{
                     {
                         "type": "string",
                         "description": "Room ID",
-                        "name": "roomID",
+                        "name": "roomSlug",
                         "in": "path",
                         "required": true
                     }
@@ -352,7 +295,64 @@ const docTemplate = `{
                 }
             }
         },
-        "/rooms/{roomID}/ws": {
+        "/rooms/{roomSlug}/messages": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "message"
+                ],
+                "summary": "List messages in a room",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Room Slug",
+                        "name": "roomSlug",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit",
+                        "name": "limit",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cursor",
+                        "name": "cursor",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/message.GetPagingResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/rooms/{roomSlug}/ws": {
             "get": {
                 "security": [
                     {
@@ -367,8 +367,8 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Chat ID",
-                        "name": "roomID",
+                        "description": "Room ID",
+                        "name": "roomSlug",
                         "in": "path",
                         "required": true
                     }
@@ -764,7 +764,6 @@ const docTemplate = `{
         "model.User": {
             "type": "object",
             "required": [
-                "avatarUrl",
                 "email",
                 "emailVerified",
                 "id",
@@ -790,15 +789,11 @@ const docTemplate = `{
         },
         "room.CreateRequest": {
             "type": "object",
-            "required": [
-                "type"
-            ],
             "properties": {
                 "name": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 50,
+                    "minLength": 3
                 }
             }
         },

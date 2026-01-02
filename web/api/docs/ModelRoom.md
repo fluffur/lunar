@@ -1,21 +1,25 @@
-# ChatCreateRequest
+# ModelRoom
 
 
 ## Properties
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**id** | **string** |  | [default to undefined]
+**members** | [**Array&lt;ModelRoomMember&gt;**](ModelRoomMember.md) |  | [optional] [default to undefined]
 **name** | **string** |  | [optional] [default to undefined]
-**type** | **string** |  | [default to undefined]
+**slug** | **string** |  | [default to undefined]
 
 ## Example
 
 ```typescript
-import { ChatCreateRequest } from './api';
+import { ModelRoom } from './api';
 
-const instance: ChatCreateRequest = {
+const instance: ModelRoom = {
+    id,
+    members,
     name,
-    type,
+    slug,
 };
 ```
 

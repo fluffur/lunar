@@ -17,6 +17,7 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	GetMessagesPaging(ctx context.Context, arg GetMessagesPagingParams) ([]GetMessagesPagingRow, error)
 	GetRoom(ctx context.Context, id uuid.UUID) (Room, error)
+	GetRoomBySlug(ctx context.Context, slug string) (Room, error)
 	GetUser(ctx context.Context, id uuid.UUID) (User, error)
 	GetUserByLogin(ctx context.Context, login string) (User, error)
 	GetUserRooms(ctx context.Context, userID uuid.UUID) ([]Room, error)

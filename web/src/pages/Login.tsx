@@ -35,7 +35,7 @@ export default function Login() {
             const {data: userData} = await userApi.usersMeGet()
             setUser(userData);
 
-            navigate('/chats')
+            navigate('/rooms')
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 const errors = error.response?.data?.error?.fields;

@@ -8,7 +8,6 @@ All URIs are relative to *http://localhost*
 |[**usersMeEmailPut**](#usersmeemailput) | **PUT** /users/me/email | Update user email|
 |[**usersMeGet**](#usersmeget) | **GET** /users/me | Get current user|
 |[**usersMePasswordPut**](#usersmepasswordput) | **PUT** /users/me/password | Change user password|
-|[**usersMeVerificationCodePost**](#usersmeverificationcodepost) | **POST** /users/me/verification-code | Send verification code|
 
 # **usersMeAvatarPost**
 > usersMeAvatarPost()
@@ -212,59 +211,6 @@ void (empty response body)
 |**204** | No Content |  -  |
 |**400** | Bad Request |  -  |
 |**401** | Unauthorized |  -  |
-|**500** | Internal Server Error |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **usersMeVerificationCodePost**
-> usersMeVerificationCodePost(input)
-
-
-### Example
-
-```typescript
-import {
-    UserApi,
-    Configuration,
-    UserSendVerificationCodeRequest
-} from './api';
-
-const configuration = new Configuration();
-const apiInstance = new UserApi(configuration);
-
-let input: UserSendVerificationCodeRequest; //Verification request
-
-const { status, data } = await apiInstance.usersMeVerificationCodePost(
-    input
-);
-```
-
-### Parameters
-
-|Name | Type | Description  | Notes|
-|------------- | ------------- | ------------- | -------------|
-| **input** | **UserSendVerificationCodeRequest**| Verification request | |
-
-
-### Return type
-
-void (empty response body)
-
-### Authorization
-
-[BearerAuth](../README.md#BearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: application/json
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**204** | No Content |  -  |
-|**400** | Bad Request |  -  |
 |**500** | Internal Server Error |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)

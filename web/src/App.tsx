@@ -4,13 +4,13 @@ import NotFound from "./pages/NotFound.tsx";
 import Login from "./pages/Login.tsx";
 import Register from "./pages/Register.tsx";
 import { ProtectedRoute } from "./layouts/ProtectedRoute.tsx";
-import { ChatsLayout } from "./layouts/ChatsLayout.tsx";
-import Chats from "./pages/Chats.tsx";
+import { RoomsLayout } from "./layouts/RoomsLayout.tsx";
+import Rooms from "./pages/Rooms.tsx";
 import { Header } from "./components/Header.tsx";
 import { useSessionStore } from "./stores/sessionStore.ts";
 import { useEffect } from "react";
 import { authApi, userApi } from "./api.ts";
-import Chat from "./pages/Chat.tsx";
+import Room from "./pages/Room.tsx";
 import Profile from "./pages/Profile.tsx";
 
 function App() {
@@ -40,9 +40,9 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route element={<ProtectedRoute />}>
                     <Route path="/profile" element={<Profile />} />
-                    <Route path="/chats" element={<ChatsLayout />}>
-                        <Route index element={<Chats />} />
-                        <Route path=":chatId" element={<Chat />} />
+                    <Route element={<RoomsLayout />}>
+                        <Route path="/rooms" element={<Rooms />} />
+                        <Route path="/r/:roomSlug" element={<Room />} />
                     </Route>
 
                 </Route>

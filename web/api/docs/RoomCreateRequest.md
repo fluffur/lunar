@@ -1,4 +1,4 @@
-# ChatCreateParams
+# RoomCreateRequest
 
 
 ## Properties
@@ -6,16 +6,14 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **string** |  | [optional] [default to undefined]
-**type** | **string** |  | [optional] [default to undefined]
 
 ## Example
 
 ```typescript
-import { ChatCreateParams } from './api';
+import { RoomCreateRequest } from './api';
 
-const instance: ChatCreateParams = {
+const instance: RoomCreateRequest = {
     name,
-    type,
 };
 ```
 

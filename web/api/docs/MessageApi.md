@@ -4,10 +4,10 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**chatsChatIDMessagesGet**](#chatschatidmessagesget) | **GET** /chats/{chatID}/messages | List messages in a chat|
+|[**roomsRoomSlugMessagesGet**](#roomsroomslugmessagesget) | **GET** /rooms/{roomSlug}/messages | List messages in a room|
 
-# **chatsChatIDMessagesGet**
-> MessageGetPagingResponse chatsChatIDMessagesGet()
+# **roomsRoomSlugMessagesGet**
+> MessageGetPagingResponse roomsRoomSlugMessagesGet()
 
 
 ### Example
@@ -21,12 +21,12 @@ import {
 const configuration = new Configuration();
 const apiInstance = new MessageApi(configuration);
 
-let chatID: string; //Chat ID (default to undefined)
+let roomSlug: string; //Room Slug (default to undefined)
 let limit: number; //Limit (optional) (default to undefined)
 let cursor: string; //Cursor (optional) (default to undefined)
 
-const { status, data } = await apiInstance.chatsChatIDMessagesGet(
-    chatID,
+const { status, data } = await apiInstance.roomsRoomSlugMessagesGet(
+    roomSlug,
     limit,
     cursor
 );
@@ -36,7 +36,7 @@ const { status, data } = await apiInstance.chatsChatIDMessagesGet(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **chatID** | [**string**] | Chat ID | defaults to undefined|
+| **roomSlug** | [**string**] | Room Slug | defaults to undefined|
 | **limit** | [**number**] | Limit | (optional) defaults to undefined|
 | **cursor** | [**string**] | Cursor | (optional) defaults to undefined|
 

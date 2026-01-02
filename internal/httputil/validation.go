@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/go-playground/validator/v10"
@@ -13,8 +14,15 @@ type Validator struct {
 	validate *validator.Validate
 }
 
+var alphaNumSpace = regexp.MustCompile(`^[a-zA-Z0-9 _-]+$`)
+
+func alphaNumSpaceValidator(fl validator.FieldLevel) bool {
+	return alphaNumSpace.MatchString(fl.Field().String())
+}
+
 func NewValidator() *Validator {
 	validate := validator.New()
+	validate.RegisterValidation("alphanumspace", alphaNumSpaceValidator)
 	validate.RegisterTagNameFunc(func(fld reflect.StructField) string {
 		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
 

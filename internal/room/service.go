@@ -17,13 +17,22 @@ func NewService(repo repository.RoomRepository) *Service {
 }
 
 func (s *Service) ListUserRooms(ctx context.Context, userID uuid.UUID) ([]model.Room, error) {
-	return s.repo.ListUserChats(ctx, userID)
+	return s.repo.ListUserRooms(ctx, userID)
 }
 
-func (s *Service) CreateChat(ctx context.Context, name, slug string) (model.Room, error) {
-	return s.repo.Create(ctx, model.NewRoom(name, slug))
+func (s *Service) CreateRoom(ctx context.Context, name string) (model.Room, error) {
+	room, err := model.NewRoom(name)
+	if err != nil {
+		return model.Room{}, err
+	}
+	return s.repo.Create(ctx, room)
 }
 
-func (s *Service) JoinUserToChat(ctx context.Context, userID uuid.UUID, roomID uuid.UUID) error {
-	return s.repo.AddMember(ctx, userID, roomID)
+func (s *Service) JoinUserToRoom(ctx context.Context, userID uuid.UUID, roomSlug string) (model.Room, error) {
+	room, err := s.repo.GetBySlug(ctx, roomSlug)
+	if err != nil {
+		return model.Room{}, err
+	}
+
+	return room, s.repo.AddMember(ctx, userID, room.ID)
 }

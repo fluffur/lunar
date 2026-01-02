@@ -31,3 +31,9 @@ SELECT EXISTS (SELECT 1
                FROM room_members
                WHERE room_id = $1
                  AND user_id = $2);
+
+-- name: GetRoomBySlug :one
+SELECT *
+FROM rooms
+WHERE slug = $1
+LIMIT 1;

@@ -12,7 +12,7 @@ type User struct {
 	Username      string    `json:"username" binding:"required"`
 	Email         string    `json:"email" binding:"required"`
 	PasswordHash  string    `json:"-"`
-	AvatarURL     string    `json:"avatarUrl" binding:"required"`
+	AvatarURL     string    `json:"avatarUrl"`
 	EmailVerified bool      `json:"emailVerified" binding:"required"`
 	CreatedAt     time.Time `json:"-" `
 }
@@ -26,9 +26,10 @@ func NewUser(username, email, password string) (User, error) {
 	return User{
 		ID:            uuid.Must(uuid.NewV7()),
 		Username:      username,
-		PasswordHash:  string(passwordHash),
 		Email:         email,
+		PasswordHash:  string(passwordHash),
 		EmailVerified: false,
+		CreatedAt:     time.Now(),
 	}, nil
 }
 

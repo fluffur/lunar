@@ -35,7 +35,7 @@ export default function Home() {
                 dolore magna aliqua.
             </Text>
             <Group>
-                <Button size="xl" component={Link} to={user ? '/chats' : '/register'}>
+                <Button size="xl" component={Link} to={user ? '/rooms' : '/register'}>
                     Get Started
                 </Button>
                 <Button size="xl" variant="default" component={Link} to="/login ">
