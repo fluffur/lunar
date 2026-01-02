@@ -1,4 +1,4 @@
-package message
+package pagination
 
 import (
 	"encoding/json"

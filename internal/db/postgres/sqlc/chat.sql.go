@@ -51,7 +51,7 @@ func (q *Queries) ChatExists(ctx context.Context, chatID uuid.UUID) (bool, error
 const createChat = `-- name: CreateChat :one
 INSERT INTO chats (id, name, type, created_at)
 VALUES ($1, $2, $3, $4)
-RETURNING chats.id
+RETURNING id, name, type, created_at
 `
 
 type CreateChatParams struct {
@@ -61,16 +61,21 @@ type CreateChatParams struct {
 	CreatedAt pgtype.Timestamptz `db:"created_at" json:"createdAt"`
 }
 
-func (q *Queries) CreateChat(ctx context.Context, arg CreateChatParams) (uuid.UUID, error) {
+func (q *Queries) CreateChat(ctx context.Context, arg CreateChatParams) (Chat, error) {
 	row := q.db.QueryRow(ctx, createChat,
 		arg.ID,
 		arg.Name,
 		arg.Type,
 		arg.CreatedAt,
 	)
-	var id uuid.UUID
-	err := row.Scan(&id)
-	return id, err
+	var i Chat
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Type,
+		&i.CreatedAt,
+	)
+	return i, err
 }
 
 const getChat = `-- name: GetChat :one

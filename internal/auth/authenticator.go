@@ -2,10 +2,10 @@ package auth
 
 import (
 	"fmt"
+	model "lunar/internal/model"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	"github.com/google/uuid"
 )
 
 type Authenticator struct {
@@ -18,15 +18,15 @@ func NewJWTAuthenticator(secret, issuer string, accessTTL time.Duration) *Authen
 	return &Authenticator{secret, issuer, accessTTL}
 }
 
-func (a *Authenticator) GenerateClaims(userID uuid.UUID, email string, isEmailVerified bool) *UserClaims {
+func (a *Authenticator) GenerateClaims(u model.User) *UserClaims {
 	now := time.Now()
 
 	return &UserClaims{
-		Email:           email,
-		IsVerifiedEmail: isEmailVerified,
+		Email:           u.Email,
+		IsVerifiedEmail: u.EmailVerified,
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    a.issuer,
-			Subject:   userID.String(),
+			Subject:   u.ID.String(),
 			IssuedAt:  jwt.NewNumericDate(now),
 			ExpiresAt: jwt.NewNumericDate(now.Add(a.accessTTL)),
 		},

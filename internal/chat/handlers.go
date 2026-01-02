@@ -3,7 +3,6 @@ package chat
 import (
 	"log/slog"
 	"lunar/internal/httputil"
-	"lunar/internal/model"
 	"lunar/internal/ws"
 	"net/http"
 
@@ -59,20 +58,20 @@ func (h *Handler) ListChats(w http.ResponseWriter, r *http.Request) {
 //	@Failure	500		{object}	httputil.ErrorResponse
 //	@Router		/chats [post]
 func (h *Handler) CreateChat(w http.ResponseWriter, r *http.Request) {
-	var params model.Chat
+	var params CreateRequest
 
 	if err := httputil.Read(r, &params); err != nil {
 		httputil.InvalidRequestBody(w)
 		return
 	}
 
-	chatID, err := h.service.CreateChat(r.Context(), params)
+	createdChat, err := h.service.CreateChat(r.Context(), params.Name, params.Type)
 	if err != nil {
 		httputil.InternalError(w, r, err)
 		return
 	}
 
-	httputil.Created(w, CreateResponse{ID: chatID})
+	httputil.Created(w, CreateResponse{ID: createdChat.ID})
 }
 
 // JoinCurrentUser godoc

@@ -3,7 +3,6 @@ package user
 import (
 	"errors"
 	"lunar/internal/httputil"
-	userModel "lunar/internal/model"
 	"net/http"
 )
 
@@ -39,7 +38,7 @@ func (h *Handler) CurrentUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httputil.SuccessData(w, userModel.UserFromRepo(user))
+	httputil.SuccessData(w, user)
 }
 
 // UpdateEmail updates the user's email
@@ -175,42 +174,4 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httputil.Success(w)
-}
-
-// SendVerificationCode sends a verification code to the user's email
-//
-//	@Summary	Send verification code
-//	@Tags		user
-//	@Accept		json
-//	@Produce	json
-//	@Security	BearerAuth
-//	@Param		input	body	SendVerificationCodeRequest	true	"Verification request"
-//	@Success	204
-//	@Failure	400	{object}	httputil.ErrorResponse
-//	@Failure	500	{object}	httputil.ErrorResponse
-//	@Router		/users/me/verification-code [post]
-func (h *Handler) SendVerificationCode(w http.ResponseWriter, r *http.Request) {
-	var req SendVerificationCodeRequest
-	if err := httputil.Read(r, &req); err != nil {
-		httputil.InvalidRequestBody(w)
-		return
-	}
-
-	if fieldErrs := h.validator.Validate(&req); fieldErrs != nil {
-		httputil.ValidationError(w, fieldErrs)
-		return
-	}
-
-	userCtx := httputil.UserFromRequest(r)
-
-	if err := h.service.SendVerificationCode(r.Context(), userCtx.ID); err != nil {
-		httputil.InternalError(w, r, err)
-		return
-	}
-
-	httputil.Success(w)
-}
-
-func (h *Handler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
-
 }

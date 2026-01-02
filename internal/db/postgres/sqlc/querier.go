@@ -13,7 +13,7 @@ import (
 type Querier interface {
 	AddUserToChat(ctx context.Context, arg AddUserToChatParams) error
 	ChatExists(ctx context.Context, chatID uuid.UUID) (bool, error)
-	CreateChat(ctx context.Context, arg CreateChatParams) (uuid.UUID, error)
+	CreateChat(ctx context.Context, arg CreateChatParams) (Chat, error)
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	GetChat(ctx context.Context, id uuid.UUID) (Chat, error)

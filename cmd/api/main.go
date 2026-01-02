@@ -6,6 +6,7 @@ import (
 	"lunar/internal/auth"
 	"lunar/internal/chat"
 	"lunar/internal/config"
+	"lunar/internal/db/postgres"
 	db "lunar/internal/db/postgres/sqlc"
 	redis2 "lunar/internal/db/redis"
 	"lunar/internal/httputil"
@@ -55,28 +56,20 @@ func main() {
 
 	queries := db.New(pool)
 
-	authenticator := auth.NewJWTAuthenticator(
-		cfg.Auth.AccessToken.Secret,
-		cfg.Auth.AccessToken.Issuer,
-		cfg.Auth.AccessToken.TTL,
-	)
+	accessCfg := cfg.Auth.AccessToken
+	authenticator := auth.NewJWTAuthenticator(accessCfg.Secret, accessCfg.Issuer, accessCfg.TTL)
 
-	refreshService := redis2.NewRefreshTokenRepository(
-		rdb,
-		cfg.Auth.RefreshToken.KeyPrefix,
-		cfg.Auth.RefreshToken.UserKeyPrefix,
-		cfg.Auth.RefreshToken.TTL,
-	)
-	authService := auth.NewService(
-		queries,
-		pool,
-		authenticator,
-		refreshService,
-	)
-	userService := user.NewService(queries, cfg.FileStore.AvatarsPath())
-	chatService := chat.NewService(queries)
+	refreshCfg := cfg.Auth.RefreshToken
+	refreshRepo := redis2.NewRefreshTokenRepository(rdb, refreshCfg.KeyPrefix, refreshCfg.UserKeyPrefix, refreshCfg.TTL)
+	userRepo := postgres.NewUserRepository(queries)
+	chatRepo := postgres.NewChatRepository(queries)
+	messageRepo := postgres.NewMessageRepository(queries)
+
+	authService := auth.NewService(authenticator, refreshRepo, userRepo)
+	userService := user.NewService(userRepo, cfg.FileStore.AvatarsPath())
+	chatService := chat.NewService(chatRepo)
 	wsService := ws.NewService(rdb, queries, cfg.CORS.AllowedOrigins)
-	messageService := message.NewService(queries, pool)
+	messageService := message.NewService(chatRepo, messageRepo)
 
 	validator := httputil.NewValidator()
 

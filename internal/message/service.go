@@ -5,42 +5,29 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	db2 "lunar/internal/db/postgres/sqlc"
 	"lunar/internal/model"
+	"lunar/internal/pagination"
+	"lunar/internal/repository"
 	"strconv"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
-	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Service struct {
-	queries *db2.Queries
-	db      *pgxpool.Pool
+	chatRepo    repository.ChatRepository
+	messageRepo repository.MessageRepository
 }
 
 var (
 	ErrChatNotFound = errors.New("chat not found")
 )
 
-func NewService(queries *db2.Queries, db *pgxpool.Pool) *Service {
-	return &Service{
-		queries: queries,
-		db:      db,
-	}
+func NewService(chatRepository repository.ChatRepository, messageRepository repository.MessageRepository) *Service {
+	return &Service{chatRepository, messageRepository}
 }
 
-func (s *Service) ListMessages(ctx context.Context, chatID uuid.UUID, limit int, cursor *Cursor) ([]model.Message, error) {
-	tx, err := s.db.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.ReadCommitted})
-	if err != nil {
-		return nil, err
-	}
-	defer tx.Rollback(ctx)
-
-	qtx := s.queries.WithTx(tx)
-
-	exists, err := qtx.ChatExists(ctx, chatID)
+func (s *Service) ListMessages(ctx context.Context, chatID uuid.UUID, limit int, cursor *pagination.Cursor) ([]model.Message, error) {
+	exists, err := s.chatRepo.ChatExists(ctx, chatID)
 	if err != nil {
 		return nil, err
 	}
@@ -48,33 +35,11 @@ func (s *Service) ListMessages(ctx context.Context, chatID uuid.UUID, limit int,
 		return nil, ErrChatNotFound
 	}
 
-	params := db2.GetMessagesPagingParams{
-		ChatID: chatID,
-		Limit:  int32(limit),
-	}
-
-	if cursor != nil {
-		params.CursorID = cursor.ID
-		params.CursorCreatedAt = pgtype.Timestamptz{
-			Time:  cursor.CreatedAt,
-			Valid: true,
-		}
-	}
-
-	rows, err := qtx.GetMessagesPaging(ctx, params)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := tx.Commit(ctx); err != nil {
-		return nil, err
-	}
-
-	return model.MessagesFromRepo(rows), nil
+	return s.messageRepo.ListMessages(ctx, chatID, limit, cursor)
 }
 
 func (s *Service) GenerateCursor(message model.Message) string {
-	c := Cursor{
+	c := pagination.Cursor{
 		ID:        message.ID,
 		CreatedAt: message.CreatedAt,
 	}
@@ -84,8 +49,8 @@ func (s *Service) GenerateCursor(message model.Message) string {
 	return base64.StdEncoding.EncodeToString(b)
 }
 
-func (s *Service) ParseCursor(cursorEncoded string) (Cursor, error) {
-	var cursor Cursor
+func (s *Service) ParseCursor(cursorEncoded string) (pagination.Cursor, error) {
+	var cursor pagination.Cursor
 
 	decoded, err := base64.StdEncoding.DecodeString(cursorEncoded)
 	if err != nil {
@@ -99,7 +64,7 @@ func (s *Service) ParseCursor(cursorEncoded string) (Cursor, error) {
 	return cursor, nil
 }
 
-func (s *Service) NormalizeLimit(limit string, max int, fallback int) int {
+func normalizeLimit(limit string, max int, fallback int) int {
 	if limit == "" {
 		return fallback
 	}

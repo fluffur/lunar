@@ -12,7 +12,7 @@ WHERE cm.user_id = $1;
 -- name: CreateChat :one
 INSERT INTO chats (id, name, type, created_at)
 VALUES ($1, $2, $3, $4)
-RETURNING chats.id;
+RETURNING *;
 
 -- name: AddUserToChat :exec
 INSERT INTO chat_members (id, chat_id, user_id, joined_at)

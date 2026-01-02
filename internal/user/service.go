@@ -2,92 +2,66 @@ package user
 
 import (
 	"context"
-	"crypto/rand"
 	"errors"
 	"fmt"
 	"image"
 	"image/jpeg"
 	"log/slog"
-	db2 "lunar/internal/db/postgres/sqlc"
-	"lunar/internal/db/redis"
-	"math/big"
+	"lunar/internal/model"
+	"lunar/internal/repository"
 	"mime/multipart"
 	"os"
 	"path/filepath"
-	"time"
 
 	"github.com/disintegration/imaging"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgconn"
-	"github.com/jackc/pgx/v5/pgtype"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type Service struct {
-	queries          db2.Querier
+	repo             repository.UserRepository
 	avatarsUploadDir string
-	emailQueue       *redis.EmailQueue
 }
 
-func NewService(queries db2.Querier, avatarsUploadDir string) *Service {
+func NewService(repo repository.UserRepository, avatarsUploadDir string) *Service {
 	return &Service{
-		queries:          queries,
-		avatarsUploadDir: avatarsUploadDir,
+		repo,
+		avatarsUploadDir,
 	}
 }
 
-func (s *Service) GetUser(ctx context.Context, id uuid.UUID) (db2.User, error) {
-	return s.queries.GetUser(ctx, id)
+func (s *Service) GetUser(ctx context.Context, id uuid.UUID) (model.User, error) {
+	return s.repo.GetByID(ctx, id)
 }
 
 func (s *Service) UpdateAvatar(ctx context.Context, id uuid.UUID, url string) error {
-	return s.queries.UpdateUserAvatar(ctx, db2.UpdateUserAvatarParams{
-		ID: id,
-		AvatarUrl: pgtype.Text{
-			String: url,
-			Valid:  true,
-		},
-	})
+	return s.repo.ChangeAvatar(ctx, id, url)
 }
 
 func (s *Service) UpdateEmail(ctx context.Context, id uuid.UUID, email string) error {
-	err := s.queries.UpdateUserEmail(ctx, db2.UpdateUserEmailParams{
-		ID:    id,
-		Email: email,
-	})
-
-	if err != nil {
-		var pgErr *pgconn.PgError
-		if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+	if err := s.repo.UpdateEmail(ctx, id, email); err != nil {
+		if errors.Is(err, repository.ErrUniqueAlreadyExists) {
 			return ErrEmailAlreadyExists
 		}
+		return err
 	}
-
-	return err
+	return nil
 }
 
 func (s *Service) UpdatePassword(ctx context.Context, id uuid.UUID, currentPassword, newPassword string) error {
-	user, err := s.queries.GetUser(ctx, id)
+	user, err := s.repo.GetByID(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	if err := bcrypt.CompareHashAndPassword([]byte(user.PasswordHash.String), []byte(currentPassword)); err != nil {
+	if err := user.ComparePasswords(currentPassword); err != nil {
 		return ErrInvalidCurrentPassword
 	}
 
-	newPasswordHash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
-	if err != nil {
+	if err := user.ChangePassword(newPassword); err != nil {
 		return err
 	}
 
-	return s.queries.UpdateUserPassword(ctx, db2.UpdateUserPasswordParams{
-		ID: id,
-		PasswordHash: pgtype.Text{
-			String: string(newPasswordHash),
-			Valid:  true,
-		},
-	})
+	return s.repo.UpdatePassword(ctx, user.ID, user.PasswordHash)
 }
 
 func (s *Service) UploadAvatar(file multipart.File) (string, error) {
@@ -114,40 +88,4 @@ func (s *Service) UploadAvatar(file multipart.File) (string, error) {
 	}
 
 	return resultFilename, nil
-}
-
-func (s *Service) SendVerificationCode(ctx context.Context, id uuid.UUID) error {
-	user, err := s.queries.GetUser(ctx, id)
-	if err != nil {
-		return err
-	}
-
-	n, err := rand.Int(rand.Reader, big.NewInt(1_000_000))
-	if err != nil {
-		return err
-	}
-
-	code := fmt.Sprintf("%06d", n)
-	codeHash, err := bcrypt.GenerateFromPassword([]byte(code), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-
-	if err := s.queries.UpsertEmailVerificationCode(ctx, db2.UpsertEmailVerificationCodeParams{
-		UserID:   id,
-		CodeHash: string(codeHash),
-		ExpiresAt: pgtype.Timestamptz{
-			Time:  time.Now().Add(time.Minute * 15),
-			Valid: true,
-		},
-	}); err != nil {
-		return err
-	}
-
-	return s.emailQueue.Enqueue(ctx, redis.EmailJob{
-		To:      user.Email,
-		Subject: "Verification Code",
-		Body:    code,
-	})
-
 }

@@ -1,7 +1,7 @@
 package model
 
 import (
-	db2 "lunar/internal/db/postgres/sqlc"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -15,35 +15,15 @@ type Message struct {
 	CreatedAt time.Time `json:"createdAt" binding:"required"`
 }
 
-func MessageFromRepo(
-	msg db2.Message,
-	sender db2.User,
-) Message {
+func NewMessage(chatID uuid.UUID, content string, sender User) (Message, error) {
+	if len(content) > 5000 {
+		return Message{}, fmt.Errorf("invalid content length")
+	}
 	return Message{
-		ID:        msg.ID,
-		ChatID:    msg.ChatID,
-		Content:   msg.Content,
-		CreatedAt: msg.CreatedAt.Time,
-		Sender:    UserFromRepo(sender),
-	}
-}
-
-func MessagesFromRepo(rows []db2.GetMessagesPagingRow) []Message {
-	result := make([]Message, 0, len(rows))
-	for _, r := range rows {
-		result = append(result, Message{
-			ID:        r.ID,
-			ChatID:    r.ChatID,
-			Content:   r.Content,
-			CreatedAt: r.CreatedAt.Time,
-			Sender: User{
-				ID:            r.SenderID,
-				Username:      r.Username,
-				Email:         r.Email,
-				AvatarURL:     textOrEmpty(r.AvatarUrl),
-				EmailVerified: r.EmailVerified,
-			},
-		})
-	}
-	return result
+		ID:        uuid.Must(uuid.NewV7()),
+		ChatID:    chatID,
+		Content:   content,
+		Sender:    sender,
+		CreatedAt: time.Now(),
+	}, nil
 }

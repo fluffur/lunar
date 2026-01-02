@@ -3,6 +3,7 @@ package message
 import (
 	"errors"
 	"lunar/internal/httputil"
+	"lunar/internal/pagination"
 	"net/http"
 
 	"github.com/google/uuid"
@@ -36,9 +37,9 @@ func NewHandler(validator *httputil.Validator, service *Service) *Handler {
 func (h *Handler) ListMessages(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	chatID := uuid.MustParse(r.PathValue("chatID"))
-	limit := h.service.NormalizeLimit(r.URL.Query().Get("limit"), 100, 32)
+	limit := normalizeLimit(r.URL.Query().Get("limit"), 100, 32)
 
-	var cursor *Cursor
+	var cursor *pagination.Cursor
 	if cursorStr := r.URL.Query().Get("cursor"); cursorStr != "" {
 		c, err := h.service.ParseCursor(cursorStr)
 		if err != nil {

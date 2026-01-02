@@ -7,7 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
-	"lunar/internal/auth"
+	"lunar/internal/repository"
 	"time"
 
 	"github.com/google/uuid"
@@ -25,7 +25,7 @@ type RefreshTokenRepository struct {
 	ttl           time.Duration
 }
 
-func NewRefreshTokenRepository(rdb *redis.Client, keyPrefix string, userKeyPrefix string, ttl time.Duration) auth.RefreshTokenRepository {
+func NewRefreshTokenRepository(rdb *redis.Client, keyPrefix string, userKeyPrefix string, ttl time.Duration) repository.RefreshTokenRepository {
 	return &RefreshTokenRepository{
 		rdb:           rdb,
 		keyPrefix:     keyPrefix,

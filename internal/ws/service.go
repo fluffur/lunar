@@ -7,19 +7,21 @@ import (
 	"log/slog"
 	db2 "lunar/internal/db/postgres/sqlc"
 	"lunar/internal/model"
+	"lunar/internal/repository"
 	"net/http"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
-	"github.com/jackc/pgx/v5/pgtype"
 	"github.com/redis/go-redis/v9"
 )
 
 type Service struct {
-	rdb      *redis.Client
-	queries  db2.Querier
-	upgrader *websocket.Upgrader
+	rdb         *redis.Client
+	queries     db2.Querier
+	upgrader    *websocket.Upgrader
+	userRepo    repository.UserRepository
+	messageRepo repository.MessageRepository
 }
 
 func NewService(rdb *redis.Client, queries db2.Querier, allowedOrigins []string) *Service {
@@ -49,7 +51,7 @@ func (s *Service) HandleWebSocket(
 	chatID uuid.UUID,
 	userID uuid.UUID,
 ) error {
-	user, err := s.queries.GetUser(r.Context(), userID)
+	user, err := s.userRepo.GetByID(r.Context(), userID)
 	if err != nil {
 		return err
 	}
@@ -87,7 +89,7 @@ func (s *Service) handleIncoming(
 	ctx context.Context,
 	conn *websocket.Conn,
 	chatID uuid.UUID,
-	user db2.User,
+	user model.User,
 	errChan chan error,
 ) {
 	for {
@@ -105,33 +107,38 @@ func (s *Service) handleIncoming(
 			if msgType != websocket.TextMessage {
 				continue
 			}
-			content := string(msgBytes)
-			if len(content) == 0 || len(content) > 5000 {
-				slog.Warn("Invalid content length")
-				continue
-			}
 
-			createdMessage, err := s.queries.CreateMessage(ctx, db2.CreateMessageParams{
-				ID:       uuid.Must(uuid.NewV7()),
-				ChatID:   chatID,
-				SenderID: user.ID,
-				Content:  content,
-				CreatedAt: pgtype.Timestamptz{
-					Time:  time.Now(),
-					Valid: true,
-				},
-			})
+			message, err := s.processMessage(ctx, chatID, string(msgBytes), user)
 			if err != nil {
-				slog.Warn("failed to create chat message:", "err", err)
+				slog.Warn("Error creating message", "err", err)
 				continue
 			}
 
-			msg := model.MessageFromRepo(createdMessage, user)
-			payload, _ := json.Marshal(msg)
+			payload, err := json.Marshal(message)
+			if err != nil {
+				slog.Warn("Error marshaling message", "err", err)
+				continue
+			}
+
 			s.rdb.Publish(ctx, chatID.String(), payload)
 
 		}
 	}
+}
+
+func (s *Service) processMessage(ctx context.Context, chatID uuid.UUID, content string, sender model.User) (model.Message, error) {
+	msg, err := model.NewMessage(chatID, content, sender)
+	if err != nil {
+		return model.Message{}, err
+	}
+
+	createdMessage, err := s.messageRepo.CreateMessage(ctx, msg)
+	if err != nil {
+		return model.Message{}, err
+	}
+
+	return createdMessage, nil
+
 }
 
 func (s *Service) handleOutgoing(

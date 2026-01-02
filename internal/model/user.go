@@ -1,25 +1,46 @@
 package model
 
 import (
-	db "lunar/internal/db/postgres/sqlc"
+	"time"
 
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type User struct {
 	ID            uuid.UUID `json:"id" binding:"required"`
 	Username      string    `json:"username" binding:"required"`
 	Email         string    `json:"email" binding:"required"`
+	PasswordHash  string    `json:"-"`
 	AvatarURL     string    `json:"avatarUrl" binding:"required"`
 	EmailVerified bool      `json:"emailVerified" binding:"required"`
+	CreatedAt     time.Time `json:"-" `
 }
 
-func UserFromRepo(user db.User) User {
-	return User{
-		ID:            user.ID,
-		Username:      user.Username,
-		Email:         user.Email,
-		AvatarURL:     user.AvatarUrl.String,
-		EmailVerified: user.EmailVerified,
+func NewUser(username, email, password string) (User, error) {
+	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return User{}, err
 	}
+
+	return User{
+		ID:            uuid.Must(uuid.NewV7()),
+		Username:      username,
+		PasswordHash:  string(passwordHash),
+		Email:         email,
+		EmailVerified: false,
+	}, nil
+}
+
+func (u *User) ComparePasswords(password string) error {
+	return bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password))
+}
+
+func (u *User) ChangePassword(newPassword string) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	u.PasswordHash = string(hash)
+	return nil
 }
