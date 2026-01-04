@@ -43,7 +43,7 @@ export default function Login() {
                     form.setErrors(errors);
                     return;
                 }
-                const message = error.response?.data?.error?.fields ?? 'Login failed';
+                const message = error.response?.data?.error?.message ?? 'Login failed';
                 setGeneralError(message)
             }
             throw error;
