@@ -20,3 +20,6 @@ swag:
 
 swag-client:
 	openapi-generator-cli generate -i docs/swagger.yaml -g typescript-axios -o web/api
+
+sqlc:
+	sqlc generate
