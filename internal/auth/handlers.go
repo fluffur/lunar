@@ -159,6 +159,7 @@ func (h *Handler) setRefreshTokenCookie(w http.ResponseWriter, refreshToken stri
 		HttpOnly: true,
 		Secure:   false,
 		SameSite: http.SameSiteLaxMode,
+		MaxAge:   60 * 60 * 24 * 30,
 	}
 	http.SetCookie(w, cookie)
 }

@@ -3,10 +3,13 @@ ifneq (,$(wildcard .env))
     export
 endif
 
-.PHONY: up
+.PHONY: up down swag swag-client
 
 up:
 	docker compose up -d
+
+migrate-up:
+	docker compose exec api go run ./cmd/migrate up
 
 down:
 	docker compose down
