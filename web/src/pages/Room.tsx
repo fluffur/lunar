@@ -27,7 +27,7 @@ export default function Room() {
     const { colorScheme, primaryColor } = useUiStore();
     const isMobile = useMediaQuery('(max-width: 768px)');
 
-    const [memberSidebarOpen, setMemberSidebarOpen] = useState(!isMobile);
+    const [memberSidebarOpen, setMemberSidebarOpen] = useState(false);
     const [value, setValue] = useState("");
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);

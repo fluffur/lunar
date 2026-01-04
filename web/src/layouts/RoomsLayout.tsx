@@ -8,7 +8,7 @@ import {IconChevronRight} from "@tabler/icons-react";
 export function RoomsLayout() {
     const isMobile = useMediaQuery('(max-width: 768px)');
     const {roomSlug} = useParams<string>();
-    const [sidebarOpen, setSidebarOpen] = useState(!isMobile);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
     const [prevRoomSlug, setPrevRoomSlug] = useState(roomSlug);
 
     if (roomSlug !== prevRoomSlug) {
