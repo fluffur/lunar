@@ -59,7 +59,7 @@ export default function Login() {
 
     const handleVerifySuccess = async () => {
         setUnverifiedEmail(null);
-        navigate('/rooms');
+        await handleSubmit(form.values);
     };
 
     return (

@@ -186,10 +186,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/auth.Tokens"
-                        }
+                        "description": "OK"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -672,6 +669,7 @@ const docTemplate = `{
             "properties": {
                 "login": {
                     "type": "string",
+                    "maxLength": 255,
                     "minLength": 3
                 },
                 "password": {
@@ -692,17 +690,21 @@ const docTemplate = `{
             "properties": {
                 "confirmPassword": {
                     "type": "string",
+                    "maxLength": 72,
                     "minLength": 6
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "password": {
                     "type": "string",
+                    "maxLength": 72,
                     "minLength": 6
                 },
                 "username": {
                     "type": "string",
+                    "maxLength": 32,
                     "minLength": 3
                 }
             }

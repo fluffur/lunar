@@ -2,6 +2,7 @@ definitions:
   auth.LoginCredentials:
     properties:
       login:
+        maxLength: 255
         minLength: 3
         type: string
       password:
@@ -15,14 +16,18 @@ definitions:
   auth.RegisterCredentials:
     properties:
       confirmPassword:
+        maxLength: 72
         minLength: 6
         type: string
       email:
+        maxLength: 255
         type: string
       password:
+        maxLength: 72
         minLength: 6
         type: string
       username:
+        maxLength: 32
         minLength: 3
         type: string
     required:
@@ -312,8 +317,6 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            $ref: '#/definitions/auth.Tokens'
         "400":
           description: Bad Request
           schema:
