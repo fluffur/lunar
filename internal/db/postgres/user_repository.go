@@ -178,6 +178,9 @@ func (r *UserRepository) GetVerificationCode(ctx context.Context, userID uuid.UU
 func (r *UserRepository) GetVerificationCodeByEmail(ctx context.Context, email string) (model.EmailVerificationCode, error) {
 	code, err := r.queries.GetEmailVerificationCodeByEmail(ctx, pgtype.Text{String: email, Valid: true})
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return model.EmailVerificationCode{}, repository.ErrVerificationCodeNotFound
+		}
 		return model.EmailVerificationCode{}, err
 	}
 	return mapVerificationCode(code), nil
@@ -185,4 +188,8 @@ func (r *UserRepository) GetVerificationCodeByEmail(ctx context.Context, email s
 
 func (r *UserRepository) IncrementVerificationAttempts(ctx context.Context, userID uuid.UUID) error {
 	return r.queries.IncrementVerificationAttempts(ctx, userID)
+}
+
+func (r *UserRepository) DeleteVerificationCode(ctx context.Context, userID uuid.UUID) error {
+	return r.queries.DeleteEmailVerificationCode(ctx, userID)
 }

@@ -10,6 +10,7 @@ import (
 
 var ErrUniqueAlreadyExists = errors.New("value already exists for unique field")
 var ErrUserNotFound = errors.New("user not found")
+var ErrVerificationCodeNotFound = errors.New("verification code not found")
 
 type UserRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (model.User, error)
@@ -25,4 +26,5 @@ type UserRepository interface {
 	GetVerificationCodeByEmail(ctx context.Context, email string) (model.EmailVerificationCode, error)
 	MarkEmailVerified(ctx context.Context, userID uuid.UUID) error
 	IncrementVerificationAttempts(ctx context.Context, userID uuid.UUID) error
+	DeleteVerificationCode(ctx context.Context, userID uuid.UUID) error
 }

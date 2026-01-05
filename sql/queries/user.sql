@@ -2,20 +2,17 @@
 SELECT *
 FROM users
 WHERE username = @login
-   OR email = @login
-LIMIT 1
+   OR email = @login LIMIT 1
 ;
 
 -- name: CreateUser :one
 INSERT INTO users (id, username, email, password_hash, created_at, avatar_url, email_verified)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING *;
+VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;
 
 -- name: GetUser :one
 SELECT *
 FROM users
-WHERE id = $1
-LIMIT 1;
+WHERE id = $1 LIMIT 1;
 
 -- name: UserWithUsernameExists :one
 SELECT EXISTS (SELECT 1
@@ -31,13 +28,12 @@ SELECT EXISTS (SELECT 1
 
 -- name: UpdateUserEmail :exec
 UPDATE users
-SET email          = $1,
-    email_verified = false
+SET email = $1
 WHERE id = $2;
 
 -- name: UpdateUserPassword :exec
 UPDATE users
-    SET password_hash = $1
+SET password_hash = $1
 WHERE id = $2;
 
 -- name: UpdateUserAvatar :exec
@@ -52,17 +48,21 @@ WHERE id = $1;
 
 -- name: UpsertEmailVerificationCode :exec
 INSERT INTO email_verification_codes (user_id, code_hash, pending_email, expires_at, attempts, created_at)
-VALUES ($1, $2, $3, $4, $5, $6)
-ON CONFLICT (user_id) DO UPDATE
-    SET code_hash     = EXCLUDED.code_hash,
-        pending_email = EXCLUDED.pending_email,
-        expires_at    = EXCLUDED.expires_at,
-        attempts      = EXCLUDED.attempts,
-        created_at    = EXCLUDED.created_at;
+VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (user_id) DO
+UPDATE
+    SET code_hash = EXCLUDED.code_hash,
+    pending_email = EXCLUDED.pending_email,
+    expires_at = EXCLUDED.expires_at,
+    attempts = EXCLUDED.attempts,
+    created_at = EXCLUDED.created_at;
 
 -- name: GetEmailVerificationCode :one
 SELECT *
 FROM email_verification_codes
+WHERE user_id = $1;
+
+-- name: DeleteEmailVerificationCode :exec
+DELETE FROM email_verification_codes
 WHERE user_id = $1;
 
 -- name: GetEmailVerificationCodeByEmail :one

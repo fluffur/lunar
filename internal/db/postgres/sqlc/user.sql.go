@@ -14,8 +14,7 @@ import (
 
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (id, username, email, password_hash, created_at, avatar_url, email_verified)
-VALUES ($1, $2, $3, $4, $5, $6, $7)
-RETURNING id, username, email, email_verified, password_hash, created_at, avatar_url
+VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id, username, email, email_verified, password_hash, created_at, avatar_url
 `
 
 type CreateUserParams struct {
@@ -49,6 +48,16 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.AvatarUrl,
 	)
 	return i, err
+}
+
+const deleteEmailVerificationCode = `-- name: DeleteEmailVerificationCode :exec
+DELETE FROM email_verification_codes
+WHERE user_id = $1
+`
+
+func (q *Queries) DeleteEmailVerificationCode(ctx context.Context, userID uuid.UUID) error {
+	_, err := q.db.Exec(ctx, deleteEmailVerificationCode, userID)
+	return err
 }
 
 const getEmailVerificationCode = `-- name: GetEmailVerificationCode :one
@@ -94,8 +103,7 @@ func (q *Queries) GetEmailVerificationCodeByEmail(ctx context.Context, pendingEm
 const getUser = `-- name: GetUser :one
 SELECT id, username, email, email_verified, password_hash, created_at, avatar_url
 FROM users
-WHERE id = $1
-LIMIT 1
+WHERE id = $1 LIMIT 1
 `
 
 func (q *Queries) GetUser(ctx context.Context, id uuid.UUID) (User, error) {
@@ -117,8 +125,7 @@ const getUserByLogin = `-- name: GetUserByLogin :one
 SELECT id, username, email, email_verified, password_hash, created_at, avatar_url
 FROM users
 WHERE username = $1
-   OR email = $1
-LIMIT 1
+   OR email = $1 LIMIT 1
 `
 
 func (q *Queries) GetUserByLogin(ctx context.Context, login string) (User, error) {
@@ -176,8 +183,7 @@ func (q *Queries) UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarPara
 
 const updateUserEmail = `-- name: UpdateUserEmail :exec
 UPDATE users
-SET email          = $1,
-    email_verified = false
+SET email = $1
 WHERE id = $2
 `
 
@@ -193,7 +199,7 @@ func (q *Queries) UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams
 
 const updateUserPassword = `-- name: UpdateUserPassword :exec
 UPDATE users
-    SET password_hash = $1
+SET password_hash = $1
 WHERE id = $2
 `
 
@@ -209,13 +215,13 @@ func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPassword
 
 const upsertEmailVerificationCode = `-- name: UpsertEmailVerificationCode :exec
 INSERT INTO email_verification_codes (user_id, code_hash, pending_email, expires_at, attempts, created_at)
-VALUES ($1, $2, $3, $4, $5, $6)
-ON CONFLICT (user_id) DO UPDATE
-    SET code_hash     = EXCLUDED.code_hash,
-        pending_email = EXCLUDED.pending_email,
-        expires_at    = EXCLUDED.expires_at,
-        attempts      = EXCLUDED.attempts,
-        created_at    = EXCLUDED.created_at
+VALUES ($1, $2, $3, $4, $5, $6) ON CONFLICT (user_id) DO
+UPDATE
+    SET code_hash = EXCLUDED.code_hash,
+    pending_email = EXCLUDED.pending_email,
+    expires_at = EXCLUDED.expires_at,
+    attempts = EXCLUDED.attempts,
+    created_at = EXCLUDED.created_at
 `
 
 type UpsertEmailVerificationCodeParams struct {

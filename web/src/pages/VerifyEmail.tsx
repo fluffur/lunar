@@ -1,33 +1,49 @@
-import { Anchor, Center, Group, Paper, Stack, Title, Text, Button } from '@mantine/core'
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { useState } from "react";
-import { IconCheck } from "@tabler/icons-react";
+import {Anchor, Button, Center, Group, Paper, Stack, Text, Title} from '@mantine/core'
+import {Link, useNavigate, useSearchParams} from "react-router-dom";
+import {useState} from "react";
+import {IconCheck} from "@tabler/icons-react";
 import VerifyEmailForm from "../components/VerifyEmailForm.tsx";
+import {userApi} from "../api.ts";
+import {useSessionStore} from "../stores/sessionStore.ts";
 
 export default function VerifyEmail() {
     const [searchParams] = useSearchParams();
     const [success, setSuccess] = useState(false);
     const navigate = useNavigate();
-
+    const {setUser} = useSessionStore()
     const emailParam = searchParams.get('email') || '';
     const codeParam = searchParams.get('code') || '';
 
     const handleSuccess = () => {
-        setSuccess(true);
-        setTimeout(() => {
-            navigate('/login');
-        }, 3000);
-    };
+            setSuccess(true);
+            userApi.usersMeGet()
+                .then((user) => {
+                    setUser(user.data)
+                    setTimeout(() => {
+
+                        navigate('/profile');
+                    }, 3000);
+                })
+                .catch(() => {
+                    setTimeout(() => {
+
+                        navigate('/login');
+                    }, 3000);
+
+                })
+
+        }
+    ;
 
     if (success) {
         return (
             <Center h="90vh">
                 <Paper withBorder shadow="xl" p="xl" radius="lg" mx="auto" maw={500} w="100%">
                     <Stack align="center" gap="md">
-                        <IconCheck size={50} color="green" />
+                        <IconCheck size={50} color="green"/>
                         <Title order={2}>Verified!</Title>
                         <Text>Your email has been successfully verified.</Text>
-                        <Text size="sm" c="dimmed">Redirecting to login...</Text>
+                        <Text size="sm" c="dimmed">Redirecting to...</Text>
                         <Button component={Link} to="/login">Go to Login</Button>
                     </Stack>
                 </Paper>

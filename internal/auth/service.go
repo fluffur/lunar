@@ -100,6 +100,19 @@ func (s *Service) SendEmailChangeVerification(ctx context.Context, userID uuid.U
 }
 
 func (s *Service) ResendVerificationEmail(ctx context.Context, email string) error {
+	storedCode, err := s.userRepo.GetVerificationCodeByEmail(ctx, email)
+	if err == nil {
+		user, err := s.userRepo.GetByID(ctx, storedCode.UserID)
+		if err == nil && user.EmailVerified && user.Email == email {
+			return ErrInvalidEmail
+		}
+		return s.sendVerificationCode(ctx, storedCode.UserID, email)
+	}
+
+	if !errors.Is(err, repository.ErrVerificationCodeNotFound) {
+		return err
+	}
+
 	user, err := s.userRepo.GetByLogin(ctx, email)
 	if err != nil {
 		if errors.Is(err, repository.ErrUserNotFound) {
@@ -147,8 +160,12 @@ func (s *Service) VerifyEmail(ctx context.Context, email, code string) error {
 	}
 
 	if storedCode.PendingEmail != "" && storedCode.PendingEmail != user.Email {
-		return s.userRepo.UpdateEmail(ctx, user.ID, storedCode.PendingEmail)
+		if err := s.userRepo.UpdateEmail(ctx, user.ID, storedCode.PendingEmail); err != nil {
+			return err
+		}
 	}
+
+	_ = s.userRepo.DeleteVerificationCode(ctx, user.ID)
 
 	return nil
 }

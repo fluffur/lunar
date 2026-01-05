@@ -2,6 +2,7 @@ import axios from "axios";
 import { useSessionStore } from "./stores/sessionStore.ts";
 import { API_BASE_URL } from "./config.ts";
 import { AuthApi, RoomApi, MessageApi, UserApi } from "../api";
+import { router } from "./router.tsx";
 
 export const api = axios.create({
     baseURL: API_BASE_URL + '/api',
@@ -52,7 +53,7 @@ api.interceptors.response.use(
                             if (token) {
                                 const claims = parseJwt(token);
                                 if (claims && claims.email) {
-                                    window.location.href = `/verify?email=${encodeURIComponent(claims.email)}`;
+                                    await router.navigate(`/verify?email=${encodeURIComponent(claims.email)}`);
                                 }
                             }
                         }

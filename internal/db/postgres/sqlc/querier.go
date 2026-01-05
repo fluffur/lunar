@@ -16,6 +16,7 @@ type Querier interface {
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
 	CreateRoom(ctx context.Context, arg CreateRoomParams) (Room, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteEmailVerificationCode(ctx context.Context, userID uuid.UUID) error
 	GetEmailVerificationCode(ctx context.Context, userID uuid.UUID) (EmailVerificationCode, error)
 	GetEmailVerificationCodeByEmail(ctx context.Context, pendingEmail pgtype.Text) (EmailVerificationCode, error)
 	GetMessagesPaging(ctx context.Context, arg GetMessagesPagingParams) ([]GetMessagesPagingRow, error)
