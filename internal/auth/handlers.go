@@ -83,11 +83,11 @@ func (h *Handler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.service.VerifyEmail(r.Context(), input.Email, input.Code); err != nil {
-		if errors.Is(err, ErrInvalidCredentials) || errors.Is(err, ErrInvalidEmail) || err.Error() == "invalid code" {
+		if errors.Is(err, ErrInvalidCredentials) || errors.Is(err, ErrInvalidEmail) || errors.Is(err, ErrInvalidCode) {
 			httputil.ValidationError(w, map[string]string{"code": "invalid code or email"})
 			return
 		}
-		if err.Error() == "code expired" {
+		if errors.Is(err, ErrCodeExpired) {
 			httputil.ValidationError(w, map[string]string{"code": "expired"})
 			return
 		}

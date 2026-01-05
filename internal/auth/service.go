@@ -22,6 +22,8 @@ var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrEmailNotVerified   = errors.New("email not verified")
 	ErrTooManyAttempts    = errors.New("too many attempts")
+	ErrCodeExpired        = errors.New("code expired")
+	ErrInvalidCode        = errors.New("invalid code")
 )
 
 type Service struct {
@@ -132,12 +134,12 @@ func (s *Service) VerifyEmail(ctx context.Context, email, code string) error {
 	}
 
 	if time.Now().After(storedCode.ExpiresAt) {
-		return errors.New("code expired")
+		return ErrCodeExpired
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(storedCode.CodeHash), []byte(code)); err != nil {
 		_ = s.userRepo.IncrementVerificationAttempts(ctx, user.ID)
-		return errors.New("invalid code")
+		return ErrInvalidCode
 	}
 
 	if err := s.userRepo.MarkEmailVerified(ctx, user.ID); err != nil {
