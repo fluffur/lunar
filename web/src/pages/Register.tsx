@@ -1,10 +1,11 @@
 import { useForm } from '@mantine/form'
 import { Anchor, Button, Center, Group, Paper, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core'
-import { authApi } from "../api.ts";
+import { authApi, userApi } from "../api.ts";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useState } from "react";
 import VerifyEmailForm from "../components/VerifyEmailForm.tsx";
+import { useSessionStore } from "../stores/sessionStore.ts";
 
 export default function Register() {
     const [generalError, setGeneralError] = useState<string | null>(null)
@@ -21,6 +22,7 @@ export default function Register() {
     })
 
     const navigate = useNavigate();
+    const { setToken, setUser } = useSessionStore();
 
     const handleSubmit = async (user: typeof form.values) => {
         try {
@@ -42,8 +44,23 @@ export default function Register() {
 
     }
 
-    const handleVerifySuccess = () => {
-        navigate('/rooms');
+    const handleVerifySuccess = async () => {
+        try {
+            // Silently login using the registration credentials
+            const { data } = await authApi.authLoginPost({
+                login: form.values.username,
+                password: form.values.password
+            });
+            setToken(data.accessToken);
+
+            const { data: userData } = await userApi.usersMeGet();
+            setUser(userData);
+
+            navigate('/rooms');
+        } catch (error) {
+            console.error('Auto-login failed after verification:', error);
+            navigate('/login');
+        }
     };
 
     return (

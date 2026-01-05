@@ -374,7 +374,7 @@ export const AuthApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authVerifyPost(input: AuthVerifyEmailRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthTokens>> {
+        async authVerifyPost(input: AuthVerifyEmailRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authVerifyPost(input, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authVerifyPost']?.[localVarOperationServerIndex]?.url;
@@ -447,7 +447,7 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authVerifyPost(input: AuthVerifyEmailRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthTokens> {
+        authVerifyPost(input: AuthVerifyEmailRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.authVerifyPost(input, options).then((request) => request(axios, basePath));
         },
         /**
