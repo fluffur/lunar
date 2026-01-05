@@ -90,7 +90,7 @@ export default function Register() {
                     </form>
 
                     {registeredEmail && (
-                        <Paper withBorder p="md" mt="md" bg="var(--mantine-color-blue-light)">
+                        <Paper withBorder p="md" mt="md" bg="">
                             <Text size="sm" mb="xs" fw={500}>Registration successful! Please verify your email.</Text>
                             <VerifyEmailForm
                                 initialEmail={registeredEmail}

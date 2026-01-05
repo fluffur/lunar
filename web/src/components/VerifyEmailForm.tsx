@@ -1,10 +1,10 @@
-import { useForm } from '@mantine/form'
-import { Button, Group, Stack, Text, TextInput } from '@mantine/core'
-import { authApi, userApi } from "../api.ts";
+import {useForm} from '@mantine/form'
+import {Button, Group, Stack, Text, TextInput} from '@mantine/core'
+import {authApi, userApi} from "../api.ts";
 import axios from "axios";
-import { useEffect, useState } from "react";
-import { IconX } from "@tabler/icons-react";
-import { useSessionStore } from "../stores/sessionStore.ts";
+import {useEffect, useState} from "react";
+import {IconX} from "@tabler/icons-react";
+import {useSessionStore} from "../stores/sessionStore.ts";
 
 interface VerifyEmailFormProps {
     initialEmail?: string;
@@ -15,32 +15,38 @@ interface VerifyEmailFormProps {
     minimal?: boolean;
 }
 
-export default function VerifyEmailForm({ initialEmail = '', initialCode = '', onSuccess, autoVerify = false, fixedEmail = false, minimal = false }: VerifyEmailFormProps) {
+export default function VerifyEmailForm({
+                                            initialEmail = '',
+                                            initialCode = '',
+                                            onSuccess,
+                                            autoVerify = false,
+                                            fixedEmail = false,
+                                            minimal = false
+                                        }: VerifyEmailFormProps) {
     const [generalError, setGeneralError] = useState<string | null>(null)
     const [verifying, setVerifying] = useState(false);
     const [resending, setResending] = useState(false);
     const [attemptsError, setAttemptsError] = useState(false);
 
     const form = useForm({
-        initialValues: { email: initialEmail, code: initialCode },
+        initialValues: {email: initialEmail, code: initialCode},
         validate: {
             email: (v) => (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ? null : 'Invalid email'),
             code: (v) => (v.length > 0 ? null : 'Enter code'),
         },
     });
 
-    const { setToken, setUser } = useSessionStore();
+    const {setToken, setUser} = useSessionStore();
 
     const verify = async (email: string, code: string) => {
         setVerifying(true);
         setGeneralError(null);
         try {
-            const { data } = await authApi.authVerifyPost({ email, code });
+            const {data} = await authApi.authVerifyPost({email, code});
 
-            // If tokens are returned (auto-login), update the session store
             if (data?.accessToken) {
                 setToken(data.accessToken);
-                const { data: userData } = await userApi.usersMeGet();
+                const {data: userData} = await userApi.usersMeGet();
                 setUser(userData);
             }
 
@@ -72,7 +78,7 @@ export default function VerifyEmailForm({ initialEmail = '', initialCode = '', o
         setGeneralError(null);
         setAttemptsError(false);
         try {
-            await authApi.authVerifyResendPost({ email: form.values.email });
+            await authApi.authVerifyResendPost({email: form.values.email});
             setGeneralError(null);
         } catch (error) {
             if (axios.isAxiosError(error)) {
@@ -102,7 +108,7 @@ export default function VerifyEmailForm({ initialEmail = '', initialCode = '', o
                 <Stack>
                     {generalError && (
                         <Group gap="xs" c="red">
-                            <IconX size={16} />
+                            <IconX size={16}/>
                             <Text c="red" size="sm">{generalError}</Text>
                         </Group>
                     )}
