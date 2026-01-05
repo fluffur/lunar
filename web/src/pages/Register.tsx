@@ -1,16 +1,15 @@
-import {useForm} from '@mantine/form'
-import {Anchor, Button, Center, Group, Paper, PasswordInput, Stack, Text, TextInput, Title} from '@mantine/core'
-import {authApi, userApi} from "../api.ts";
-import {useSessionStore} from "../stores/sessionStore.ts";
-import {Link, useNavigate} from "react-router-dom";
+import { useForm } from '@mantine/form'
+import { Anchor, Button, Center, Group, Paper, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core'
+import { authApi } from "../api.ts";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import {useState} from "react";
+import { useState } from "react";
 
 export default function Register() {
     const [generalError, setGeneralError] = useState<string | null>(null)
 
     const form = useForm({
-        initialValues: {username: '', email: '', password: '', confirmPassword: ''},
+        initialValues: { username: '', email: '', password: '', confirmPassword: '' },
         validate: {
             username: (v) => (!v ? 'Enter username' : !/^[a-zA-Z0-9_]{3,}$/.test(v) ? 'Username should be correct' : null),
             email: (v) => (!v ? 'Enter email' : null),
@@ -19,20 +18,13 @@ export default function Register() {
         },
     })
 
-    const {setToken, setUser} = useSessionStore();
+
     const navigate = useNavigate();
 
     const handleSubmit = async (user: typeof form.values) => {
         try {
-            const {data} = await authApi.authRegisterPost(user)
-
-            const token = data.accessToken;
-            setToken(token ?? "");
-
-            const {data: userData} = await userApi.usersMeGet()
-            setUser(userData);
-
-            navigate('/rooms')
+            await authApi.authRegisterPost(user)
+            navigate(`/verify?email=${encodeURIComponent(user.email)}`)
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 const errors = error.response?.data?.error?.fields;
@@ -63,7 +55,7 @@ export default function Register() {
                             <TextInput type="email" placeholder="email" size="lg" {...form.getInputProps('email')} />
                             <PasswordInput placeholder="input password" size="lg" {...form.getInputProps('password')} />
                             <PasswordInput placeholder="confirm password"
-                                           size="lg" {...form.getInputProps('confirmPassword')} />
+                                size="lg" {...form.getInputProps('confirmPassword')} />
                             <Button type="submit" fullWidth size="lg">
                                 Register
                             </Button>

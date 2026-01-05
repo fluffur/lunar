@@ -45,3 +45,11 @@ func (u *User) ChangePassword(newPassword string) error {
 	u.PasswordHash = string(hash)
 	return nil
 }
+
+type EmailVerificationCode struct {
+	UserID    uuid.UUID
+	CodeHash  string
+	ExpiresAt time.Time
+	Attempts  int
+	CreatedAt time.Time
+}

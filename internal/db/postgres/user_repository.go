@@ -6,6 +6,7 @@ import (
 	db "lunar/internal/db/postgres/sqlc"
 	"lunar/internal/model"
 	"lunar/internal/repository"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
@@ -128,4 +129,40 @@ func (r *UserRepository) UpdateEmail(ctx context.Context, id uuid.UUID, email st
 
 	return err
 
+}
+
+func (r *UserRepository) MarkEmailVerified(ctx context.Context, userID uuid.UUID) error {
+	return r.queries.MarkEmailVerified(ctx, userID)
+}
+
+func (r *UserRepository) SaveVerificationCode(ctx context.Context, userID uuid.UUID, codeHash string, duration string) error {
+	dur, err := time.ParseDuration(duration)
+	if err != nil {
+		return err
+	}
+	return r.queries.UpsertEmailVerificationCode(ctx, db.UpsertEmailVerificationCodeParams{
+		UserID:    userID,
+		CodeHash:  codeHash,
+		ExpiresAt: timestampFromTime(time.Now().Add(dur)),
+		Attempts:  0,
+		CreatedAt: timestampFromTime(time.Now()),
+	})
+}
+
+func (r *UserRepository) GetVerificationCode(ctx context.Context, userID uuid.UUID) (model.EmailVerificationCode, error) {
+	code, err := r.queries.GetEmailVerificationCode(ctx, userID)
+	if err != nil {
+		return model.EmailVerificationCode{}, err
+	}
+	return model.EmailVerificationCode{
+		UserID:    code.UserID,
+		CodeHash:  code.CodeHash,
+		ExpiresAt: code.ExpiresAt.Time,
+		Attempts:  int(code.Attempts),
+		CreatedAt: code.CreatedAt.Time,
+	}, nil
+}
+
+func (r *UserRepository) IncrementVerificationAttempts(ctx context.Context, userID uuid.UUID) error {
+	return r.queries.IncrementVerificationAttempts(ctx, userID)
 }

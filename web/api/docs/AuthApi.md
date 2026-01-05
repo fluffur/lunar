@@ -8,6 +8,8 @@ All URIs are relative to *http://localhost*
 |[**authLogoutPost**](#authlogoutpost) | **POST** /auth/logout | Logout a user|
 |[**authRefreshPost**](#authrefreshpost) | **POST** /auth/refresh | Refresh access token|
 |[**authRegisterPost**](#authregisterpost) | **POST** /auth/register | Register a new user|
+|[**authVerifyPost**](#authverifypost) | **POST** /auth/verify | Verify email|
+|[**authVerifyResendPost**](#authverifyresendpost) | **POST** /auth/verify/resend | Resend verification code|
 
 # **authLoginPost**
 > AuthTokens authLoginPost(input)
@@ -153,7 +155,7 @@ No authorization required
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **authRegisterPost**
-> AuthTokens authRegisterPost(input)
+> authRegisterPost(input)
 
 
 ### Example
@@ -184,7 +186,113 @@ const { status, data } = await apiInstance.authRegisterPost(
 
 ### Return type
 
-**AuthTokens**
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | OK |  -  |
+|**400** | Bad Request |  -  |
+|**500** | Internal Server Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **authVerifyPost**
+> authVerifyPost(input)
+
+
+### Example
+
+```typescript
+import {
+    AuthApi,
+    Configuration,
+    AuthVerifyEmailRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new AuthApi(configuration);
+
+let input: AuthVerifyEmailRequest; //Verification credentials
+
+const { status, data } = await apiInstance.authVerifyPost(
+    input
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **input** | **AuthVerifyEmailRequest**| Verification credentials | |
+
+
+### Return type
+
+void (empty response body)
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | OK |  -  |
+|**400** | Bad Request |  -  |
+|**500** | Internal Server Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **authVerifyResendPost**
+> authVerifyResendPost(input)
+
+
+### Example
+
+```typescript
+import {
+    AuthApi,
+    Configuration,
+    AuthResendVerificationCodeRequest
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new AuthApi(configuration);
+
+let input: AuthResendVerificationCodeRequest; //Email
+
+const { status, data } = await apiInstance.authVerifyResendPost(
+    input
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **input** | **AuthResendVerificationCodeRequest**| Email | |
+
+
+### Return type
+
+void (empty response body)
 
 ### Authorization
 

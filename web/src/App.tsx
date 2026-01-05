@@ -12,6 +12,7 @@ import { useEffect } from "react";
 import { authApi, userApi } from "./api.ts";
 import Room from "./pages/Room.tsx";
 import Profile from "./pages/Profile.tsx";
+import VerifyEmail from "./pages/VerifyEmail.tsx";
 
 function App() {
     const { setUser, logout, setInitialized, setToken } = useSessionStore();
@@ -48,6 +49,7 @@ function App() {
                 </Route>
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/verify" element={<VerifyEmail />} />
                 <Route path="/404" element={<NotFound />} />
                 <Route path="*" element={<NotFound />} />
 

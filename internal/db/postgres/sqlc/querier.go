@@ -15,13 +15,16 @@ type Querier interface {
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
 	CreateRoom(ctx context.Context, arg CreateRoomParams) (Room, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	GetEmailVerificationCode(ctx context.Context, userID uuid.UUID) (EmailVerificationCode, error)
 	GetMessagesPaging(ctx context.Context, arg GetMessagesPagingParams) ([]GetMessagesPagingRow, error)
 	GetRoom(ctx context.Context, id uuid.UUID) (Room, error)
 	GetRoomBySlug(ctx context.Context, slug string) (Room, error)
 	GetUser(ctx context.Context, id uuid.UUID) (User, error)
 	GetUserByLogin(ctx context.Context, login string) (User, error)
 	GetUserRooms(ctx context.Context, userID uuid.UUID) ([]Room, error)
+	IncrementVerificationAttempts(ctx context.Context, userID uuid.UUID) error
 	IsUserRoomMember(ctx context.Context, arg IsUserRoomMemberParams) (bool, error)
+	MarkEmailVerified(ctx context.Context, id uuid.UUID) error
 	RoomExists(ctx context.Context, id uuid.UUID) (bool, error)
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error
 	UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) error

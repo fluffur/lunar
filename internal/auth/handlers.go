@@ -24,10 +24,10 @@ func NewHandler(validator *httputil.Validator, service *Service) *Handler {
 //	@Tags		auth
 //	@Accept		json
 //	@Produce	json
-//	@Param		input	body		RegisterCredentials	true	"Registration credentials"
-//	@Success	200		{object}	Tokens
-//	@Failure	400		{object}	httputil.ErrorResponse
-//	@Failure	500		{object}	httputil.ErrorResponse
+//	@Param		input	body	RegisterCredentials	true	"Registration credentials"
+//	@Success	200
+//	@Failure	400	{object}	httputil.ErrorResponse
+//	@Failure	500	{object}	httputil.ErrorResponse
 //	@Router		/auth/register [post]
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	var credentials RegisterCredentials
@@ -42,7 +42,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tokens, err := h.service.Register(r.Context(), credentials)
+	_, err := h.service.Register(r.Context(), credentials)
 	if err != nil {
 		if errors.Is(err, ErrUsernameExists) {
 			httputil.ValidationError(w, map[string]string{"username": err.Error()})
@@ -56,8 +56,79 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.setRefreshTokenCookie(w, tokens.RefreshToken)
-	httputil.SuccessData(w, tokens)
+	httputil.Success(w)
+}
+
+// VerifyEmail verifies email
+//
+//	@Summary	Verify email
+//	@Tags		auth
+//	@Accept		json
+//	@Produce	json
+//	@Param		input	body	VerifyEmailRequest	true	"Verification credentials"
+//	@Success	200
+//	@Failure	400	{object}	httputil.ErrorResponse
+//	@Failure	500	{object}	httputil.ErrorResponse
+//	@Router		/auth/verify [post]
+func (h *Handler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
+	var input VerifyEmailRequest
+	if err := httputil.Read(r, &input); err != nil {
+		httputil.InvalidRequestBody(w)
+		return
+	}
+
+	if fieldErrs := h.validator.Validate(&input); fieldErrs != nil {
+		httputil.ValidationError(w, fieldErrs)
+		return
+	}
+
+	if err := h.service.VerifyEmail(r.Context(), input.Email, input.Code); err != nil {
+		if errors.Is(err, ErrInvalidCredentials) || errors.Is(err, ErrInvalidEmail) || err.Error() == "invalid code" {
+			httputil.ValidationError(w, map[string]string{"code": "invalid code or email"})
+			return
+		}
+		if err.Error() == "code expired" {
+			httputil.ValidationError(w, map[string]string{"code": "expired"})
+			return
+		}
+		if errors.Is(err, ErrTooManyAttempts) {
+			httputil.SimpleError(w, http.StatusTooManyRequests, "too many attempts, please resend code")
+			return
+		}
+		httputil.InternalError(w, r, err)
+		return
+	}
+
+	httputil.Success(w)
+}
+
+// ResendVerificationEmail
+//
+//	@Summary	Resend verification code
+//	@Tags		auth
+//	@Accept		json
+//	@Produce	json
+//	@Param		input	body	ResendVerificationCodeRequest	true	"Email"
+//	@Success	200
+//	@Failure	400	{object}	httputil.ErrorResponse
+//	@Failure	500	{object}	httputil.ErrorResponse
+//	@Router		/auth/verify/resend [post]
+func (h *Handler) ResendVerificationEmail(w http.ResponseWriter, r *http.Request) {
+	var input ResendVerificationCodeRequest
+	if err := httputil.Read(r, &input); err != nil {
+		httputil.InvalidRequestBody(w)
+		return
+	}
+
+	if fieldErrs := h.validator.Validate(&input); fieldErrs != nil {
+		httputil.ValidationError(w, fieldErrs)
+		return
+	}
+
+	if err := h.service.ResendVerificationEmail(r.Context(), input.Email); err != nil {
+		httputil.InternalError(w, r, err)
+		return
+	}
 }
 
 // Login logs in a user
@@ -86,6 +157,10 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	tokens, err := h.service.Login(r.Context(), credentials)
 	if err != nil {
 		if errors.Is(err, ErrInvalidCredentials) {
+			httputil.Unauthorized(w, err.Error())
+			return
+		}
+		if errors.Is(err, ErrEmailNotVerified) {
 			httputil.Unauthorized(w, err.Error())
 			return
 		}
