@@ -47,50 +47,60 @@ export default function Register() {
     };
 
     return (
-        <Center h="90vh">
+        <Center mih="calc(100vh - 80px)" py="xl">
             <Paper withBorder shadow="xl" p="xl" radius="lg" mx="auto" maw={500} w="100%">
-                <Title order={2} ta="center" mb="lg">
+                <Title order={2} ta="center" mb="md">
                     Create account
                 </Title>
 
-                <Stack>
+                <Stack gap="sm">
                     <form onSubmit={form.onSubmit(handleSubmit)}>
-                        <Stack>
+                        <Stack gap="xs">
                             {generalError && <Text c="red" size="sm">{generalError}</Text>}
 
-                            <TextInput
-                                placeholder="username"
-                                size="lg"
-                                {...form.getInputProps('username')}
-                                disabled={!!registeredEmail}
-                            />
-                            <TextInput
-                                type="email"
-                                placeholder="email"
-                                size="lg"
-                                {...form.getInputProps('email')}
-                                disabled={!!registeredEmail}
-                            />
-                            <PasswordInput
-                                placeholder="input password"
-                                size="lg"
-                                {...form.getInputProps('password')}
-                                disabled={!!registeredEmail}
-                            />
-                            <PasswordInput
-                                placeholder="confirm password"
-                                size="lg"
-                                {...form.getInputProps('confirmPassword')}
-                                disabled={!!registeredEmail}
-                            />
-                            <Button type="submit" fullWidth size="lg" disabled={!!registeredEmail}>
+                            <Group grow gap="xs">
+                                <TextInput
+                                    label="Username"
+                                    placeholder="your username"
+                                    size="md"
+                                    {...form.getInputProps('username')}
+                                    disabled={!!registeredEmail}
+                                />
+                                <TextInput
+                                    label="Email"
+                                    type="email"
+                                    placeholder="your@email.com"
+                                    size="md"
+                                    {...form.getInputProps('email')}
+                                    disabled={!!registeredEmail}
+                                />
+                            </Group>
+
+                            <Group grow gap="xs">
+                                <PasswordInput
+                                    label="Password"
+                                    placeholder="create password"
+                                    size="md"
+                                    {...form.getInputProps('password')}
+                                    disabled={!!registeredEmail}
+                                />
+                                <PasswordInput
+                                    label="Confirm Password"
+                                    placeholder="repeat password"
+                                    size="md"
+                                    {...form.getInputProps('confirmPassword')}
+                                    disabled={!!registeredEmail}
+                                />
+                            </Group>
+
+                            <Button type="submit" fullWidth size="md" mt="xs" disabled={!!registeredEmail}>
                                 Register
                             </Button>
                         </Stack>
                     </form>
 
                     {registeredEmail && (
-                        <Paper withBorder p="md" mt="md" bg="">
+                        <Paper withBorder p="sm" mt="sm" bg="">
                             <Text size="sm" mb="xs" fw={500}>Registration successful! Please verify your email.</Text>
                             <VerifyEmailForm
                                 initialEmail={registeredEmail}
@@ -101,9 +111,9 @@ export default function Register() {
                     )}
                 </Stack>
 
-                <Group mt="md">
+                <Group mt="md" justify="center">
                     <Text size="sm">
-                        Already have an account?{' '}
+                        {"Already have an account?"}{' '}
                         <Anchor component={Link} to="/login">
                             Sign in
                         </Anchor>

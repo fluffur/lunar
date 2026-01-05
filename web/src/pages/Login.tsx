@@ -63,36 +63,38 @@ export default function Login() {
     };
 
     return (
-        <Center h="90vh">
-            <Paper withBorder shadow="xl" p="xl" radius="lg" mx="auto" maw={500} w="100%">
-                <Title order={2} ta="center" mb="lg">
+        <Center mih="calc(100vh - 80px)" py="xl">
+            <Paper withBorder shadow="xl" p="xl" radius="lg" mx="auto" maw={450} w="100%">
+                <Title order={2} ta="center" mb="md">
                     Sign in
                 </Title>
 
-                <Stack>
+                <Stack gap="sm">
                     <form onSubmit={form.onSubmit(handleSubmit)}>
-                        <Stack>
+                        <Stack gap="xs">
                             {generalError && <Text c="red" size="sm">{generalError}</Text>}
                             <TextInput
+                                label="Login"
                                 placeholder="email or username"
-                                size="lg"
+                                size="md"
                                 {...form.getInputProps('login')}
                                 disabled={!!unverifiedEmail}
                             />
                             <PasswordInput
+                                label="Password"
                                 placeholder="input password"
-                                size="lg"
+                                size="md"
                                 {...form.getInputProps('password')}
                                 disabled={!!unverifiedEmail}
                             />
-                            <Button type="submit" fullWidth size="lg" disabled={!!unverifiedEmail}>
+                            <Button type="submit" fullWidth size="md" mt="xs" disabled={!!unverifiedEmail}>
                                 Login
                             </Button>
                         </Stack>
                     </form>
 
                     {unverifiedEmail && (
-                        <Paper withBorder p="md" mt="md" bg="var(--mantine-color-blue-light)">
+                        <Paper withBorder p="sm" mt="sm" bg="var(--mantine-color-blue-light)">
                             <Text size="sm" mb="xs" fw={500}>Verification required</Text>
                             <VerifyEmailForm
                                 initialEmail={unverifiedEmail}
@@ -103,7 +105,7 @@ export default function Login() {
                     )}
                 </Stack>
 
-                <Group mt="md">
+                <Group mt="md" justify="center">
                     <Text size="sm">
                         {"Don't have an account?"}{' '}
                         <Anchor component={Link} to={"/register"}>
