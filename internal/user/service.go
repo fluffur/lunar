@@ -2,11 +2,11 @@ package user
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"image"
 	"image/jpeg"
 	"log/slog"
+	"lunar/internal/auth"
 	"lunar/internal/model"
 	"lunar/internal/repository"
 	"mime/multipart"
@@ -19,12 +19,14 @@ import (
 
 type Service struct {
 	repo             repository.UserRepository
+	authService      *auth.Service
 	avatarsUploadDir string
 }
 
-func NewService(repo repository.UserRepository, avatarsUploadDir string) *Service {
+func NewService(repo repository.UserRepository, authService *auth.Service, avatarsUploadDir string) *Service {
 	return &Service{
 		repo,
+		authService,
 		avatarsUploadDir,
 	}
 }
@@ -38,13 +40,15 @@ func (s *Service) UpdateAvatar(ctx context.Context, id uuid.UUID, url string) er
 }
 
 func (s *Service) UpdateEmail(ctx context.Context, id uuid.UUID, email string) error {
-	if err := s.repo.UpdateEmail(ctx, id, email); err != nil {
-		if errors.Is(err, repository.ErrUniqueAlreadyExists) {
-			return ErrEmailAlreadyExists
-		}
+	exists, err := s.repo.CheckEmailExists(ctx, email)
+	if err != nil {
 		return err
 	}
-	return nil
+	if exists {
+		return ErrEmailAlreadyExists
+	}
+
+	return s.authService.SendEmailChangeVerification(ctx, id, email)
 }
 
 func (s *Service) UpdatePassword(ctx context.Context, id uuid.UUID, currentPassword, newPassword string) error {

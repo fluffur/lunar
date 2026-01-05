@@ -126,6 +126,10 @@ func (h *Handler) ResendVerificationEmail(w http.ResponseWriter, r *http.Request
 	}
 
 	if err := h.service.ResendVerificationEmail(r.Context(), input.Email); err != nil {
+		if errors.Is(err, ErrInvalidEmail) {
+			httputil.ValidationError(w, map[string]string{"email": err.Error()})
+			return
+		}
 		httputil.InternalError(w, r, err)
 		return
 	}

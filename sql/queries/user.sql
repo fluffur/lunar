@@ -51,18 +51,24 @@ SET email_verified = true
 WHERE id = $1;
 
 -- name: UpsertEmailVerificationCode :exec
-INSERT INTO email_verification_codes (user_id, code_hash, expires_at, attempts, created_at)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO email_verification_codes (user_id, code_hash, pending_email, expires_at, attempts, created_at)
+VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT (user_id) DO UPDATE
-    SET code_hash  = EXCLUDED.code_hash,
-        expires_at = EXCLUDED.expires_at,
-        attempts   = EXCLUDED.attempts,
-        created_at = EXCLUDED.created_at;
+    SET code_hash     = EXCLUDED.code_hash,
+        pending_email = EXCLUDED.pending_email,
+        expires_at    = EXCLUDED.expires_at,
+        attempts      = EXCLUDED.attempts,
+        created_at    = EXCLUDED.created_at;
 
 -- name: GetEmailVerificationCode :one
 SELECT *
 FROM email_verification_codes
 WHERE user_id = $1;
+
+-- name: GetEmailVerificationCodeByEmail :one
+SELECT *
+FROM email_verification_codes
+WHERE pending_email = $1;
 
 -- name: IncrementVerificationAttempts :exec
 UPDATE email_verification_codes

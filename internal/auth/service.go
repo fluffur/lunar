@@ -78,7 +78,7 @@ func (s *Service) sendVerificationCode(ctx context.Context, userID uuid.UUID, em
 		return err
 	}
 
-	if err := s.userRepo.SaveVerificationCode(ctx, userID, string(hashedCode), "15m"); err != nil {
+	if err := s.userRepo.SaveVerificationCode(ctx, userID, email, string(hashedCode), "15m"); err != nil {
 		return err
 	}
 
@@ -91,6 +91,10 @@ func (s *Service) generateVerificationCode() string {
 		return "000000"
 	}
 	return fmt.Sprintf("%06d", n)
+}
+
+func (s *Service) SendEmailChangeVerification(ctx context.Context, userID uuid.UUID, newEmail string) error {
+	return s.sendVerificationCode(ctx, userID, newEmail)
 }
 
 func (s *Service) ResendVerificationEmail(ctx context.Context, email string) error {
@@ -110,18 +114,17 @@ func (s *Service) ResendVerificationEmail(ctx context.Context, email string) err
 }
 
 func (s *Service) VerifyEmail(ctx context.Context, email, code string) error {
-	user, err := s.userRepo.GetByLogin(ctx, email)
+	storedCode, err := s.userRepo.GetVerificationCodeByEmail(ctx, email)
 	if err != nil {
-		return ErrInvalidEmail
+		if errors.Is(err, pgx.ErrNoRows) {
+			return ErrInvalidEmail
+		}
+		return err
 	}
 
-	if user.EmailVerified {
-		return repository.ErrUniqueAlreadyExists
-	}
-
-	storedCode, err := s.userRepo.GetVerificationCode(ctx, user.ID)
+	user, err := s.userRepo.GetByID(ctx, storedCode.UserID)
 	if err != nil {
-		return ErrInvalidCredentials
+		return err
 	}
 
 	if storedCode.Attempts >= 5 {
@@ -137,7 +140,15 @@ func (s *Service) VerifyEmail(ctx context.Context, email, code string) error {
 		return errors.New("invalid code")
 	}
 
-	return s.userRepo.MarkEmailVerified(ctx, user.ID)
+	if err := s.userRepo.MarkEmailVerified(ctx, user.ID); err != nil {
+		return err
+	}
+
+	if storedCode.PendingEmail != "" && storedCode.PendingEmail != user.Email {
+		return s.userRepo.UpdateEmail(ctx, user.ID, storedCode.PendingEmail)
+	}
+
+	return nil
 }
 
 func (s *Service) Login(ctx context.Context, credentials LoginCredentials) (Tokens, error) {

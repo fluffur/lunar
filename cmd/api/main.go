@@ -59,7 +59,7 @@ func main() {
 	messageRepo := postgres.NewMessageRepository(queries)
 
 	authService := auth.NewService(authenticator, refreshRepo, userRepo, notification.NewLogEmailSender(logger))
-	userService := user.NewService(userRepo, cfg.FileStore.AvatarsPath())
+	userService := user.NewService(userRepo, authService, cfg.FileStore.AvatarsPath())
 	roomService := room.NewService(roomRepo)
 	wsService := ws.NewService(rdb, userRepo, messageRepo, cfg.CORS.AllowedOrigins)
 	messageService := message.NewService(roomRepo, messageRepo)

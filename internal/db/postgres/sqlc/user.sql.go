@@ -52,7 +52,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getEmailVerificationCode = `-- name: GetEmailVerificationCode :one
-SELECT user_id, code_hash, expires_at, attempts, created_at
+SELECT user_id, code_hash, expires_at, attempts, created_at, pending_email
 FROM email_verification_codes
 WHERE user_id = $1
 `
@@ -66,6 +66,27 @@ func (q *Queries) GetEmailVerificationCode(ctx context.Context, userID uuid.UUID
 		&i.ExpiresAt,
 		&i.Attempts,
 		&i.CreatedAt,
+		&i.PendingEmail,
+	)
+	return i, err
+}
+
+const getEmailVerificationCodeByEmail = `-- name: GetEmailVerificationCodeByEmail :one
+SELECT user_id, code_hash, expires_at, attempts, created_at, pending_email
+FROM email_verification_codes
+WHERE pending_email = $1
+`
+
+func (q *Queries) GetEmailVerificationCodeByEmail(ctx context.Context, pendingEmail pgtype.Text) (EmailVerificationCode, error) {
+	row := q.db.QueryRow(ctx, getEmailVerificationCodeByEmail, pendingEmail)
+	var i EmailVerificationCode
+	err := row.Scan(
+		&i.UserID,
+		&i.CodeHash,
+		&i.ExpiresAt,
+		&i.Attempts,
+		&i.CreatedAt,
+		&i.PendingEmail,
 	)
 	return i, err
 }
@@ -187,27 +208,30 @@ func (q *Queries) UpdateUserPassword(ctx context.Context, arg UpdateUserPassword
 }
 
 const upsertEmailVerificationCode = `-- name: UpsertEmailVerificationCode :exec
-INSERT INTO email_verification_codes (user_id, code_hash, expires_at, attempts, created_at)
-VALUES ($1, $2, $3, $4, $5)
+INSERT INTO email_verification_codes (user_id, code_hash, pending_email, expires_at, attempts, created_at)
+VALUES ($1, $2, $3, $4, $5, $6)
 ON CONFLICT (user_id) DO UPDATE
-    SET code_hash  = EXCLUDED.code_hash,
-        expires_at = EXCLUDED.expires_at,
-        attempts   = EXCLUDED.attempts,
-        created_at = EXCLUDED.created_at
+    SET code_hash     = EXCLUDED.code_hash,
+        pending_email = EXCLUDED.pending_email,
+        expires_at    = EXCLUDED.expires_at,
+        attempts      = EXCLUDED.attempts,
+        created_at    = EXCLUDED.created_at
 `
 
 type UpsertEmailVerificationCodeParams struct {
-	UserID    uuid.UUID          `db:"user_id" json:"userId"`
-	CodeHash  string             `db:"code_hash" json:"codeHash"`
-	ExpiresAt pgtype.Timestamptz `db:"expires_at" json:"expiresAt"`
-	Attempts  int32              `db:"attempts" json:"attempts"`
-	CreatedAt pgtype.Timestamptz `db:"created_at" json:"createdAt"`
+	UserID       uuid.UUID          `db:"user_id" json:"userId"`
+	CodeHash     string             `db:"code_hash" json:"codeHash"`
+	PendingEmail pgtype.Text        `db:"pending_email" json:"pendingEmail"`
+	ExpiresAt    pgtype.Timestamptz `db:"expires_at" json:"expiresAt"`
+	Attempts     int32              `db:"attempts" json:"attempts"`
+	CreatedAt    pgtype.Timestamptz `db:"created_at" json:"createdAt"`
 }
 
 func (q *Queries) UpsertEmailVerificationCode(ctx context.Context, arg UpsertEmailVerificationCodeParams) error {
 	_, err := q.db.Exec(ctx, upsertEmailVerificationCode,
 		arg.UserID,
 		arg.CodeHash,
+		arg.PendingEmail,
 		arg.ExpiresAt,
 		arg.Attempts,
 		arg.CreatedAt,

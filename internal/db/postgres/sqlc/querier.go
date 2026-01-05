@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
@@ -16,6 +17,7 @@ type Querier interface {
 	CreateRoom(ctx context.Context, arg CreateRoomParams) (Room, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	GetEmailVerificationCode(ctx context.Context, userID uuid.UUID) (EmailVerificationCode, error)
+	GetEmailVerificationCodeByEmail(ctx context.Context, pendingEmail pgtype.Text) (EmailVerificationCode, error)
 	GetMessagesPaging(ctx context.Context, arg GetMessagesPagingParams) ([]GetMessagesPagingRow, error)
 	GetRoom(ctx context.Context, id uuid.UUID) (Room, error)
 	GetRoomBySlug(ctx context.Context, slug string) (Room, error)

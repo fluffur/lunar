@@ -10,11 +10,12 @@ import (
 )
 
 type EmailVerificationCode struct {
-	UserID    uuid.UUID          `db:"user_id" json:"userId"`
-	CodeHash  string             `db:"code_hash" json:"codeHash"`
-	ExpiresAt pgtype.Timestamptz `db:"expires_at" json:"expiresAt"`
-	Attempts  int32              `db:"attempts" json:"attempts"`
-	CreatedAt pgtype.Timestamptz `db:"created_at" json:"createdAt"`
+	UserID       uuid.UUID          `db:"user_id" json:"userId"`
+	CodeHash     string             `db:"code_hash" json:"codeHash"`
+	ExpiresAt    pgtype.Timestamptz `db:"expires_at" json:"expiresAt"`
+	Attempts     int32              `db:"attempts" json:"attempts"`
+	CreatedAt    pgtype.Timestamptz `db:"created_at" json:"createdAt"`
+	PendingEmail pgtype.Text        `db:"pending_email" json:"pendingEmail"`
 }
 
 type Message struct {
