@@ -3,7 +3,7 @@ import { Button, Group, Stack, Text, TextInput } from '@mantine/core'
 import { authApi } from "../api.ts";
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { IconX } from "@tabler/icons-react";
+import { IconCheck, IconX } from "@tabler/icons-react";
 
 interface VerifyEmailFormProps {
     initialEmail?: string;
@@ -12,6 +12,7 @@ interface VerifyEmailFormProps {
     autoVerify?: boolean;
     fixedEmail?: boolean;
     minimal?: boolean;
+    autoResend?: boolean;
 }
 
 export default function VerifyEmailForm({
@@ -20,9 +21,11 @@ export default function VerifyEmailForm({
     onSuccess,
     autoVerify = false,
     fixedEmail = false,
-    minimal = false
+    minimal = false,
+    autoResend = false
 }: VerifyEmailFormProps) {
     const [generalError, setGeneralError] = useState<string | null>(null)
+    const [resendSuccess, setResendSuccess] = useState(false);
     const [verifying, setVerifying] = useState(false);
     const [resending, setResending] = useState(false);
     const [attemptsError, setAttemptsError] = useState(false);
@@ -70,6 +73,7 @@ export default function VerifyEmailForm({
         try {
             await authApi.authVerifyResendPost({ email: form.values.email });
             setGeneralError(null);
+            setResendSuccess(true);
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 form.setErrors(error.response?.data?.error?.fields ?? [])
@@ -86,6 +90,9 @@ export default function VerifyEmailForm({
         if (autoVerify && initialEmail && initialCode) {
             verify(initialEmail, initialCode);
         }
+        if (autoResend && initialEmail && !initialCode) {
+            resendCode();
+        }
     }, []);
 
     const handleSubmit = async (values: typeof form.values) => {
@@ -100,6 +107,12 @@ export default function VerifyEmailForm({
                         <Group gap="xs" c="red">
                             <IconX size={16} />
                             <Text c="red" size="sm">{generalError}</Text>
+                        </Group>
+                    )}
+                    {resendSuccess && (
+                        <Group gap="xs" c="green">
+                            <IconCheck size={16} />
+                            <Text c="green" size="sm">New code sent!</Text>
                         </Group>
                     )}
                     {!minimal && (
