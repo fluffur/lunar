@@ -1,9 +1,10 @@
 import { useForm } from '@mantine/form'
 import { Button, Group, Stack, Text, TextInput } from '@mantine/core'
-import { authApi } from "../api.ts";
+import { authApi, userApi } from "../api.ts";
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { IconX } from "@tabler/icons-react";
+import { useSessionStore } from "../stores/sessionStore.ts";
 
 interface VerifyEmailFormProps {
     initialEmail?: string;
@@ -11,9 +12,10 @@ interface VerifyEmailFormProps {
     onSuccess: () => void;
     autoVerify?: boolean;
     fixedEmail?: boolean;
+    minimal?: boolean;
 }
 
-export default function VerifyEmailForm({ initialEmail = '', initialCode = '', onSuccess, autoVerify = false, fixedEmail = false }: VerifyEmailFormProps) {
+export default function VerifyEmailForm({ initialEmail = '', initialCode = '', onSuccess, autoVerify = false, fixedEmail = false, minimal = false }: VerifyEmailFormProps) {
     const [generalError, setGeneralError] = useState<string | null>(null)
     const [verifying, setVerifying] = useState(false);
     const [resending, setResending] = useState(false);
@@ -27,11 +29,21 @@ export default function VerifyEmailForm({ initialEmail = '', initialCode = '', o
         },
     });
 
+    const { setToken, setUser } = useSessionStore();
+
     const verify = async (email: string, code: string) => {
         setVerifying(true);
         setGeneralError(null);
         try {
-            await authApi.authVerifyPost({ email, code });
+            const { data } = await authApi.authVerifyPost({ email, code });
+
+            // If tokens are returned (auto-login), update the session store
+            if (data?.accessToken) {
+                setToken(data.accessToken);
+                const { data: userData } = await userApi.usersMeGet();
+                setUser(userData);
+            }
+
             onSuccess();
         } catch (error) {
             if (axios.isAxiosError(error)) {
@@ -94,13 +106,15 @@ export default function VerifyEmailForm({ initialEmail = '', initialCode = '', o
                             <Text c="red" size="sm">{generalError}</Text>
                         </Group>
                     )}
-                    <TextInput
-                        label="Email"
-                        placeholder="your@email.com"
-                        size="md"
-                        {...form.getInputProps('email')}
-                        disabled={fixedEmail}
-                    />
+                    {!minimal && (
+                        <TextInput
+                            label="Email"
+                            placeholder="your@email.com"
+                            size="md"
+                            {...form.getInputProps('email')}
+                            disabled={fixedEmail}
+                        />
+                    )}
                     <TextInput
                         label="Verification Code"
                         placeholder="Enter code"

@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -128,46 +127,61 @@ func (s *Service) ResendVerificationEmail(ctx context.Context, email string) err
 	return s.sendVerificationCode(ctx, user.ID, user.Email)
 }
 
-func (s *Service) VerifyEmail(ctx context.Context, email, code string) error {
+func (s *Service) VerifyEmail(ctx context.Context, email, code string) (Tokens, error) {
 	storedCode, err := s.userRepo.GetVerificationCodeByEmail(ctx, email)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return ErrInvalidEmail
+		if errors.Is(err, repository.ErrVerificationCodeNotFound) {
+			return Tokens{}, ErrInvalidEmail
 		}
-		return err
+		return Tokens{}, err
 	}
 
 	user, err := s.userRepo.GetByID(ctx, storedCode.UserID)
 	if err != nil {
-		return err
+		return Tokens{}, err
 	}
 
 	if storedCode.Attempts >= 5 {
-		return ErrTooManyAttempts
+		return Tokens{}, ErrTooManyAttempts
 	}
 
 	if time.Now().After(storedCode.ExpiresAt) {
-		return ErrCodeExpired
+		return Tokens{}, ErrCodeExpired
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(storedCode.CodeHash), []byte(code)); err != nil {
 		_ = s.userRepo.IncrementVerificationAttempts(ctx, user.ID)
-		return ErrInvalidCode
+		return Tokens{}, ErrInvalidCode
 	}
 
 	if err := s.userRepo.MarkEmailVerified(ctx, user.ID); err != nil {
-		return err
+		return Tokens{}, err
 	}
 
 	if storedCode.PendingEmail != "" && storedCode.PendingEmail != user.Email {
 		if err := s.userRepo.UpdateEmail(ctx, user.ID, storedCode.PendingEmail); err != nil {
-			return err
+			return Tokens{}, err
 		}
+		user.Email = storedCode.PendingEmail
 	}
 
 	_ = s.userRepo.DeleteVerificationCode(ctx, user.ID)
 
-	return nil
+	// Auto-login: generate tokens
+	claims := s.authenticator.GenerateClaims(user)
+	accessToken, err := s.authenticator.GenerateToken(claims)
+	if err != nil {
+		return Tokens{}, err
+	}
+	refreshToken, err := s.refreshRepo.Issue(ctx, user.ID)
+	if err != nil {
+		return Tokens{}, err
+	}
+
+	return Tokens{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }
 
 func (s *Service) Login(ctx context.Context, credentials LoginCredentials) (Tokens, error) {

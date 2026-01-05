@@ -65,10 +65,10 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 //	@Tags		auth
 //	@Accept		json
 //	@Produce	json
-//	@Param		input	body	VerifyEmailRequest	true	"Verification credentials"
-//	@Success	200
-//	@Failure	400	{object}	httputil.ErrorResponse
-//	@Failure	500	{object}	httputil.ErrorResponse
+//	@Param		input	body		VerifyEmailRequest	true	"Verification credentials"
+//	@Success	200		{object}	Tokens
+//	@Failure	400		{object}	httputil.ErrorResponse
+//	@Failure	500		{object}	httputil.ErrorResponse
 //	@Router		/auth/verify [post]
 func (h *Handler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
 	var input VerifyEmailRequest
@@ -82,7 +82,8 @@ func (h *Handler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.VerifyEmail(r.Context(), input.Email, input.Code); err != nil {
+	tokens, err := h.service.VerifyEmail(r.Context(), input.Email, input.Code)
+	if err != nil {
 		if errors.Is(err, ErrInvalidCredentials) || errors.Is(err, ErrInvalidEmail) || errors.Is(err, ErrInvalidCode) {
 			httputil.ValidationError(w, map[string]string{"code": "invalid code or email"})
 			return
@@ -99,7 +100,9 @@ func (h *Handler) VerifyEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httputil.Success(w)
+	h.setRefreshTokenCookie(w, tokens.RefreshToken)
+
+	httputil.SuccessData(w, tokens)
 }
 
 // ResendVerificationEmail
