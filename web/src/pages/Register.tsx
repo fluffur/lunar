@@ -1,16 +1,17 @@
-import {useForm} from '@mantine/form'
-import {Anchor, Button, Center, Group, Paper, PasswordInput, Stack, Text, TextInput, Title} from '@mantine/core'
-import {authApi, userApi} from "../api.ts";
-import {useSessionStore} from "../stores/sessionStore.ts";
-import {Link, useNavigate} from "react-router-dom";
+import { useForm } from '@mantine/form'
+import { Anchor, Button, Center, Group, Paper, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core'
+import { authApi } from "../api.ts";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import {useState} from "react";
+import { useState } from "react";
+import VerifyEmailForm from "../components/VerifyEmailForm.tsx";
 
 export default function Register() {
     const [generalError, setGeneralError] = useState<string | null>(null)
+    const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
 
     const form = useForm({
-        initialValues: {username: '', email: '', password: '', confirmPassword: ''},
+        initialValues: { username: '', email: '', password: '', confirmPassword: '' },
         validate: {
             username: (v) => (!v ? 'Enter username' : !/^[a-zA-Z0-9_]{3,}$/.test(v) ? 'Username should be correct' : null),
             email: (v) => (!v ? 'Enter email' : null),
@@ -19,20 +20,13 @@ export default function Register() {
         },
     })
 
-    const {setToken, setUser} = useSessionStore();
     const navigate = useNavigate();
 
     const handleSubmit = async (user: typeof form.values) => {
         try {
-            const {data} = await authApi.authRegisterPost(user)
-
-            const token = data.accessToken;
-            setToken(token ?? "");
-
-            const {data: userData} = await userApi.usersMeGet()
-            setUser(userData);
-
-            navigate('/rooms')
+            await authApi.authRegisterPost(user)
+            setRegisteredEmail(user.email);
+            setGeneralError(null);
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 const errors = error.response?.data?.error?.fields;
@@ -47,33 +41,79 @@ export default function Register() {
         }
 
     }
+
+    const handleVerifySuccess = () => {
+        navigate('/rooms');
+    };
+
     return (
-        <Center h="90vh">
+        <Center mih="calc(100vh - 80px)" py="xl">
             <Paper withBorder shadow="xl" p="xl" radius="lg" mx="auto" maw={500} w="100%">
-                <Title order={2} ta="center" mb="lg">
+                <Title order={2} ta="center" mb="md">
                     Create account
                 </Title>
 
-                <Stack>
+                <Stack gap="sm">
                     <form onSubmit={form.onSubmit(handleSubmit)}>
-                        <Stack>
-                            {generalError && <Text color="red">{generalError}</Text>}
+                        <Stack gap="xs">
+                            {generalError && <Text c="red" size="sm">{generalError}</Text>}
 
-                            <TextInput placeholder="username" size="lg" {...form.getInputProps('username')} />
-                            <TextInput type="email" placeholder="email" size="lg" {...form.getInputProps('email')} />
-                            <PasswordInput placeholder="input password" size="lg" {...form.getInputProps('password')} />
-                            <PasswordInput placeholder="confirm password"
-                                           size="lg" {...form.getInputProps('confirmPassword')} />
-                            <Button type="submit" fullWidth size="lg">
+                            <Group grow gap="xs">
+                                <TextInput
+                                    label="Username"
+                                    placeholder="your username"
+                                    size="md"
+                                    {...form.getInputProps('username')}
+                                    disabled={!!registeredEmail}
+                                />
+                                <TextInput
+                                    label="Email"
+                                    type="email"
+                                    placeholder="your@email.com"
+                                    size="md"
+                                    {...form.getInputProps('email')}
+                                    disabled={!!registeredEmail}
+                                />
+                            </Group>
+
+                            <Group grow gap="xs">
+                                <PasswordInput
+                                    label="Password"
+                                    placeholder="create password"
+                                    size="md"
+                                    {...form.getInputProps('password')}
+                                    disabled={!!registeredEmail}
+                                />
+                                <PasswordInput
+                                    label="Confirm Password"
+                                    placeholder="repeat password"
+                                    size="md"
+                                    {...form.getInputProps('confirmPassword')}
+                                    disabled={!!registeredEmail}
+                                />
+                            </Group>
+
+                            <Button type="submit" fullWidth size="md" mt="xs" disabled={!!registeredEmail}>
                                 Register
                             </Button>
                         </Stack>
                     </form>
+
+                    {registeredEmail && (
+                        <Paper withBorder p="sm" mt="sm" bg="">
+                            <Text size="sm" mb="xs" fw={500}>Registration successful! Please verify your email.</Text>
+                            <VerifyEmailForm
+                                initialEmail={registeredEmail}
+                                onSuccess={handleVerifySuccess}
+                                minimal
+                            />
+                        </Paper>
+                    )}
                 </Stack>
 
-                <Group mt="md">
+                <Group mt="md" justify="center">
                     <Text size="sm">
-                        Already have an account?{' '}
+                        {"Already have an account?"}{' '}
                         <Anchor component={Link} to="/login">
                             Sign in
                         </Anchor>

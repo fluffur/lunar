@@ -2,12 +2,16 @@ package auth
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
+	"fmt"
 	"lunar/internal/model"
+	"lunar/internal/notification"
 	"lunar/internal/repository"
+	"math/big"
+	"time"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -15,19 +19,25 @@ var (
 	ErrUsernameExists     = errors.New("username already taken")
 	ErrInvalidEmail       = errors.New("email is invalid or already taken")
 	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrEmailNotVerified   = errors.New("email is not verified")
+	ErrTooManyAttempts    = errors.New("too many attempts")
+	ErrCodeExpired        = errors.New("code expired")
+	ErrInvalidCode        = errors.New("invalid code")
 )
 
 type Service struct {
 	authenticator *Authenticator
 	userRepo      repository.UserRepository
 	refreshRepo   repository.RefreshTokenRepository
+	emailSender   notification.EmailSender
 }
 
-func NewService(authenticator *Authenticator, refreshService repository.RefreshTokenRepository, userRepo repository.UserRepository) *Service {
+func NewService(authenticator *Authenticator, refreshService repository.RefreshTokenRepository, userRepo repository.UserRepository, emailSender notification.EmailSender) *Service {
 	return &Service{
 		authenticator: authenticator,
 		refreshRepo:   refreshService,
 		userRepo:      userRepo,
+		emailSender:   emailSender,
 	}
 }
 
@@ -55,13 +65,115 @@ func (s *Service) Register(ctx context.Context, credentials RegisterCredentials)
 		return Tokens{}, err
 	}
 
-	claims := s.authenticator.GenerateClaims(createdUser)
+	if err := s.sendVerificationCode(ctx, createdUser.ID, createdUser.Email); err != nil {
+		return Tokens{}, fmt.Errorf("failed to send verification code: %w", err)
+	}
 
+	return Tokens{}, nil
+}
+
+func (s *Service) sendVerificationCode(ctx context.Context, userID uuid.UUID, email string) error {
+	code := s.generateVerificationCode()
+	hashedCode, err := bcrypt.GenerateFromPassword([]byte(code), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	if err := s.userRepo.SaveVerificationCode(ctx, userID, email, string(hashedCode), "15m"); err != nil {
+		return err
+	}
+
+	return s.emailSender.SendVerificationCode(ctx, email, code)
+}
+
+func (s *Service) generateVerificationCode() string {
+	n, err := rand.Int(rand.Reader, big.NewInt(1000000))
+	if err != nil {
+		return "000000"
+	}
+	return fmt.Sprintf("%06d", n)
+}
+
+func (s *Service) SendEmailChangeVerification(ctx context.Context, userID uuid.UUID, newEmail string) error {
+	return s.sendVerificationCode(ctx, userID, newEmail)
+}
+
+func (s *Service) ResendVerificationEmail(ctx context.Context, email string) error {
+	storedCode, err := s.userRepo.GetVerificationCodeByEmail(ctx, email)
+	if err == nil {
+		user, err := s.userRepo.GetByID(ctx, storedCode.UserID)
+		if err == nil && user.EmailVerified && user.Email == email {
+			return ErrInvalidEmail
+		}
+		return s.sendVerificationCode(ctx, storedCode.UserID, email)
+	}
+
+	if !errors.Is(err, repository.ErrVerificationCodeNotFound) {
+		return err
+	}
+
+	user, err := s.userRepo.GetByLogin(ctx, email)
+	if err != nil {
+		if errors.Is(err, repository.ErrUserNotFound) {
+			return ErrInvalidEmail
+		}
+		return err
+	}
+
+	if user.EmailVerified {
+		return ErrInvalidEmail
+	}
+
+	return s.sendVerificationCode(ctx, user.ID, user.Email)
+}
+
+func (s *Service) VerifyEmail(ctx context.Context, email, code string) (Tokens, error) {
+	storedCode, err := s.userRepo.GetVerificationCodeByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, repository.ErrVerificationCodeNotFound) {
+			return Tokens{}, ErrInvalidEmail
+		}
+		return Tokens{}, err
+	}
+
+	user, err := s.userRepo.GetByID(ctx, storedCode.UserID)
+	if err != nil {
+		return Tokens{}, err
+	}
+
+	if storedCode.Attempts >= 5 {
+		return Tokens{}, ErrTooManyAttempts
+	}
+
+	if time.Now().After(storedCode.ExpiresAt) {
+		return Tokens{}, ErrCodeExpired
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(storedCode.CodeHash), []byte(code)); err != nil {
+		_ = s.userRepo.IncrementVerificationAttempts(ctx, user.ID)
+		return Tokens{}, ErrInvalidCode
+	}
+
+	if err := s.userRepo.MarkEmailVerified(ctx, user.ID); err != nil {
+		return Tokens{}, err
+	}
+
+	if storedCode.PendingEmail != "" && storedCode.PendingEmail != user.Email {
+		if err := s.userRepo.UpdateEmail(ctx, user.ID, storedCode.PendingEmail); err != nil {
+			return Tokens{}, err
+		}
+		user.Email = storedCode.PendingEmail
+	}
+
+	_ = s.userRepo.DeleteVerificationCode(ctx, user.ID)
+
+	// Auto-login: generate tokens
+	claims := s.authenticator.GenerateClaims(user)
 	accessToken, err := s.authenticator.GenerateToken(claims)
 	if err != nil {
 		return Tokens{}, err
 	}
-	refreshToken, err := s.refreshRepo.Issue(ctx, createdUser.ID)
+	refreshToken, err := s.refreshRepo.Issue(ctx, user.ID)
 	if err != nil {
 		return Tokens{}, err
 	}
@@ -75,7 +187,7 @@ func (s *Service) Register(ctx context.Context, credentials RegisterCredentials)
 func (s *Service) Login(ctx context.Context, credentials LoginCredentials) (Tokens, error) {
 	u, err := s.userRepo.GetByLogin(ctx, credentials.Login)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, repository.ErrUserNotFound) {
 			return Tokens{}, ErrInvalidCredentials
 		}
 		return Tokens{}, err
@@ -84,6 +196,10 @@ func (s *Service) Login(ctx context.Context, credentials LoginCredentials) (Toke
 	err = bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(credentials.Password))
 	if err != nil {
 		return Tokens{}, ErrInvalidCredentials
+	}
+
+	if !u.EmailVerified {
+		return Tokens{}, ErrEmailNotVerified
 	}
 
 	claims := s.authenticator.GenerateClaims(u)

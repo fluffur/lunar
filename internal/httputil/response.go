@@ -116,3 +116,7 @@ func InternalError(w http.ResponseWriter, r *http.Request, err error) {
 		},
 	})
 }
+
+func SimpleError(w http.ResponseWriter, code int, message string) {
+	http.Error(w, message, code)
+}

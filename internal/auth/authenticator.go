@@ -55,7 +55,7 @@ func (a *Authenticator) ParseClaims(tokenStr string) (*UserClaims, error) {
 		jwt.WithExpirationRequired(),
 		jwt.WithValidMethods([]string{jwt.SigningMethodHS256.Name}))
 	if err != nil || !t.Valid {
-		return nil, err
+		return claims, err
 	}
 	return claims, nil
 }

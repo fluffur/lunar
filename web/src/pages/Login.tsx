@@ -1,17 +1,19 @@
-import {useForm} from '@mantine/form'
-import {Anchor, Button, Center, Group, Paper, PasswordInput, Stack, Text, TextInput, Title} from '@mantine/core'
-import {Link, useNavigate} from "react-router-dom";
-import {authApi, userApi} from "../api.ts";
-import {useSessionStore} from "../stores/sessionStore.ts";
+import { useForm } from '@mantine/form'
+import { Anchor, Button, Center, Group, Paper, PasswordInput, Stack, Text, TextInput, Title } from '@mantine/core'
+import { Link, useNavigate } from "react-router-dom";
+import { authApi, userApi } from "../api.ts";
+import { useSessionStore } from "../stores/sessionStore.ts";
 import axios from "axios";
-import {useState} from "react";
+import { useState } from "react";
+import VerifyEmailForm from "../components/VerifyEmailForm.tsx";
 
 
 export default function Login() {
     const [generalError, setGeneralError] = useState<string | null>(null)
+    const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
 
     const form = useForm({
-        initialValues: {login: '', password: ''},
+        initialValues: { login: '', password: '' },
         validate: {
             login: (v) => {
                 if (!v) return 'Enter login';
@@ -24,15 +26,16 @@ export default function Login() {
     });
 
     const navigate = useNavigate();
-    const {setToken, setUser} = useSessionStore();
+    const { setToken, setUser } = useSessionStore();
+
     const handleSubmit = async (loginFormData: typeof form.values) => {
         try {
             setGeneralError(null);
-            const {data} = await authApi.authLoginPost(loginFormData)
+            const { data } = await authApi.authLoginPost(loginFormData)
             const token = data.accessToken;
             setToken(token);
 
-            const {data: userData} = await userApi.usersMeGet()
+            const { data: userData } = await userApi.usersMeGet()
             setUser(userData);
 
             navigate('/rooms')
@@ -44,6 +47,9 @@ export default function Login() {
                     return;
                 }
                 const message = error.response?.data?.error?.message ?? 'Login failed';
+                if (message === "email is not verified") {
+                    setUnverifiedEmail(loginFormData.login);
+                }
                 setGeneralError(message)
             }
             throw error;
@@ -51,27 +57,55 @@ export default function Login() {
 
     }
 
+    const handleVerifySuccess = async () => {
+        setUnverifiedEmail(null);
+        navigate('/rooms');
+    };
+
     return (
-        <Center h="90vh">
-            <Paper withBorder shadow="xl" p="xl" radius="lg" mx="auto" maw={500} w="100%">
-                <Title order={2} ta="center" mb="lg">
+        <Center mih="calc(100vh - 80px)" py="xl">
+            <Paper withBorder shadow="xl" p="xl" radius="lg" mx="auto" maw={450} w="100%">
+                <Title order={2} ta="center" mb="md">
                     Sign in
                 </Title>
 
-                <Stack>
+                <Stack gap="sm">
                     <form onSubmit={form.onSubmit(handleSubmit)}>
-                        <Stack>
-                            {generalError && <Text color="red">{generalError}</Text>}
-                            <TextInput placeholder="email or username" size="lg" {...form.getInputProps('login')} />
-                            <PasswordInput placeholder="input password" size="lg" {...form.getInputProps('password')} />
-                            <Button type="submit" fullWidth size="lg">
+                        <Stack gap="xs">
+                            {generalError && <Text c="red" size="sm">{generalError}</Text>}
+                            <TextInput
+                                label="Login"
+                                placeholder="email or username"
+                                size="md"
+                                {...form.getInputProps('login')}
+                                disabled={!!unverifiedEmail}
+                            />
+                            <PasswordInput
+                                label="Password"
+                                placeholder="input password"
+                                size="md"
+                                {...form.getInputProps('password')}
+                                disabled={!!unverifiedEmail}
+                            />
+                            <Button type="submit" fullWidth size="md" mt="xs" disabled={!!unverifiedEmail}>
                                 Login
                             </Button>
                         </Stack>
                     </form>
+
+                    {unverifiedEmail && (
+                        <Paper withBorder p="sm" mt="sm" bg="var(--mantine-color-blue-light)">
+                            <Text size="sm" mb="xs" fw={500}>Verification required</Text>
+                            <VerifyEmailForm
+                                initialEmail={unverifiedEmail}
+                                onSuccess={handleVerifySuccess}
+                                minimal
+                            />
+                        </Paper>
+                    )}
                 </Stack>
 
-                <Group mt="md">
+                <Group mt="md" justify="center">
                     <Text size="sm">
                         {"Don't have an account?"}{' '}
                         <Anchor component={Link} to={"/register"}>

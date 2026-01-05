@@ -10,35 +10,26 @@ import (
 
 func WebSocketMiddleware(authenticator *Authenticator) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		fn := func(w http.ResponseWriter, r *http.Request) {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			tokenStr := r.URL.Query().Get("token")
-			claims, err := authenticator.ParseClaims(tokenStr)
-			if err != nil {
+			if tokenStr == "" {
 				httputil.Unauthorized(w, "Invalid token")
 				return
 			}
 
-			userID, err := uuid.Parse(claims.Subject)
-			if err != nil {
-				httputil.Unauthorized(w, "Invalid token payload")
+			req, ok := authenticate(w, r, authenticator, tokenStr)
+			if !ok {
 				return
 			}
 
-			ctx := httputil.WithUser(r.Context(), &httputil.UserContext{
-				ID:              userID,
-				Email:           claims.Email,
-				IsVerifiedEmail: claims.IsVerifiedEmail,
-			})
-
-			next.ServeHTTP(w, r.WithContext(ctx))
-		}
-		return http.HandlerFunc(fn)
+			next.ServeHTTP(w, req)
+		})
 	}
 }
 
 func Middleware(authenticator *Authenticator) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		fn := func(w http.ResponseWriter, r *http.Request) {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			authorization := r.Header.Get("Authorization")
 			parts := strings.SplitN(authorization, " ", 2)
 
@@ -47,28 +38,45 @@ func Middleware(authenticator *Authenticator) func(http.Handler) http.Handler {
 				return
 			}
 
-			tokenStr := strings.TrimSpace(parts[1])
-			claims, err := authenticator.ParseClaims(tokenStr)
-			if err != nil {
-				httputil.Unauthorized(w, "Invalid token")
+			req, ok := authenticate(w, r, authenticator, strings.TrimSpace(parts[1]))
+			if !ok {
 				return
 			}
 
-			userID, err := uuid.Parse(claims.Subject)
-			if err != nil {
-				httputil.Unauthorized(w, "Invalid token payload")
-				return
-			}
-
-			ctx := httputil.WithUser(r.Context(), &httputil.UserContext{
-				ID:              userID,
-				Email:           claims.Email,
-				IsVerifiedEmail: claims.IsVerifiedEmail,
-			})
-
-			next.ServeHTTP(w, r.WithContext(ctx))
-		}
-
-		return http.HandlerFunc(fn)
+			next.ServeHTTP(w, req)
+		})
 	}
+}
+
+func authenticate(
+	w http.ResponseWriter,
+	r *http.Request,
+	authenticator *Authenticator,
+	tokenStr string,
+) (*http.Request, bool) {
+
+	claims, err := authenticator.ParseClaims(tokenStr)
+	if err != nil {
+		httputil.Unauthorized(w, "Invalid token")
+		return nil, false
+	}
+
+	userID, err := uuid.Parse(claims.Subject)
+	if err != nil {
+		httputil.Unauthorized(w, "Invalid token payload")
+		return nil, false
+	}
+
+	if !claims.IsVerifiedEmail {
+		httputil.Unauthorized(w, ErrEmailNotVerified.Error())
+		return nil, false
+	}
+
+	ctx := httputil.WithUser(r.Context(), &httputil.UserContext{
+		ID:              userID,
+		Email:           claims.Email,
+		IsVerifiedEmail: claims.IsVerifiedEmail,
+	})
+
+	return r.WithContext(ctx), true
 }

@@ -33,9 +33,16 @@ export interface AuthRegisterCredentials {
     'password': string;
     'username': string;
 }
+export interface AuthResendVerificationCodeRequest {
+    'email': string;
+}
 export interface AuthTokens {
     'accessToken': string;
     'refreshToken': string;
+}
+export interface AuthVerifyEmailRequest {
+    'code': string;
+    'email': string;
 }
 export interface HttputilErrorBody {
     'code'?: string;
@@ -231,6 +238,76 @@ export const AuthApiAxiosParamCreator = function (configuration?: Configuration)
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * 
+         * @summary Verify email
+         * @param {AuthVerifyEmailRequest} input Verification credentials
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authVerifyPost: async (input: AuthVerifyEmailRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'input' is not null or undefined
+            assertParamExists('authVerifyPost', 'input', input)
+            const localVarPath = `/auth/verify`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(input, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @summary Resend verification code
+         * @param {AuthResendVerificationCodeRequest} input Email
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authVerifyResendPost: async (input: AuthResendVerificationCodeRequest, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'input' is not null or undefined
+            assertParamExists('authVerifyResendPost', 'input', input)
+            const localVarPath = `/auth/verify/resend`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(input, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -284,10 +361,36 @@ export const AuthApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async authRegisterPost(input: AuthRegisterCredentials, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthTokens>> {
+        async authRegisterPost(input: AuthRegisterCredentials, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.authRegisterPost(input, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['AuthApi.authRegisterPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Verify email
+         * @param {AuthVerifyEmailRequest} input Verification credentials
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async authVerifyPost(input: AuthVerifyEmailRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AuthTokens>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authVerifyPost(input, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.authVerifyPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @summary Resend verification code
+         * @param {AuthResendVerificationCodeRequest} input Email
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async authVerifyResendPost(input: AuthResendVerificationCodeRequest, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.authVerifyResendPost(input, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['AuthApi.authVerifyResendPost']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -334,8 +437,28 @@ export const AuthApiFactory = function (configuration?: Configuration, basePath?
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        authRegisterPost(input: AuthRegisterCredentials, options?: RawAxiosRequestConfig): AxiosPromise<AuthTokens> {
+        authRegisterPost(input: AuthRegisterCredentials, options?: RawAxiosRequestConfig): AxiosPromise<void> {
             return localVarFp.authRegisterPost(input, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Verify email
+         * @param {AuthVerifyEmailRequest} input Verification credentials
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authVerifyPost(input: AuthVerifyEmailRequest, options?: RawAxiosRequestConfig): AxiosPromise<AuthTokens> {
+            return localVarFp.authVerifyPost(input, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @summary Resend verification code
+         * @param {AuthResendVerificationCodeRequest} input Email
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        authVerifyResendPost(input: AuthResendVerificationCodeRequest, options?: RawAxiosRequestConfig): AxiosPromise<void> {
+            return localVarFp.authVerifyResendPost(input, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -384,6 +507,28 @@ export class AuthApi extends BaseAPI {
      */
     public authRegisterPost(input: AuthRegisterCredentials, options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).authRegisterPost(input, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Verify email
+     * @param {AuthVerifyEmailRequest} input Verification credentials
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public authVerifyPost(input: AuthVerifyEmailRequest, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).authVerifyPost(input, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @summary Resend verification code
+     * @param {AuthResendVerificationCodeRequest} input Email
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public authVerifyResendPost(input: AuthResendVerificationCodeRequest, options?: RawAxiosRequestConfig) {
+        return AuthApiFp(this.configuration).authVerifyResendPost(input, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
