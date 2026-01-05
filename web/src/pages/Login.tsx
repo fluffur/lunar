@@ -44,6 +44,9 @@ export default function Login() {
                     return;
                 }
                 const message = error.response?.data?.error?.message ?? 'Login failed';
+                if (message === "email is not verified") {
+                    navigate(`/verify?email=${loginFormData.login}`)
+                }
                 setGeneralError(message)
             }
             throw error;

@@ -1,11 +1,11 @@
 import axios from "axios";
-import {useSessionStore} from "./stores/sessionStore.ts";
-import {API_BASE_URL} from "./config.ts";
-import {AuthApi, RoomApi, MessageApi, UserApi} from "../api";
+import { useSessionStore } from "./stores/sessionStore.ts";
+import { API_BASE_URL } from "./config.ts";
+import { AuthApi, RoomApi, MessageApi, UserApi } from "../api";
 
 export const api = axios.create({
     baseURL: API_BASE_URL + '/api',
-    headers: {'Content-Type': 'application/json'},
+    headers: { 'Content-Type': 'application/json' },
     withCredentials: true,
 });
 
@@ -21,29 +21,54 @@ api.interceptors.request.use(
     },
 );
 
+const parseJwt = (token: string) => {
+    try {
+        return JSON.parse(atob(token.split('.')[1]));
+    } catch {
+        return null;
+    }
+};
+
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
 
-        if (
-            error.response?.status === 401 &&
-            !originalRequest._retry &&
-            originalRequest.url !== '/auth/refresh' &&
-            originalRequest.url !== '/auth/login' &&
-            originalRequest.url !== '/auth/register'
-        ) {
-            originalRequest._retry = true;
-            try {
-                const {data} = await authApi.authRefreshPost();
-                const newToken = data.accessToken;
-                useSessionStore.getState().setToken(newToken);
+        if (error.response?.status === 401) {
+            const message = error.response.data?.error?.message;
 
-                originalRequest.headers.Authorization = `Bearer ${newToken}`;
-                return api(originalRequest);
-            } catch (refreshError) {
-                useSessionStore.getState().logout();
-                return Promise.reject(refreshError);
+            if (
+                !originalRequest._retry &&
+                originalRequest.url !== '/auth/refresh' &&
+                originalRequest.url !== '/auth/login' &&
+                originalRequest.url !== '/auth/register' &&
+                originalRequest.url !== '/auth/verify'
+            ) {
+                originalRequest._retry = true;
+                try {
+                    if (message?.toLowerCase() === "email is not verified") {
+                        if (window.location.pathname !== '/verify') {
+                            const token = useSessionStore.getState().token;
+                            if (token) {
+                                const claims = parseJwt(token);
+                                if (claims && claims.email) {
+                                    window.location.href = `/verify?email=${encodeURIComponent(claims.email)}`;
+                                }
+                            }
+                        }
+                        return Promise.reject(error);
+                    }
+
+                    const { data } = await authApi.authRefreshPost();
+                    const newToken = data.accessToken;
+                    useSessionStore.getState().setToken(newToken);
+
+                    originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                    return api(originalRequest);
+                } catch (refreshError) {
+                    useSessionStore.getState().logout();
+                    return Promise.reject(refreshError);
+                }
             }
         }
 

@@ -9,6 +9,7 @@ import (
 )
 
 var ErrUniqueAlreadyExists = errors.New("value already exists for unique field")
+var ErrUserNotFound = errors.New("user not found")
 
 type UserRepository interface {
 	GetByID(ctx context.Context, id uuid.UUID) (model.User, error)

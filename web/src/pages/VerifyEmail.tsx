@@ -47,7 +47,7 @@ export default function VerifyEmail() {
                     initialCode={codeParam}
                     onSuccess={handleSuccess}
                     autoVerify={!!(emailParam && codeParam)}
-                    fixedEmail={!!emailParam}
+                    fixedEmail={false}
                 />
 
                 <Group mt="md" justify="center">

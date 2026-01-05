@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -61,7 +62,12 @@ func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (model.User,
 
 func (r *UserRepository) GetByLogin(ctx context.Context, login string) (model.User, error) {
 	u, err := r.queries.GetUserByLogin(ctx, login)
+
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return model.User{}, repository.ErrUserNotFound
+		}
+
 		return model.User{}, err
 	}
 

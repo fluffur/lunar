@@ -20,7 +20,7 @@ var (
 	ErrUsernameExists     = errors.New("username already taken")
 	ErrInvalidEmail       = errors.New("email is invalid or already taken")
 	ErrInvalidCredentials = errors.New("invalid credentials")
-	ErrEmailNotVerified   = errors.New("email not verified")
+	ErrEmailNotVerified   = errors.New("email is not verified")
 	ErrTooManyAttempts    = errors.New("too many attempts")
 	ErrCodeExpired        = errors.New("code expired")
 	ErrInvalidCode        = errors.New("invalid code")
@@ -102,14 +102,14 @@ func (s *Service) SendEmailChangeVerification(ctx context.Context, userID uuid.U
 func (s *Service) ResendVerificationEmail(ctx context.Context, email string) error {
 	user, err := s.userRepo.GetByLogin(ctx, email)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, repository.ErrUserNotFound) {
 			return ErrInvalidEmail
 		}
 		return err
 	}
 
 	if user.EmailVerified {
-		return repository.ErrUniqueAlreadyExists
+		return ErrInvalidEmail
 	}
 
 	return s.sendVerificationCode(ctx, user.ID, user.Email)
@@ -156,7 +156,7 @@ func (s *Service) VerifyEmail(ctx context.Context, email, code string) error {
 func (s *Service) Login(ctx context.Context, credentials LoginCredentials) (Tokens, error) {
 	u, err := s.userRepo.GetByLogin(ctx, credentials.Login)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
+		if errors.Is(err, repository.ErrUserNotFound) {
 			return Tokens{}, ErrInvalidCredentials
 		}
 		return Tokens{}, err
