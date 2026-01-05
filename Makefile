@@ -23,3 +23,6 @@ swag-client:
 
 sqlc:
 	sqlc generate
+
+logs:
+	docker compose logs -f
