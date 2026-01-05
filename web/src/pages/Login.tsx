@@ -94,12 +94,13 @@ export default function Login() {
                     </form>
 
                     {unverifiedEmail && (
-                        <Paper withBorder p="sm" mt="sm" bg="var(--mantine-color-blue-light)">
+                        <Paper withBorder p="sm" mt="sm">
                             <Text size="sm" mb="xs" fw={500}>Verification required</Text>
                             <VerifyEmailForm
                                 initialEmail={unverifiedEmail}
                                 onSuccess={handleVerifySuccess}
                                 minimal
+                                autoResend={true}
                             />
                         </Paper>
                     )}
