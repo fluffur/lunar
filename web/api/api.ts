@@ -52,6 +52,9 @@ export interface HttputilErrorBody {
 export interface HttputilErrorResponse {
     'error'?: HttputilErrorBody;
 }
+export interface LivekitTokenResponse {
+    'token': string;
+}
 export interface MessageGetPagingResponse {
     'messages'?: Array<ModelMessage>;
     'nextCursor'?: string;
@@ -529,6 +532,110 @@ export class AuthApi extends BaseAPI {
      */
     public authVerifyResendPost(input: AuthResendVerificationCodeRequest, options?: RawAxiosRequestConfig) {
         return AuthApiFp(this.configuration).authVerifyResendPost(input, options).then((request) => request(this.axios, this.basePath));
+    }
+}
+
+
+
+/**
+ * LivekitApi - axios parameter creator
+ */
+export const LivekitApiAxiosParamCreator = function (configuration?: Configuration) {
+    return {
+        /**
+         * 
+         * @summary Get livekit access token
+         * @param {string} roomSlug Room Slug
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        livekitTokenRoomSlugGet: async (roomSlug: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'roomSlug' is not null or undefined
+            assertParamExists('livekitTokenRoomSlugGet', 'roomSlug', roomSlug)
+            const localVarPath = `/livekit/token/{roomSlug}`
+                .replace(`{${"roomSlug"}}`, encodeURIComponent(String(roomSlug)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication BearerAuth required
+            await setApiKeyToObject(localVarHeaderParameter, "Authorization", configuration)
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+    }
+};
+
+/**
+ * LivekitApi - functional programming interface
+ */
+export const LivekitApiFp = function(configuration?: Configuration) {
+    const localVarAxiosParamCreator = LivekitApiAxiosParamCreator(configuration)
+    return {
+        /**
+         * 
+         * @summary Get livekit access token
+         * @param {string} roomSlug Room Slug
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async livekitTokenRoomSlugGet(roomSlug: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<LivekitTokenResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.livekitTokenRoomSlugGet(roomSlug, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['LivekitApi.livekitTokenRoomSlugGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+    }
+};
+
+/**
+ * LivekitApi - factory interface
+ */
+export const LivekitApiFactory = function (configuration?: Configuration, basePath?: string, axios?: AxiosInstance) {
+    const localVarFp = LivekitApiFp(configuration)
+    return {
+        /**
+         * 
+         * @summary Get livekit access token
+         * @param {string} roomSlug Room Slug
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        livekitTokenRoomSlugGet(roomSlug: string, options?: RawAxiosRequestConfig): AxiosPromise<LivekitTokenResponse> {
+            return localVarFp.livekitTokenRoomSlugGet(roomSlug, options).then((request) => request(axios, basePath));
+        },
+    };
+};
+
+/**
+ * LivekitApi - object-oriented interface
+ */
+export class LivekitApi extends BaseAPI {
+    /**
+     * 
+     * @summary Get livekit access token
+     * @param {string} roomSlug Room Slug
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public livekitTokenRoomSlugGet(roomSlug: string, options?: RawAxiosRequestConfig) {
+        return LivekitApiFp(this.configuration).livekitTokenRoomSlugGet(roomSlug, options).then((request) => request(this.axios, this.basePath));
     }
 }
 

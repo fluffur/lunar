@@ -76,6 +76,13 @@ definitions:
       error:
         $ref: '#/definitions/httputil.ErrorBody'
     type: object
+  livekit.TokenResponse:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
   message.GetPagingResponse:
     properties:
       messages:
@@ -355,6 +362,34 @@ paths:
       summary: Resend verification code
       tags:
       - auth
+  /livekit/token/{roomSlug}:
+    get:
+      parameters:
+      - description: Room Slug
+        in: path
+        name: roomSlug
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/livekit.TokenResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get livekit access token
+      tags:
+      - livekit
   /rooms:
     get:
       responses:

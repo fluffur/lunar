@@ -12,6 +12,8 @@ docs/AuthTokens.md
 docs/AuthVerifyEmailRequest.md
 docs/HttputilErrorBody.md
 docs/HttputilErrorResponse.md
+docs/LivekitApi.md
+docs/LivekitTokenResponse.md
 docs/MessageApi.md
 docs/MessageGetPagingResponse.md
 docs/ModelMessage.md

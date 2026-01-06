@@ -101,7 +101,7 @@ func (app *application) mount() http.Handler {
 			r.Delete("/{friendId}", friendshipHandler.RemoveFriend)
 		})
 
-		r.Get("/livekit/token/:roomSlug", livekitHandler.Token)
+		r.Get("/livekit/token/{roomSlug}", livekitHandler.Token)
 	})
 
 	r.With(wsAuthMw).

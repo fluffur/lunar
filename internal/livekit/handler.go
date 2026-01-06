@@ -13,6 +13,17 @@ func NewHandler(service *Service) *Handler {
 	return &Handler{service}
 }
 
+// Token godoc
+//
+//	@Summary	Get livekit access token
+//	@Tags		livekit
+//	@Produce	json
+//	@Security	BearerAuth
+//	@Param		roomSlug	path		string	true	"Room Slug"
+//	@Success	200			{object}	TokenResponse
+//	@Failure	400			{object}	httputil.ErrorResponse
+//	@Failure	500			{object}	httputil.ErrorResponse
+//	@Router		/livekit/token/{roomSlug} [get]
 func (h *Handler) Token(w http.ResponseWriter, r *http.Request) {
 	user := httputil.UserFromRequest(r)
 	roomSlug := r.PathValue("roomSlug")
@@ -23,5 +34,5 @@ func (h *Handler) Token(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httputil.SuccessData(w, token)
+	httputil.SuccessData(w, TokenResponse{Token: token})
 }

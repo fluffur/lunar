@@ -16,4 +16,3 @@ type FriendRequestWithInfo struct {
 	FromUser    *FriendWithInfo `json:"fromUser,omitempty"`
 	ToUser      *FriendWithInfo `json:"toUser,omitempty"`
 }
-

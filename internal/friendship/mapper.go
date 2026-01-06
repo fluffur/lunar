@@ -80,4 +80,3 @@ func mapOutgoingRequestsWithInfo(rows []db.ListOutgoingRequestsWithUsersRow) []d
 	}
 	return requests
 }
-
