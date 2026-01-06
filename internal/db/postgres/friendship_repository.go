@@ -102,49 +102,12 @@ func (r *FriendshipRepository) GetFriendRequest(ctx context.Context, fromID, toI
 	return mapFriendRequest(req), nil
 }
 
-func (r *FriendshipRepository) ListIncomingRequest(ctx context.Context, userID uuid.UUID) ([]model.FriendRequest, error) {
-	rows, err := r.queries.ListIncomingRequests(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-	return mapFriendRequests(rows), nil
-}
-
-func (r *FriendshipRepository) ListOutgoingRequest(ctx context.Context, userID uuid.UUID) ([]model.FriendRequest, error) {
-	rows, err := r.queries.ListOutgoingRequests(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-	return mapFriendRequests(rows), nil
-}
 
 func (r *FriendshipRepository) DeleteFriendRequest(ctx context.Context, fromID, toID uuid.UUID) error {
 	return r.queries.DeleteFriendRequest(ctx, db.DeleteFriendRequestParams{
 		FromUserID: fromID,
 		ToUserID:   toID,
 	})
-}
-
-func (r *FriendshipRepository) InsertFriendshipEdge(ctx context.Context, userID, friendID uuid.UUID) error {
-	return r.queries.InsertFriendshipEdge(ctx, db.InsertFriendshipEdgeParams{
-		UserID:   userID,
-		FriendID: friendID,
-	})
-}
-
-func (r *FriendshipRepository) DeleteFriendshipEdge(ctx context.Context, userID, friendID uuid.UUID) error {
-	return r.queries.DeleteFriendshipEdge(ctx, db.DeleteFriendshipEdgeParams{
-		UserID:   userID,
-		FriendID: friendID,
-	})
-}
-
-func (r *FriendshipRepository) ListFriends(ctx context.Context, userID uuid.UUID) ([]model.Friendship, error) {
-	rows, err := r.queries.ListFriends(ctx, userID)
-	if err != nil {
-		return nil, err
-	}
-	return mapFriendships(rows), nil
 }
 
 func (r *FriendshipRepository) IsBlocked(ctx context.Context, fromID, toID uuid.UUID) (bool, error) {
@@ -229,6 +192,18 @@ func (r *FriendshipRepository) RemoveFriend(ctx context.Context, userID, friendI
 	}
 
 	return tx.Commit(ctx)
+}
+
+func (r *FriendshipRepository) ListFriendsWithUsers(ctx context.Context, userID uuid.UUID) ([]db.ListFriendsWithUsersRow, error) {
+	return r.queries.ListFriendsWithUsers(ctx, userID)
+}
+
+func (r *FriendshipRepository) ListIncomingRequestsWithUsers(ctx context.Context, userID uuid.UUID) ([]db.ListIncomingRequestsWithUsersRow, error) {
+	return r.queries.ListIncomingRequestsWithUsers(ctx, userID)
+}
+
+func (r *FriendshipRepository) ListOutgoingRequestsWithUsers(ctx context.Context, userID uuid.UUID) ([]db.ListOutgoingRequestsWithUsersRow, error) {
+	return r.queries.ListOutgoingRequestsWithUsers(ctx, userID)
 }
 
 var _ repository.FriendshipRepository = (*FriendshipRepository)(nil)

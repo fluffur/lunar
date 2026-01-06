@@ -9,6 +9,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 const createBlock = `-- name: CreateBlock :exec
@@ -200,6 +201,56 @@ func (q *Queries) ListFriends(ctx context.Context, userID uuid.UUID) ([]Friendsh
 	return items, nil
 }
 
+const listFriendsWithUsers = `-- name: ListFriendsWithUsers :many
+SELECT 
+    f.user_id,
+    f.friend_id,
+    f.created_at,
+    u.id as friend_user_id,
+    u.username as friend_username,
+    u.avatar_url as friend_avatar_url
+FROM friendships f
+INNER JOIN users u ON u.id = f.friend_id
+WHERE f.user_id = $1
+ORDER BY f.created_at DESC
+`
+
+type ListFriendsWithUsersRow struct {
+	UserID          uuid.UUID          `db:"user_id" json:"userId"`
+	FriendID        uuid.UUID          `db:"friend_id" json:"friendId"`
+	CreatedAt       pgtype.Timestamptz `db:"created_at" json:"createdAt"`
+	FriendUserID    uuid.UUID          `db:"friend_user_id" json:"friendUserId"`
+	FriendUsername  string             `db:"friend_username" json:"friendUsername"`
+	FriendAvatarUrl pgtype.Text        `db:"friend_avatar_url" json:"friendAvatarUrl"`
+}
+
+func (q *Queries) ListFriendsWithUsers(ctx context.Context, userID uuid.UUID) ([]ListFriendsWithUsersRow, error) {
+	rows, err := q.db.Query(ctx, listFriendsWithUsers, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListFriendsWithUsersRow{}
+	for rows.Next() {
+		var i ListFriendsWithUsersRow
+		if err := rows.Scan(
+			&i.UserID,
+			&i.FriendID,
+			&i.CreatedAt,
+			&i.FriendUserID,
+			&i.FriendUsername,
+			&i.FriendAvatarUrl,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listIncomingRequests = `-- name: ListIncomingRequests :many
 SELECT from_user_id, to_user_id, status, message, created_at, responded_at
 FROM friend_requests
@@ -234,6 +285,65 @@ func (q *Queries) ListIncomingRequests(ctx context.Context, toUserID uuid.UUID) 
 	return items, nil
 }
 
+const listIncomingRequestsWithUsers = `-- name: ListIncomingRequestsWithUsers :many
+SELECT 
+    fr.from_user_id,
+    fr.to_user_id,
+    fr.status,
+    fr.message,
+    fr.created_at,
+    fr.responded_at,
+    u.id as from_user_id,
+    u.username as from_username,
+    u.avatar_url as from_avatar_url
+FROM friend_requests fr
+INNER JOIN users u ON u.id = fr.from_user_id
+WHERE fr.to_user_id = $1 AND fr.status = 'pending'
+ORDER BY fr.created_at DESC
+`
+
+type ListIncomingRequestsWithUsersRow struct {
+	FromUserID    uuid.UUID          `db:"from_user_id" json:"fromUserId"`
+	ToUserID      uuid.UUID          `db:"to_user_id" json:"toUserId"`
+	Status        string             `db:"status" json:"status"`
+	Message       string             `db:"message" json:"message"`
+	CreatedAt     pgtype.Timestamptz `db:"created_at" json:"createdAt"`
+	RespondedAt   pgtype.Timestamptz `db:"responded_at" json:"respondedAt"`
+	FromUserID_2  uuid.UUID          `db:"from_user_id_2" json:"fromUserId2"`
+	FromUsername  string             `db:"from_username" json:"fromUsername"`
+	FromAvatarUrl pgtype.Text        `db:"from_avatar_url" json:"fromAvatarUrl"`
+}
+
+func (q *Queries) ListIncomingRequestsWithUsers(ctx context.Context, toUserID uuid.UUID) ([]ListIncomingRequestsWithUsersRow, error) {
+	rows, err := q.db.Query(ctx, listIncomingRequestsWithUsers, toUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListIncomingRequestsWithUsersRow{}
+	for rows.Next() {
+		var i ListIncomingRequestsWithUsersRow
+		if err := rows.Scan(
+			&i.FromUserID,
+			&i.ToUserID,
+			&i.Status,
+			&i.Message,
+			&i.CreatedAt,
+			&i.RespondedAt,
+			&i.FromUserID_2,
+			&i.FromUsername,
+			&i.FromAvatarUrl,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listOutgoingRequests = `-- name: ListOutgoingRequests :many
 SELECT from_user_id, to_user_id, status, message, created_at, responded_at
 FROM friend_requests
@@ -257,6 +367,65 @@ func (q *Queries) ListOutgoingRequests(ctx context.Context, fromUserID uuid.UUID
 			&i.Message,
 			&i.CreatedAt,
 			&i.RespondedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listOutgoingRequestsWithUsers = `-- name: ListOutgoingRequestsWithUsers :many
+SELECT 
+    fr.from_user_id,
+    fr.to_user_id,
+    fr.status,
+    fr.message,
+    fr.created_at,
+    fr.responded_at,
+    u.id as to_user_id,
+    u.username as to_username,
+    u.avatar_url as to_avatar_url
+FROM friend_requests fr
+INNER JOIN users u ON u.id = fr.to_user_id
+WHERE fr.from_user_id = $1 AND fr.status = 'pending'
+ORDER BY fr.created_at DESC
+`
+
+type ListOutgoingRequestsWithUsersRow struct {
+	FromUserID  uuid.UUID          `db:"from_user_id" json:"fromUserId"`
+	ToUserID    uuid.UUID          `db:"to_user_id" json:"toUserId"`
+	Status      string             `db:"status" json:"status"`
+	Message     string             `db:"message" json:"message"`
+	CreatedAt   pgtype.Timestamptz `db:"created_at" json:"createdAt"`
+	RespondedAt pgtype.Timestamptz `db:"responded_at" json:"respondedAt"`
+	ToUserID_2  uuid.UUID          `db:"to_user_id_2" json:"toUserId2"`
+	ToUsername  string             `db:"to_username" json:"toUsername"`
+	ToAvatarUrl pgtype.Text        `db:"to_avatar_url" json:"toAvatarUrl"`
+}
+
+func (q *Queries) ListOutgoingRequestsWithUsers(ctx context.Context, fromUserID uuid.UUID) ([]ListOutgoingRequestsWithUsersRow, error) {
+	rows, err := q.db.Query(ctx, listOutgoingRequestsWithUsers, fromUserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []ListOutgoingRequestsWithUsersRow{}
+	for rows.Next() {
+		var i ListOutgoingRequestsWithUsersRow
+		if err := rows.Scan(
+			&i.FromUserID,
+			&i.ToUserID,
+			&i.Status,
+			&i.Message,
+			&i.CreatedAt,
+			&i.RespondedAt,
+			&i.ToUserID_2,
+			&i.ToUsername,
+			&i.ToAvatarUrl,
 		); err != nil {
 			return nil, err
 		}

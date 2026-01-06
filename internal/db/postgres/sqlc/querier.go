@@ -37,8 +37,11 @@ type Querier interface {
 	IsUserRoomMember(ctx context.Context, arg IsUserRoomMemberParams) (bool, error)
 	ListBlocked(ctx context.Context, fromUserID uuid.UUID) ([]UserBlock, error)
 	ListFriends(ctx context.Context, userID uuid.UUID) ([]Friendship, error)
+	ListFriendsWithUsers(ctx context.Context, userID uuid.UUID) ([]ListFriendsWithUsersRow, error)
 	ListIncomingRequests(ctx context.Context, toUserID uuid.UUID) ([]FriendRequest, error)
+	ListIncomingRequestsWithUsers(ctx context.Context, toUserID uuid.UUID) ([]ListIncomingRequestsWithUsersRow, error)
 	ListOutgoingRequests(ctx context.Context, fromUserID uuid.UUID) ([]FriendRequest, error)
+	ListOutgoingRequestsWithUsers(ctx context.Context, fromUserID uuid.UUID) ([]ListOutgoingRequestsWithUsersRow, error)
 	MarkEmailVerified(ctx context.Context, id uuid.UUID) error
 	RoomExists(ctx context.Context, id uuid.UUID) (bool, error)
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error

@@ -22,7 +22,7 @@ func NewHandler(validator *httputil.Validator, service *FriendshipService) *Hand
 }
 
 func (h *Handler) SendFriendRequest(w http.ResponseWriter, r *http.Request) {
-	var req SendFriendRequestRequest
+	var req SendRequestInput
 	if err := httputil.Read(r, &req); err != nil {
 		httputil.InvalidRequestBody(w)
 		return
@@ -35,7 +35,7 @@ func (h *Handler) SendFriendRequest(w http.ResponseWriter, r *http.Request) {
 
 	userCtx := httputil.UserFromRequest(r)
 
-	if err := h.service.SendFriendRequest(r.Context(), userCtx.ID, req.Username, req.Message); err != nil {
+	if err := h.service.SendFriendRequestByUsername(r.Context(), userCtx.ID, req.Username, req.Message); err != nil {
 		switch {
 		case errors.Is(err, ErrUserNotFound):
 			httputil.NotFound(w, "User not found")
@@ -135,16 +135,7 @@ func (h *Handler) ListFriends(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses := make([]FriendResponse, 0, len(friends))
-	for _, f := range friends {
-		responses = append(responses, FriendResponse{
-			ID:        f.ID,
-			Username:  f.Username,
-			AvatarURL: f.AvatarURL,
-		})
-	}
-
-	httputil.SuccessData(w, ListFriendsResponse{Friends: responses})
+	httputil.SuccessData(w, friends)
 }
 
 func (h *Handler) ListIncomingRequests(w http.ResponseWriter, r *http.Request) {
@@ -156,29 +147,7 @@ func (h *Handler) ListIncomingRequests(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses := make([]FriendRequestResponse, 0, len(requests))
-	for _, req := range requests {
-		response := FriendRequestResponse{
-			FromUserID:  req.FromUserID,
-			ToUserID:    req.ToUserID,
-			Status:      req.Status,
-			Message:     req.Message,
-			CreatedAt:   req.CreatedAt,
-			RespondedAt: req.RespondedAt,
-		}
-
-		if req.FromUser != nil {
-			response.FromUser = &FriendResponse{
-				ID:        req.FromUser.ID,
-				Username:  req.FromUser.Username,
-				AvatarURL: req.FromUser.AvatarURL,
-			}
-		}
-
-		responses = append(responses, response)
-	}
-
-	httputil.SuccessData(w, ListFriendRequestsResponse{Requests: responses})
+	httputil.SuccessData(w, requests)
 }
 
 func (h *Handler) ListOutgoingRequests(w http.ResponseWriter, r *http.Request) {
@@ -190,29 +159,7 @@ func (h *Handler) ListOutgoingRequests(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	responses := make([]FriendRequestResponse, 0, len(requests))
-	for _, req := range requests {
-		response := FriendRequestResponse{
-			FromUserID:  req.FromUserID,
-			ToUserID:    req.ToUserID,
-			Status:      req.Status,
-			Message:     req.Message,
-			CreatedAt:   req.CreatedAt,
-			RespondedAt: req.RespondedAt,
-		}
-
-		if req.ToUser != nil {
-			response.ToUser = &FriendResponse{
-				ID:        req.ToUser.ID,
-				Username:  req.ToUser.Username,
-				AvatarURL: req.ToUser.AvatarURL,
-			}
-		}
-
-		responses = append(responses, response)
-	}
-
-	httputil.SuccessData(w, ListFriendRequestsResponse{Requests: responses})
+	httputil.SuccessData(w, requests)
 }
 
 func (h *Handler) RemoveFriend(w http.ResponseWriter, r *http.Request) {

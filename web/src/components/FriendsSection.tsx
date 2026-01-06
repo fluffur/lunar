@@ -37,14 +37,6 @@ interface FriendRequest {
     toUser?: Friend;
 }
 
-interface FriendsResponse {
-    friends: Friend[];
-}
-
-interface FriendRequestsResponse {
-    requests: FriendRequest[];
-}
-
 export function FriendsSection() {
     const [friends, setFriends] = useState<Friend[]>([]);
     const [incomingRequests, setIncomingRequests] = useState<FriendRequest[]>([]);
@@ -64,8 +56,8 @@ export function FriendsSection() {
     const loadFriends = async () => {
         try {
             setLoadingFriends(true);
-            const { data } = await api.get<FriendsResponse>('/friends');
-            setFriends(data.friends);
+            const { data } = await api.get<Friend[]>('/friends');
+            setFriends(data);
         } catch (err: any) {
             console.error('Failed to load friends', err);
             setError(err.response?.data?.error?.message || 'Failed to load friends');
@@ -76,8 +68,8 @@ export function FriendsSection() {
 
     const loadIncomingRequests = async () => {
         try {
-            const { data } = await api.get<FriendRequestsResponse>('/friends/requests/incoming');
-            setIncomingRequests(data.requests);
+            const { data } = await api.get<FriendRequest[]>('/friends/requests/incoming');
+            setIncomingRequests(data);
         } catch (err: any) {
             console.error('Failed to load incoming requests', err);
         }
@@ -85,8 +77,8 @@ export function FriendsSection() {
 
     const loadOutgoingRequests = async () => {
         try {
-            const { data } = await api.get<FriendRequestsResponse>('/friends/requests/outgoing');
-            setOutgoingRequests(data.requests);
+            const { data } = await api.get<FriendRequest[]>('/friends/requests/outgoing');
+            setOutgoingRequests(data);
         } catch (err: any) {
             console.error('Failed to load outgoing requests', err);
         }
