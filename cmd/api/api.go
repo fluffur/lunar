@@ -10,6 +10,7 @@ import (
 	"lunar/internal/config"
 	"lunar/internal/friendship"
 	"lunar/internal/httputil"
+	"lunar/internal/livekit"
 	"lunar/internal/message"
 	"lunar/internal/room"
 	"lunar/internal/user"
@@ -55,6 +56,7 @@ func (app *application) mount() http.Handler {
 	roomHandler := room.NewHandler(app.validator, app.roomService, app.wsService)
 	messageHandler := message.NewHandler(app.validator, app.messageService)
 	friendshipHandler := friendship.NewHandler(app.validator, app.friendshipService)
+	livekitHandler := livekit.NewHandler(app.livekitService)
 
 	r.Mount("/api", r)
 	r.Handle("/uploads/*", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
@@ -98,6 +100,8 @@ func (app *application) mount() http.Handler {
 			r.Post("/requests/{toId}/cancel", friendshipHandler.CancelFriendRequest)
 			r.Delete("/{friendId}", friendshipHandler.RemoveFriend)
 		})
+
+		r.Get("/livekit/token/:roomSlug", livekitHandler.Token)
 	})
 
 	r.With(wsAuthMw).
@@ -166,4 +170,5 @@ type application struct {
 	messageService    *message.Service
 	friendshipService *friendship.FriendshipService
 	validator         *httputil.Validator
+	livekitService    *livekit.Service
 }
