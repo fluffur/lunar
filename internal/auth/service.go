@@ -26,18 +26,26 @@ var (
 )
 
 type Service struct {
-	authenticator *Authenticator
-	userRepo      repository.UserRepository
-	refreshRepo   repository.RefreshTokenRepository
-	emailSender   notification.EmailSender
+	authenticator        *Authenticator
+	userRepo             repository.UserRepository
+	refreshRepo          repository.RefreshTokenRepository
+	emailSender          notification.EmailSender
+	hasEmailVerification bool
 }
 
-func NewService(authenticator *Authenticator, refreshService repository.RefreshTokenRepository, userRepo repository.UserRepository, emailSender notification.EmailSender) *Service {
+func NewService(
+	authenticator *Authenticator,
+	refreshService repository.RefreshTokenRepository,
+	userRepo repository.UserRepository,
+	emailSender notification.EmailSender,
+	hasEmailVerification bool,
+) *Service {
 	return &Service{
-		authenticator: authenticator,
-		refreshRepo:   refreshService,
-		userRepo:      userRepo,
-		emailSender:   emailSender,
+		authenticator:        authenticator,
+		refreshRepo:          refreshService,
+		userRepo:             userRepo,
+		emailSender:          emailSender,
+		hasEmailVerification: hasEmailVerification,
 	}
 }
 
@@ -55,7 +63,7 @@ func (s *Service) Register(ctx context.Context, credentials RegisterCredentials)
 		return Tokens{}, ErrInvalidEmail
 	}
 
-	newUser, err := model.NewUser(credentials.Username, credentials.Email, credentials.Password)
+	newUser, err := model.NewUser(credentials.Username, credentials.Email, credentials.Password, !s.hasEmailVerification)
 	if err != nil {
 		return Tokens{}, err
 	}
