@@ -52,7 +52,6 @@ func main() {
 
 	accessCfg := cfg.Auth.AccessToken
 	authenticator := auth.NewJWTAuthenticator(accessCfg.Secret, accessCfg.Issuer, accessCfg.TTL)
-
 	refreshCfg := cfg.Auth.RefreshToken
 	refreshRepo := redis2.NewRefreshTokenRepository(rdb, refreshCfg.KeyPrefix, refreshCfg.UserKeyPrefix, refreshCfg.TTL)
 	userRepo := postgres.NewUserRepository(queries)
@@ -60,7 +59,13 @@ func main() {
 	messageRepo := postgres.NewMessageRepository(queries)
 	friendshipRepo := postgres.NewFriendshipRepository(pool, queries)
 
-	authService := auth.NewService(authenticator, refreshRepo, userRepo, notification.NewLogEmailSender(logger))
+	authService := auth.NewService(
+		authenticator,
+		refreshRepo,
+		userRepo,
+		notification.NewLogEmailSender(logger),
+		cfg.Features.HasEmailVerification,
+	)
 	userService := user.NewService(userRepo, authService, cfg.FileStore.AvatarsPath())
 	roomService := room.NewService(roomRepo)
 	wsService := ws.NewService(rdb, userRepo, messageRepo, cfg.CORS.AllowedOrigins)

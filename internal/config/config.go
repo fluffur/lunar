@@ -11,6 +11,11 @@ type Config struct {
 	DB        DBConfig
 	Redis     RedisConfig
 	FileStore FileStoreConfig
+	Features  FeaturesConfig
+}
+
+type FeaturesConfig struct {
+	HasEmailVerification bool `env:"HAS_EMAIL_VERIFICATION" envDefault:"false"`
 }
 
 func Load() (*Config, error) {
