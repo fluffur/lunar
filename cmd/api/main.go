@@ -50,6 +50,8 @@ func main() {
 
 	queries := db.New(pool)
 
+	accessCfg := cfg.Auth.AccessToken
+	authenticator := auth.NewJWTAuthenticator(accessCfg.Secret, accessCfg.Issuer, accessCfg.TTL)
 	refreshCfg := cfg.Auth.RefreshToken
 	refreshRepo := redis2.NewRefreshTokenRepository(rdb, refreshCfg.KeyPrefix, refreshCfg.UserKeyPrefix, refreshCfg.TTL)
 	userRepo := postgres.NewUserRepository(queries)
@@ -57,8 +59,6 @@ func main() {
 	messageRepo := postgres.NewMessageRepository(queries)
 	friendshipRepo := postgres.NewFriendshipRepository(pool, queries)
 
-	accessCfg := cfg.Auth.AccessToken
-	authenticator := auth.NewJWTAuthenticator(accessCfg.Secret, accessCfg.Issuer, accessCfg.TTL)
 	authService := auth.NewService(
 		authenticator,
 		refreshRepo,
