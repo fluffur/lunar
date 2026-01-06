@@ -5,7 +5,8 @@ import (
 )
 
 type Config struct {
-	Addr      int `env:"APP_ADDR" envDefault:"8080"`
+	Addr      int    `env:"APP_ADDR" envDefault:"8080"`
+	ENV       string `env:"APP_ENV" envDefault:"dev"`
 	CORS      CORSConfig
 	Auth      AuthConfig
 	DB        DBConfig
