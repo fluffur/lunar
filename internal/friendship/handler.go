@@ -3,25 +3,21 @@ package friendship
 import (
 	"errors"
 	"lunar/internal/httputil"
-	"lunar/internal/repository"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 )
 
 type Handler struct {
 	validator *httputil.Validator
 	service   *FriendshipService
-	userRepo  repository.UserRepository
 }
 
-func NewHandler(validator *httputil.Validator, service *FriendshipService, userRepo repository.UserRepository) *Handler {
+func NewHandler(validator *httputil.Validator, service *FriendshipService) *Handler {
 	return &Handler{
 		validator: validator,
 		service:   service,
-		userRepo:  userRepo,
 	}
 }
 
@@ -136,37 +132,28 @@ func (h *Handler) CancelFriendRequest(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListFriends(w http.ResponseWriter, r *http.Request) {
 	userCtx := httputil.UserFromRequest(r)
 
-	friendships, err := h.service.ListFriends(r.Context(), userCtx.ID)
+	friends, err := h.service.ListFriendsWithInfo(r.Context(), userCtx.ID)
 	if err != nil {
 		httputil.InternalError(w, r, err)
 		return
 	}
 
-	friends := make([]FriendResponse, 0, len(friendships))
-	for _, f := range friendships {
-		user, err := h.userRepo.GetByID(r.Context(), f.FriendID)
-		if err != nil {
-			if errors.Is(err, pgx.ErrNoRows) {
-				continue
-			}
-			httputil.InternalError(w, r, err)
-			return
-		}
-
-		friends = append(friends, FriendResponse{
-			ID:        user.ID.String(),
-			Username:  user.Username,
-			AvatarURL: user.AvatarURL,
+	responses := make([]FriendResponse, 0, len(friends))
+	for _, f := range friends {
+		responses = append(responses, FriendResponse{
+			ID:        f.ID,
+			Username:  f.Username,
+			AvatarURL: f.AvatarURL,
 		})
 	}
 
-	httputil.SuccessData(w, ListFriendsResponse{Friends: friends})
+	httputil.SuccessData(w, ListFriendsResponse{Friends: responses})
 }
 
 func (h *Handler) ListIncomingRequests(w http.ResponseWriter, r *http.Request) {
 	userCtx := httputil.UserFromRequest(r)
 
-	requests, err := h.service.ListIncomingRequests(r.Context(), userCtx.ID)
+	requests, err := h.service.ListIncomingRequestsWithInfo(r.Context(), userCtx.ID)
 	if err != nil {
 		httputil.InternalError(w, r, err)
 		return
@@ -174,31 +161,21 @@ func (h *Handler) ListIncomingRequests(w http.ResponseWriter, r *http.Request) {
 
 	responses := make([]FriendRequestResponse, 0, len(requests))
 	for _, req := range requests {
-		fromUser, err := h.userRepo.GetByID(r.Context(), req.FromUserID)
-		if err != nil {
-			if errors.Is(err, pgx.ErrNoRows) {
-				continue
-			}
-			httputil.InternalError(w, r, err)
-			return
-		}
-
 		response := FriendRequestResponse{
-			FromUserID: req.FromUserID.String(),
-			ToUserID:   req.ToUserID.String(),
-			Status:     string(req.Status),
-			Message:    req.Message,
-			CreatedAt:  req.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-			FromUser: &FriendResponse{
-				ID:        fromUser.ID.String(),
-				Username:  fromUser.Username,
-				AvatarURL: fromUser.AvatarURL,
-			},
+			FromUserID:  req.FromUserID,
+			ToUserID:    req.ToUserID,
+			Status:      req.Status,
+			Message:     req.Message,
+			CreatedAt:   req.CreatedAt,
+			RespondedAt: req.RespondedAt,
 		}
 
-		if req.RespondedAt != nil {
-			respondedAt := req.RespondedAt.Format("2006-01-02T15:04:05Z07:00")
-			response.RespondedAt = &respondedAt
+		if req.FromUser != nil {
+			response.FromUser = &FriendResponse{
+				ID:        req.FromUser.ID,
+				Username:  req.FromUser.Username,
+				AvatarURL: req.FromUser.AvatarURL,
+			}
 		}
 
 		responses = append(responses, response)
@@ -210,7 +187,7 @@ func (h *Handler) ListIncomingRequests(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ListOutgoingRequests(w http.ResponseWriter, r *http.Request) {
 	userCtx := httputil.UserFromRequest(r)
 
-	requests, err := h.service.ListOutgoingRequests(r.Context(), userCtx.ID)
+	requests, err := h.service.ListOutgoingRequestsWithInfo(r.Context(), userCtx.ID)
 	if err != nil {
 		httputil.InternalError(w, r, err)
 		return
@@ -218,31 +195,21 @@ func (h *Handler) ListOutgoingRequests(w http.ResponseWriter, r *http.Request) {
 
 	responses := make([]FriendRequestResponse, 0, len(requests))
 	for _, req := range requests {
-		toUser, err := h.userRepo.GetByID(r.Context(), req.ToUserID)
-		if err != nil {
-			if errors.Is(err, pgx.ErrNoRows) {
-				continue
-			}
-			httputil.InternalError(w, r, err)
-			return
-		}
-
 		response := FriendRequestResponse{
-			FromUserID: req.FromUserID.String(),
-			ToUserID:   req.ToUserID.String(),
-			Status:     string(req.Status),
-			Message:    req.Message,
-			CreatedAt:  req.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-			ToUser: &FriendResponse{
-				ID:        toUser.ID.String(),
-				Username:  toUser.Username,
-				AvatarURL: toUser.AvatarURL,
-			},
+			FromUserID:  req.FromUserID,
+			ToUserID:    req.ToUserID,
+			Status:      req.Status,
+			Message:     req.Message,
+			CreatedAt:   req.CreatedAt,
+			RespondedAt: req.RespondedAt,
 		}
 
-		if req.RespondedAt != nil {
-			respondedAt := req.RespondedAt.Format("2006-01-02T15:04:05Z07:00")
-			response.RespondedAt = &respondedAt
+		if req.ToUser != nil {
+			response.ToUser = &FriendResponse{
+				ID:        req.ToUser.ID,
+				Username:  req.ToUser.Username,
+				AvatarURL: req.ToUser.AvatarURL,
+			}
 		}
 
 		responses = append(responses, response)
@@ -262,11 +229,6 @@ func (h *Handler) RemoveFriend(w http.ResponseWriter, r *http.Request) {
 	userCtx := httputil.UserFromRequest(r)
 
 	if err := h.service.RemoveFriend(r.Context(), userCtx.ID, friendID); err != nil {
-		switch {
-		case errors.Is(err, ErrNotFriends):
-			httputil.NotFound(w, "Friendship not found")
-			return
-		}
 		httputil.InternalError(w, r, err)
 		return
 	}

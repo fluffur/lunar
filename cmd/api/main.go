@@ -80,7 +80,6 @@ func main() {
 		wsService:         wsService,
 		messageService:    messageService,
 		friendshipService: friendshipService,
-		userRepo:          userRepo,
 		validator:         validator,
 	}
 
