@@ -3,6 +3,7 @@ package friendship
 import (
 	"context"
 	"errors"
+	"lunar/internal/friendship/dto"
 	"lunar/internal/model"
 	"lunar/internal/repository"
 
@@ -123,30 +124,13 @@ func (s *FriendshipService) RemoveFriend(ctx context.Context, userID uuid.UUID, 
 	return s.repo.RemoveFriend(ctx, userID, friendID)
 }
 
-type FriendWithInfo struct {
-	ID        string
-	Username  string
-	AvatarURL string
-}
-
-type FriendRequestWithInfo struct {
-	FromUserID  string
-	ToUserID    string
-	Status      string
-	Message     string
-	CreatedAt   string
-	RespondedAt *string
-	FromUser    *FriendWithInfo
-	ToUser      *FriendWithInfo
-}
-
-func (s *FriendshipService) ListFriendsWithInfo(ctx context.Context, userID uuid.UUID) ([]FriendWithInfo, error) {
+func (s *FriendshipService) ListFriendsWithInfo(ctx context.Context, userID uuid.UUID) ([]dto.FriendWithInfo, error) {
 	friendships, err := s.repo.ListFriends(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	friends := make([]FriendWithInfo, 0, len(friendships))
+	friends := make([]dto.FriendWithInfo, 0, len(friendships))
 	for _, f := range friendships {
 		user, err := s.userRepo.GetByID(ctx, f.FriendID)
 		if err != nil {
@@ -156,7 +140,7 @@ func (s *FriendshipService) ListFriendsWithInfo(ctx context.Context, userID uuid
 			return nil, err
 		}
 
-		friends = append(friends, FriendWithInfo{
+		friends = append(friends, dto.FriendWithInfo{
 			ID:        user.ID.String(),
 			Username:  user.Username,
 			AvatarURL: user.AvatarURL,
@@ -166,13 +150,13 @@ func (s *FriendshipService) ListFriendsWithInfo(ctx context.Context, userID uuid
 	return friends, nil
 }
 
-func (s *FriendshipService) ListIncomingRequestsWithInfo(ctx context.Context, userID uuid.UUID) ([]FriendRequestWithInfo, error) {
+func (s *FriendshipService) ListIncomingRequestsWithInfo(ctx context.Context, userID uuid.UUID) ([]dto.FriendRequestWithInfo, error) {
 	requests, err := s.repo.ListIncomingRequest(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	responses := make([]FriendRequestWithInfo, 0, len(requests))
+	responses := make([]dto.FriendRequestWithInfo, 0, len(requests))
 	for _, req := range requests {
 		fromUser, err := s.userRepo.GetByID(ctx, req.FromUserID)
 		if err != nil {
@@ -182,13 +166,13 @@ func (s *FriendshipService) ListIncomingRequestsWithInfo(ctx context.Context, us
 			return nil, err
 		}
 
-		response := FriendRequestWithInfo{
+		response := dto.FriendRequestWithInfo{
 			FromUserID: req.FromUserID.String(),
 			ToUserID:   req.ToUserID.String(),
 			Status:     string(req.Status),
 			Message:    req.Message,
 			CreatedAt:  req.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-			FromUser: &FriendWithInfo{
+			FromUser: &dto.FriendWithInfo{
 				ID:        fromUser.ID.String(),
 				Username:  fromUser.Username,
 				AvatarURL: fromUser.AvatarURL,
@@ -206,13 +190,13 @@ func (s *FriendshipService) ListIncomingRequestsWithInfo(ctx context.Context, us
 	return responses, nil
 }
 
-func (s *FriendshipService) ListOutgoingRequestsWithInfo(ctx context.Context, userID uuid.UUID) ([]FriendRequestWithInfo, error) {
+func (s *FriendshipService) ListOutgoingRequestsWithInfo(ctx context.Context, userID uuid.UUID) ([]dto.FriendRequestWithInfo, error) {
 	requests, err := s.repo.ListOutgoingRequest(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
 
-	responses := make([]FriendRequestWithInfo, 0, len(requests))
+	responses := make([]dto.FriendRequestWithInfo, 0, len(requests))
 	for _, req := range requests {
 		toUser, err := s.userRepo.GetByID(ctx, req.ToUserID)
 		if err != nil {
@@ -222,13 +206,13 @@ func (s *FriendshipService) ListOutgoingRequestsWithInfo(ctx context.Context, us
 			return nil, err
 		}
 
-		response := FriendRequestWithInfo{
+		response := dto.FriendRequestWithInfo{
 			FromUserID: req.FromUserID.String(),
 			ToUserID:   req.ToUserID.String(),
 			Status:     string(req.Status),
 			Message:    req.Message,
 			CreatedAt:  req.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
-			ToUser: &FriendWithInfo{
+			ToUser: &dto.FriendWithInfo{
 				ID:        toUser.ID.String(),
 				Username:  toUser.Username,
 				AvatarURL: toUser.AvatarURL,
