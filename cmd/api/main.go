@@ -64,7 +64,7 @@ func main() {
 		refreshRepo,
 		userRepo,
 		notification.NewLogEmailSender(logger),
-		cfg.ENV != "dev",
+		cfg.Features.HasEmailVerification,
 	)
 	userService := user.NewService(userRepo, authService, cfg.FileStore.AvatarsPath())
 	roomService := room.NewService(roomRepo)

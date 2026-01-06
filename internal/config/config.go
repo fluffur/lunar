@@ -5,13 +5,17 @@ import (
 )
 
 type Config struct {
-	Addr      int    `env:"APP_ADDR" envDefault:"8080"`
-	ENV       string `env:"APP_ENV" envDefault:"dev"`
+	Addr      int `env:"APP_ADDR" envDefault:"8080"`
 	CORS      CORSConfig
 	Auth      AuthConfig
 	DB        DBConfig
 	Redis     RedisConfig
 	FileStore FileStoreConfig
+	Features  FeaturesConfig
+}
+
+type FeaturesConfig struct {
+	HasEmailVerification bool `env:"HAS_EMAIL_VERIFICATION" envDefault:"false"`
 }
 
 func Load() (*Config, error) {
