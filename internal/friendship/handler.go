@@ -61,8 +61,7 @@ func (h *Handler) SendFriendRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) AcceptFriendRequest(w http.ResponseWriter, r *http.Request) {
-	fromIDStr := chi.URLParam(r, "fromId")
-	fromID, err := uuid.Parse(fromIDStr)
+	fromID, err := uuid.Parse(chi.URLParam(r, "fromId"))
 	if err != nil {
 		httputil.BadRequest(w, "Invalid user ID")
 		return
@@ -84,8 +83,7 @@ func (h *Handler) AcceptFriendRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) RejectFriendRequest(w http.ResponseWriter, r *http.Request) {
-	fromIDStr := chi.URLParam(r, "fromId")
-	fromID, err := uuid.Parse(fromIDStr)
+	fromID, err := uuid.Parse(chi.URLParam(r, "fromId"))
 	if err != nil {
 		httputil.BadRequest(w, "Invalid user ID")
 		return
@@ -93,7 +91,7 @@ func (h *Handler) RejectFriendRequest(w http.ResponseWriter, r *http.Request) {
 
 	userCtx := httputil.UserFromRequest(r)
 
-	if err := h.service.RejectFriendRequest(r.Context(), userCtx.ID, fromID); err != nil {
+	if err := h.service.DeleteFriendRequest(r.Context(), fromID, userCtx.ID); err != nil {
 		switch {
 		case errors.Is(err, ErrFriendRequestNotFound):
 			httputil.NotFound(w, "Friend request not found")
@@ -107,8 +105,7 @@ func (h *Handler) RejectFriendRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) CancelFriendRequest(w http.ResponseWriter, r *http.Request) {
-	toIDStr := chi.URLParam(r, "toId")
-	toID, err := uuid.Parse(toIDStr)
+	toID, err := uuid.Parse(chi.URLParam(r, "toId"))
 	if err != nil {
 		httputil.BadRequest(w, "Invalid user ID")
 		return
@@ -116,7 +113,7 @@ func (h *Handler) CancelFriendRequest(w http.ResponseWriter, r *http.Request) {
 
 	userCtx := httputil.UserFromRequest(r)
 
-	if err := h.service.CancelFriendRequest(r.Context(), userCtx.ID, toID); err != nil {
+	if err := h.service.DeleteFriendRequest(r.Context(), userCtx.ID, toID); err != nil {
 		switch {
 		case errors.Is(err, ErrFriendRequestNotFound):
 			httputil.NotFound(w, "Friend request not found")
@@ -219,8 +216,7 @@ func (h *Handler) ListOutgoingRequests(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) RemoveFriend(w http.ResponseWriter, r *http.Request) {
-	friendIDStr := chi.URLParam(r, "friendId")
-	friendID, err := uuid.Parse(friendIDStr)
+	friendID, err := uuid.Parse(chi.URLParam(r, "friendId"))
 	if err != nil {
 		httputil.BadRequest(w, "Invalid friend ID")
 		return

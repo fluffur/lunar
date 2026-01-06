@@ -46,7 +46,6 @@ func (s *FriendshipService) SendFriendRequest(ctx context.Context, fromID uuid.U
 		return ErrCannotAddSelf
 	}
 
-	// Check if blocked
 	blocked, err := s.repo.IsBlocked(ctx, fromID, toID)
 	if err != nil {
 		return err
@@ -96,19 +95,7 @@ func (s *FriendshipService) AcceptFriendRequest(ctx context.Context, userID uuid
 	return s.repo.AcceptFriendRequest(ctx, userID, fromID)
 }
 
-func (s *FriendshipService) RejectFriendRequest(ctx context.Context, userID uuid.UUID, fromID uuid.UUID) error {
-	_, err := s.repo.GetFriendRequest(ctx, fromID, userID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return ErrFriendRequestNotFound
-		}
-		return err
-	}
-
-	return s.repo.DeleteFriendRequest(ctx, fromID, userID)
-}
-
-func (s *FriendshipService) CancelFriendRequest(ctx context.Context, fromID uuid.UUID, toID uuid.UUID) error {
+func (s *FriendshipService) DeleteFriendRequest(ctx context.Context, fromID uuid.UUID, toID uuid.UUID) error {
 	_, err := s.repo.GetFriendRequest(ctx, fromID, toID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
