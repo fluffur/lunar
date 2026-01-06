@@ -7,7 +7,9 @@ configuration.ts
 docs/AuthApi.md
 docs/AuthLoginCredentials.md
 docs/AuthRegisterCredentials.md
+docs/AuthResendVerificationCodeRequest.md
 docs/AuthTokens.md
+docs/AuthVerifyEmailRequest.md
 docs/HttputilErrorBody.md
 docs/HttputilErrorResponse.md
 docs/MessageApi.md

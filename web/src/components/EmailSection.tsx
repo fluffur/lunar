@@ -1,29 +1,31 @@
-import {ActionIcon, Collapse, Group, Stack, Text, TextInput,} from "@mantine/core";
+import {ActionIcon, Group, Modal, Stack, TextInput,} from "@mantine/core";
 import {IconCheck, IconEdit, IconX} from "@tabler/icons-react";
 import {useState} from "react";
 import {userApi} from "../api.ts";
 import {useSessionStore} from "../stores/sessionStore.ts";
+import VerifyEmailForm from "./VerifyEmailForm.tsx";
+import axios from "axios";
 
 export default function EmailSection() {
     const {user, setUser} = useSessionStore();
     const [email, setEmail] = useState(user?.email || "");
     const [originalEmail, setOriginalEmail] = useState(email);
     const [isEditingEmail, setIsEditingEmail] = useState(false);
-    const [emailSaved, setEmailSaved] = useState(false);
+    const [verificationModalOpen, setVerificationModalOpen] = useState(false);
+    const [error, setError] = useState("")
 
     const handleEmailSave = async () => {
         if (email === originalEmail) return setIsEditingEmail(false);
 
         try {
             await userApi.usersMeEmailPut({email});
-            if (user) {
-                setUser({...user, email, emailVerified: false});
-            }
-            setOriginalEmail(email);
-            setEmailSaved(true);
+            setVerificationModalOpen(true);
             setIsEditingEmail(false);
-            setTimeout(() => setEmailSaved(false), 3000);
         } catch (err) {
+            if (axios.isAxiosError(err)) {
+                setError(err.response?.data?.error?.fields?.email ?? "")
+                return
+            }
             console.error(err);
         }
     };
@@ -33,10 +35,17 @@ export default function EmailSection() {
         setIsEditingEmail(false);
     };
 
+    const handleVerifySuccess = () => {
+        setUser({...user!, email});
+        setOriginalEmail(email);
+        setVerificationModalOpen(false);
+    };
+
     return (
         <Stack w="100%">
             <TextInput
                 label="Email"
+                error={error}
                 value={email}
                 onChange={(e) => setEmail(e.currentTarget.value)}
                 disabled={!isEditingEmail}
@@ -60,11 +69,18 @@ export default function EmailSection() {
                 rightSectionWidth={isEditingEmail ? 65 : 40}
             />
 
-            <Collapse in={emailSaved}>
-                <Text color="green" size="sm">
-                    Email updated. Please verify new email.
-                </Text>
-            </Collapse>
+            <Modal
+                opened={verificationModalOpen}
+                onClose={() => setVerificationModalOpen(false)}
+                title="Verify New Email"
+                centered
+            >
+                <VerifyEmailForm
+                    initialEmail={email}
+                    onSuccess={handleVerifySuccess}
+                    fixedEmail={true}
+                />
+            </Modal>
         </Stack>
     );
 }

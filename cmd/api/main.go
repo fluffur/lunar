@@ -11,8 +11,10 @@ import (
 	"lunar/internal/friendship"
 	"lunar/internal/httputil"
 	"lunar/internal/message"
+	"lunar/internal/notification"
 	"lunar/internal/room"
 	"lunar/internal/user"
+
 	"lunar/internal/ws"
 	"os"
 
@@ -58,8 +60,8 @@ func main() {
 	messageRepo := postgres.NewMessageRepository(queries)
 	friendshipRepo := postgres.NewFriendshipRepository(pool, queries)
 
-	authService := auth.NewService(authenticator, refreshRepo, userRepo)
-	userService := user.NewService(userRepo, cfg.FileStore.AvatarsPath())
+	authService := auth.NewService(authenticator, refreshRepo, userRepo, notification.NewLogEmailSender(logger))
+	userService := user.NewService(userRepo, authService, cfg.FileStore.AvatarsPath())
 	roomService := room.NewService(roomRepo)
 	wsService := ws.NewService(rdb, userRepo, messageRepo, cfg.CORS.AllowedOrigins)
 	messageService := message.NewService(roomRepo, messageRepo)

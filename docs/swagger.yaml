@@ -2,6 +2,7 @@ definitions:
   auth.LoginCredentials:
     properties:
       login:
+        maxLength: 255
         minLength: 3
         type: string
       password:
@@ -15,14 +16,18 @@ definitions:
   auth.RegisterCredentials:
     properties:
       confirmPassword:
+        maxLength: 72
         minLength: 6
         type: string
       email:
+        maxLength: 255
         type: string
       password:
+        maxLength: 72
         minLength: 6
         type: string
       username:
+        maxLength: 32
         minLength: 3
         type: string
     required:
@@ -30,6 +35,13 @@ definitions:
     - email
     - password
     - username
+    type: object
+  auth.ResendVerificationCodeRequest:
+    properties:
+      email:
+        type: string
+    required:
+    - email
     type: object
   auth.Tokens:
     properties:
@@ -40,6 +52,16 @@ definitions:
     required:
     - accessToken
     - refreshToken
+    type: object
+  auth.VerifyEmailRequest:
+    properties:
+      code:
+        type: string
+      email:
+        type: string
+    required:
+    - code
+    - email
     type: object
   httputil.ErrorBody:
     properties:
@@ -249,8 +271,6 @@ paths:
           description: Unauthorized
           schema:
             $ref: '#/definitions/httputil.ErrorResponse'
-      security:
-      - RefreshCookieAuth: []
       summary: Refresh access token
       tags:
       - auth
@@ -270,8 +290,6 @@ paths:
       responses:
         "200":
           description: OK
-          schema:
-            $ref: '#/definitions/auth.Tokens'
         "400":
           description: Bad Request
           schema:
@@ -281,6 +299,60 @@ paths:
           schema:
             $ref: '#/definitions/httputil.ErrorResponse'
       summary: Register a new user
+      tags:
+      - auth
+  /auth/verify:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Verification credentials
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/auth.VerifyEmailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      summary: Verify email
+      tags:
+      - auth
+  /auth/verify/resend:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Email
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/auth.ResendVerificationCodeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      summary: Resend verification code
       tags:
       - auth
   /rooms:

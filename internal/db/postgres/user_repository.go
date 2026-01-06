@@ -6,8 +6,10 @@ import (
 	db "lunar/internal/db/postgres/sqlc"
 	"lunar/internal/model"
 	"lunar/internal/repository"
+	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgtype"
 )
@@ -60,7 +62,12 @@ func (r *UserRepository) GetByID(ctx context.Context, id uuid.UUID) (model.User,
 
 func (r *UserRepository) GetByLogin(ctx context.Context, login string) (model.User, error) {
 	u, err := r.queries.GetUserByLogin(ctx, login)
+
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return model.User{}, repository.ErrUserNotFound
+		}
+
 		return model.User{}, err
 	}
 
@@ -128,4 +135,61 @@ func (r *UserRepository) UpdateEmail(ctx context.Context, id uuid.UUID, email st
 
 	return err
 
+}
+
+func (r *UserRepository) MarkEmailVerified(ctx context.Context, userID uuid.UUID) error {
+	return r.queries.MarkEmailVerified(ctx, userID)
+}
+
+func (r *UserRepository) SaveVerificationCode(ctx context.Context, userID uuid.UUID, email, codeHash string, duration string) error {
+	dur, err := time.ParseDuration(duration)
+	if err != nil {
+		return err
+	}
+	return r.queries.UpsertEmailVerificationCode(ctx, db.UpsertEmailVerificationCodeParams{
+		UserID:       userID,
+		CodeHash:     codeHash,
+		PendingEmail: textFromString(email),
+		ExpiresAt:    timestampFromTime(time.Now().Add(dur)),
+		Attempts:     0,
+		CreatedAt:    timestampFromTime(time.Now()),
+	})
+}
+
+func mapVerificationCode(code db.EmailVerificationCode) model.EmailVerificationCode {
+	return model.EmailVerificationCode{
+		UserID:       code.UserID,
+		CodeHash:     code.CodeHash,
+		PendingEmail: code.PendingEmail.String,
+		ExpiresAt:    code.ExpiresAt.Time,
+		Attempts:     int(code.Attempts),
+		CreatedAt:    code.CreatedAt.Time,
+	}
+}
+
+func (r *UserRepository) GetVerificationCode(ctx context.Context, userID uuid.UUID) (model.EmailVerificationCode, error) {
+	code, err := r.queries.GetEmailVerificationCode(ctx, userID)
+	if err != nil {
+		return model.EmailVerificationCode{}, err
+	}
+	return mapVerificationCode(code), nil
+}
+
+func (r *UserRepository) GetVerificationCodeByEmail(ctx context.Context, email string) (model.EmailVerificationCode, error) {
+	code, err := r.queries.GetEmailVerificationCodeByEmail(ctx, pgtype.Text{String: email, Valid: true})
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return model.EmailVerificationCode{}, repository.ErrVerificationCodeNotFound
+		}
+		return model.EmailVerificationCode{}, err
+	}
+	return mapVerificationCode(code), nil
+}
+
+func (r *UserRepository) IncrementVerificationAttempts(ctx context.Context, userID uuid.UUID) error {
+	return r.queries.IncrementVerificationAttempts(ctx, userID)
+}
+
+func (r *UserRepository) DeleteVerificationCode(ctx context.Context, userID uuid.UUID) error {
+	return r.queries.DeleteEmailVerificationCode(ctx, userID)
 }

@@ -96,11 +96,6 @@ const docTemplate = `{
         },
         "/auth/refresh": {
             "post": {
-                "security": [
-                    {
-                        "RefreshCookieAuth": []
-                    }
-                ],
                 "produces": [
                     "application/json"
                 ],
@@ -149,10 +144,91 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/auth.Tokens"
+                            "$ref": "#/definitions/httputil.ErrorResponse"
                         }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/verify": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Verify email",
+                "parameters": [
+                    {
+                        "description": "Verification credentials",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.VerifyEmailRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/verify/resend": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Resend verification code",
+                "parameters": [
+                    {
+                        "description": "Email",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/auth.ResendVerificationCodeRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK"
                     },
                     "400": {
                         "description": "Bad Request",
@@ -593,6 +669,7 @@ const docTemplate = `{
             "properties": {
                 "login": {
                     "type": "string",
+                    "maxLength": 255,
                     "minLength": 3
                 },
                 "password": {
@@ -613,18 +690,33 @@ const docTemplate = `{
             "properties": {
                 "confirmPassword": {
                     "type": "string",
+                    "maxLength": 72,
                     "minLength": 6
                 },
                 "email": {
-                    "type": "string"
+                    "type": "string",
+                    "maxLength": 255
                 },
                 "password": {
                     "type": "string",
+                    "maxLength": 72,
                     "minLength": 6
                 },
                 "username": {
                     "type": "string",
+                    "maxLength": 32,
                     "minLength": 3
+                }
+            }
+        },
+        "auth.ResendVerificationCodeRequest": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
                 }
             }
         },
@@ -639,6 +731,21 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "refreshToken": {
+                    "type": "string"
+                }
+            }
+        },
+        "auth.VerifyEmailRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "email"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "email": {
                     "type": "string"
                 }
             }

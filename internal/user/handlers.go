@@ -88,7 +88,7 @@ func (h *Handler) UpdateEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	httputil.Success(w)
+	httputil.SuccessData(w, map[string]string{"message": "verification code sent to new email address"})
 }
 
 // ChangePassword changes the user's password

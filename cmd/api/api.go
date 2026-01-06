@@ -66,6 +66,8 @@ func (app *application) mount() http.Handler {
 
 		r.Post("/refresh", authHandler.Refresh)
 		r.Post("/logout", authHandler.Logout)
+		r.Post("/verify", authHandler.VerifyEmail)
+		r.Post("/verify/resend", authHandler.ResendVerificationEmail)
 	})
 
 	r.With(authMw).Group(func(r chi.Router) {
