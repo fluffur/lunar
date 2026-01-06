@@ -8,6 +8,7 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
@@ -18,8 +19,11 @@ type Querier interface {
 	CreateRoom(ctx context.Context, arg CreateRoomParams) (Room, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteBlock(ctx context.Context, arg DeleteBlockParams) error
+	DeleteEmailVerificationCode(ctx context.Context, userID uuid.UUID) error
 	DeleteFriendRequest(ctx context.Context, arg DeleteFriendRequestParams) error
 	DeleteFriendshipEdge(ctx context.Context, arg DeleteFriendshipEdgeParams) error
+	GetEmailVerificationCode(ctx context.Context, userID uuid.UUID) (EmailVerificationCode, error)
+	GetEmailVerificationCodeByEmail(ctx context.Context, pendingEmail pgtype.Text) (EmailVerificationCode, error)
 	GetFriendRequest(ctx context.Context, arg GetFriendRequestParams) (FriendRequest, error)
 	GetMessagesPaging(ctx context.Context, arg GetMessagesPagingParams) ([]GetMessagesPagingRow, error)
 	GetRoom(ctx context.Context, id uuid.UUID) (Room, error)
@@ -27,6 +31,7 @@ type Querier interface {
 	GetUser(ctx context.Context, id uuid.UUID) (User, error)
 	GetUserByLogin(ctx context.Context, login string) (User, error)
 	GetUserRooms(ctx context.Context, userID uuid.UUID) ([]Room, error)
+	IncrementVerificationAttempts(ctx context.Context, userID uuid.UUID) error
 	InsertFriendshipEdge(ctx context.Context, arg InsertFriendshipEdgeParams) error
 	IsBlocked(ctx context.Context, arg IsBlockedParams) (bool, error)
 	IsUserRoomMember(ctx context.Context, arg IsUserRoomMemberParams) (bool, error)
@@ -34,6 +39,7 @@ type Querier interface {
 	ListFriends(ctx context.Context, userID uuid.UUID) ([]Friendship, error)
 	ListIncomingRequests(ctx context.Context, toUserID uuid.UUID) ([]FriendRequest, error)
 	ListOutgoingRequests(ctx context.Context, fromUserID uuid.UUID) ([]FriendRequest, error)
+	MarkEmailVerified(ctx context.Context, id uuid.UUID) error
 	RoomExists(ctx context.Context, id uuid.UUID) (bool, error)
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error
 	UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) error
