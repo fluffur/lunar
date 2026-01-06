@@ -1,7 +1,7 @@
 import { LiveKitRoom } from "@livekit/components-react";
 import "@livekit/components-styles";
 import { useEffect, useState } from "react";
-import {livekitApi} from "../api.ts";
+import {livekitApi} from "../../api.ts";
 import * as React from "react";
 
 type Props = {
@@ -25,6 +25,8 @@ export function LiveKitRoomWrapper({ roomSlug, children }: Props) {
             token={token}
             serverUrl="ws://localhost:7880"
             connect
+            video
+            audio
             data-lk-theme="default"
         >
             {children}
