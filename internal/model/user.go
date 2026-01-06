@@ -17,7 +17,7 @@ type User struct {
 	CreatedAt     time.Time `json:"-" `
 }
 
-func NewUser(username, email, password string) (User, error) {
+func NewUser(username, email, password string, emailVerified bool) (User, error) {
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return User{}, err
@@ -28,7 +28,7 @@ func NewUser(username, email, password string) (User, error) {
 		Username:      username,
 		Email:         email,
 		PasswordHash:  string(passwordHash),
-		EmailVerified: false,
+		EmailVerified: emailVerified,
 		CreatedAt:     time.Now(),
 	}, nil
 }
