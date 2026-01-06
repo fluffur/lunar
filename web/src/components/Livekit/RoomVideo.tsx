@@ -9,6 +9,7 @@ export function RoomVideo() {
     const tracks = useTracks(
         [
             { source: Track.Source.Camera, withPlaceholder: true },
+            { source: Track.Source.Microphone, withPlaceholder: false },
             { source: Track.Source.ScreenShare, withPlaceholder: false },
         ],
         { onlySubscribed: false }
