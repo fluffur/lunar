@@ -17,6 +17,21 @@ type EmailVerificationCode struct {
 	CreatedAt pgtype.Timestamptz `db:"created_at" json:"createdAt"`
 }
 
+type FriendRequest struct {
+	FromUserID  uuid.UUID          `db:"from_user_id" json:"fromUserId"`
+	ToUserID    uuid.UUID          `db:"to_user_id" json:"toUserId"`
+	Status      string             `db:"status" json:"status"`
+	Message     string             `db:"message" json:"message"`
+	CreatedAt   pgtype.Timestamptz `db:"created_at" json:"createdAt"`
+	RespondedAt pgtype.Timestamptz `db:"responded_at" json:"respondedAt"`
+}
+
+type Friendship struct {
+	UserID    uuid.UUID          `db:"user_id" json:"userId"`
+	FriendID  uuid.UUID          `db:"friend_id" json:"friendId"`
+	CreatedAt pgtype.Timestamptz `db:"created_at" json:"createdAt"`
+}
+
 type Message struct {
 	ID        uuid.UUID          `db:"id" json:"id"`
 	RoomID    uuid.UUID          `db:"room_id" json:"roomId"`
@@ -47,4 +62,10 @@ type User struct {
 	PasswordHash  pgtype.Text        `db:"password_hash" json:"passwordHash"`
 	CreatedAt     pgtype.Timestamptz `db:"created_at" json:"createdAt"`
 	AvatarUrl     pgtype.Text        `db:"avatar_url" json:"avatarUrl"`
+}
+
+type UserBlock struct {
+	FromUserID uuid.UUID          `db:"from_user_id" json:"fromUserId"`
+	ToUserID   uuid.UUID          `db:"to_user_id" json:"toUserId"`
+	CreatedAt  pgtype.Timestamptz `db:"created_at" json:"createdAt"`
 }

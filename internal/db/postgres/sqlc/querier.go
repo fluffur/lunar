@@ -12,16 +12,28 @@ import (
 
 type Querier interface {
 	AddRoomMember(ctx context.Context, arg AddRoomMemberParams) error
+	CreateBlock(ctx context.Context, arg CreateBlockParams) error
+	CreateFriendRequest(ctx context.Context, arg CreateFriendRequestParams) error
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
 	CreateRoom(ctx context.Context, arg CreateRoomParams) (Room, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
+	DeleteBlock(ctx context.Context, arg DeleteBlockParams) error
+	DeleteFriendRequest(ctx context.Context, arg DeleteFriendRequestParams) error
+	DeleteFriendshipEdge(ctx context.Context, arg DeleteFriendshipEdgeParams) error
+	GetFriendRequest(ctx context.Context, arg GetFriendRequestParams) (FriendRequest, error)
 	GetMessagesPaging(ctx context.Context, arg GetMessagesPagingParams) ([]GetMessagesPagingRow, error)
 	GetRoom(ctx context.Context, id uuid.UUID) (Room, error)
 	GetRoomBySlug(ctx context.Context, slug string) (Room, error)
 	GetUser(ctx context.Context, id uuid.UUID) (User, error)
 	GetUserByLogin(ctx context.Context, login string) (User, error)
 	GetUserRooms(ctx context.Context, userID uuid.UUID) ([]Room, error)
+	InsertFriendshipEdge(ctx context.Context, arg InsertFriendshipEdgeParams) error
+	IsBlocked(ctx context.Context, arg IsBlockedParams) (bool, error)
 	IsUserRoomMember(ctx context.Context, arg IsUserRoomMemberParams) (bool, error)
+	ListBlocked(ctx context.Context, fromUserID uuid.UUID) ([]UserBlock, error)
+	ListFriends(ctx context.Context, userID uuid.UUID) ([]Friendship, error)
+	ListIncomingRequests(ctx context.Context, toUserID uuid.UUID) ([]FriendRequest, error)
+	ListOutgoingRequests(ctx context.Context, fromUserID uuid.UUID) ([]FriendRequest, error)
 	RoomExists(ctx context.Context, id uuid.UUID) (bool, error)
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error
 	UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) error

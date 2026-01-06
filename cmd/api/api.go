@@ -8,6 +8,7 @@ import (
 	_ "lunar/docs"
 	"lunar/internal/auth"
 	"lunar/internal/config"
+	"lunar/internal/friendship"
 	"lunar/internal/httputil"
 	"lunar/internal/message"
 	"lunar/internal/room"
@@ -25,6 +26,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/redis/go-redis/v9"
 	httpSwagger "github.com/swaggo/http-swagger"
+	"lunar/internal/repository"
 )
 
 func (app *application) mount() http.Handler {
@@ -53,6 +55,7 @@ func (app *application) mount() http.Handler {
 	userHandler := user.NewHandler(app.validator, app.userService)
 	roomHandler := room.NewHandler(app.validator, app.roomService, app.wsService)
 	messageHandler := message.NewHandler(app.validator, app.messageService)
+	friendshipHandler := friendship.NewHandler(app.validator, app.friendshipService, app.userRepo)
 
 	r.Mount("/api", r)
 	r.Handle("/uploads/*", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
@@ -82,6 +85,17 @@ func (app *application) mount() http.Handler {
 				r.Post("/", roomHandler.JoinCurrentUser)
 				r.Get("/messages", messageHandler.ListMessages)
 			})
+		})
+
+		r.Route("/friends", func(r chi.Router) {
+			r.Get("/", friendshipHandler.ListFriends)
+			r.Post("/requests", friendshipHandler.SendFriendRequest)
+			r.Get("/requests/incoming", friendshipHandler.ListIncomingRequests)
+			r.Get("/requests/outgoing", friendshipHandler.ListOutgoingRequests)
+			r.Post("/requests/{fromId}/accept", friendshipHandler.AcceptFriendRequest)
+			r.Post("/requests/{fromId}/reject", friendshipHandler.RejectFriendRequest)
+			r.Post("/requests/{toId}/cancel", friendshipHandler.CancelFriendRequest)
+			r.Delete("/{friendId}", friendshipHandler.RemoveFriend)
 		})
 	})
 
@@ -140,14 +154,16 @@ func (app *application) run(h http.Handler) error {
 }
 
 type application struct {
-	config         *config.Config
-	db             *pgxpool.Pool
-	rdb            *redis.Client
-	authenticator  *auth.Authenticator
-	authService    *auth.Service
-	userService    *user.Service
-	roomService    *room.Service
-	wsService      *ws.Service
-	messageService *message.Service
-	validator      *httputil.Validator
+	config           *config.Config
+	db               *pgxpool.Pool
+	rdb              *redis.Client
+	authenticator    *auth.Authenticator
+	authService      *auth.Service
+	userService      *user.Service
+	roomService      *room.Service
+	wsService        *ws.Service
+	messageService   *message.Service
+	friendshipService *friendship.FriendshipService
+	userRepo         repository.UserRepository
+	validator        *httputil.Validator
 }

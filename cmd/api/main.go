@@ -8,6 +8,7 @@ import (
 	"lunar/internal/db/postgres"
 	db "lunar/internal/db/postgres/sqlc"
 	redis2 "lunar/internal/db/redis"
+	"lunar/internal/friendship"
 	"lunar/internal/httputil"
 	"lunar/internal/message"
 	"lunar/internal/room"
@@ -55,26 +56,30 @@ func main() {
 	userRepo := postgres.NewUserRepository(queries)
 	roomRepo := postgres.NewRoomRepository(queries)
 	messageRepo := postgres.NewMessageRepository(queries)
+	friendshipRepo := postgres.NewFriendshipRepository(pool, queries)
 
 	authService := auth.NewService(authenticator, refreshRepo, userRepo)
 	userService := user.NewService(userRepo, cfg.FileStore.AvatarsPath())
 	roomService := room.NewService(roomRepo)
 	wsService := ws.NewService(rdb, userRepo, messageRepo, cfg.CORS.AllowedOrigins)
 	messageService := message.NewService(roomRepo, messageRepo)
+	friendshipService := friendship.NewFriendshipService(friendshipRepo, userRepo)
 
 	validator := httputil.NewValidator()
 
 	api := application{
-		config:         cfg,
-		db:             pool,
-		rdb:            rdb,
-		authenticator:  authenticator,
-		authService:    authService,
-		userService:    userService,
-		roomService:    roomService,
-		wsService:      wsService,
-		messageService: messageService,
-		validator:      validator,
+		config:            cfg,
+		db:                pool,
+		rdb:               rdb,
+		authenticator:     authenticator,
+		authService:       authService,
+		userService:       userService,
+		roomService:       roomService,
+		wsService:         wsService,
+		messageService:    messageService,
+		friendshipService: friendshipService,
+		userRepo:          userRepo,
+		validator:         validator,
 	}
 
 	if err := api.run(api.mount()); err != nil {
