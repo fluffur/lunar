@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@livekit/components-react": "^2.9.17",
+    "@livekit/components-styles": "^1.2.0",
     "@mantine/core": "^8.3.10",
     "@mantine/form": "^8.3.10",
     "@mantine/hooks": "^8.3.10",
@@ -19,6 +21,7 @@
     "axios": "^1.13.2",
     "emoji-picker-react": "^4.16.1",
     "emoji-regex": "^10.6.0",
+    "livekit-client": "^2.16.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-easy-crop": "^5.5.6",

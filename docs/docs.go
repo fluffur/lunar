@@ -245,6 +245,51 @@ const docTemplate = `{
                 }
             }
         },
+        "/livekit/token/{roomSlug}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "livekit"
+                ],
+                "summary": "Get livekit access token",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Room Slug",
+                        "name": "roomSlug",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/livekit.TokenResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/rooms": {
             "get": {
                 "security": [
@@ -767,6 +812,17 @@ const docTemplate = `{
             "properties": {
                 "error": {
                     "$ref": "#/definitions/httputil.ErrorBody"
+                }
+            }
+        },
+        "livekit.TokenResponse": {
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
+                "token": {
+                    "type": "string"
                 }
             }
         },

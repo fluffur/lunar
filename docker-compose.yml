@@ -11,6 +11,7 @@ services:
     depends_on:
       - postgres
       - redis
+      - livekit
 
   postgres:
     image: postgres:15
@@ -27,6 +28,18 @@ services:
     image: redis:7
     ports:
       - "6379:6379"
+
+  livekit:
+    image: livekit/livekit-server
+    restart: unless-stopped
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+    environment:
+      LIVEKIT_KEYS: "testkey: testsecret"
+      LIVEKIT_HTTPS_PORT: 7880
+      LIVEKIT_RTC_PORT: 7881
+      LIVEKIT_LOG_LEVEL: debug
 
 volumes:
   postgres_data:

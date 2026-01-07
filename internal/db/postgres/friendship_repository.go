@@ -102,7 +102,6 @@ func (r *FriendshipRepository) GetFriendRequest(ctx context.Context, fromID, toI
 	return mapFriendRequest(req), nil
 }
 
-
 func (r *FriendshipRepository) DeleteFriendRequest(ctx context.Context, fromID, toID uuid.UUID) error {
 	return r.queries.DeleteFriendRequest(ctx, db.DeleteFriendRequestParams{
 		FromUserID: fromID,

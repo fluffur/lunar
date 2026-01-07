@@ -25,4 +25,4 @@ sqlc:
 	sqlc generate
 
 logs:
-	docker compose logs -f
+	docker compose logs api -f
