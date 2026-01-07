@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useRef, useState} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
     ActionIcon,
     Box,
@@ -14,39 +14,41 @@ import {
     Textarea,
     Tooltip
 } from "@mantine/core";
-import {useParams} from "react-router-dom";
-import {useSessionStore} from "../stores/sessionStore.ts";
-import {IconArrowDown, IconMoodSmile, IconSend2, IconUsers} from "@tabler/icons-react";
+import { useParams } from "react-router-dom";
+import { useSessionStore } from "../stores/sessionStore.ts";
+import { IconArrowDown, IconMoodSmile, IconSend2, IconUsers } from "@tabler/icons-react";
 import NotFound from "./NotFound.tsx";
-import {UserAvatar} from "../components/UserAvatar.tsx";
-import {API_AVATARS_BASE_URL} from "../config.ts";
+import { UserAvatar } from "../components/UserAvatar.tsx";
+import { API_AVATARS_BASE_URL } from "../config.ts";
 import messagePopAudio from "../assets/message-pop.mp3"
-import {formatMessageDate} from "../utils/formatMessageDate.ts";
-import {useUiStore} from "../stores/uiStore.ts";
-import {useMediaQuery} from "@mantine/hooks";
-import {EmojiPicker} from "../components/EmojiPicker.tsx";
-import {isEmojiOnly} from "../utils/isEmojiOnly.ts";
-import type {EmojiClickData} from "emoji-picker-react";
-import type {ModelMessage} from "../../api";
+import { formatMessageDate } from "../utils/formatMessageDate.ts";
+import { useUiStore } from "../stores/uiStore.ts";
+import { useMediaQuery } from "@mantine/hooks";
+import { EmojiPicker } from "../components/EmojiPicker.tsx";
+import { isEmojiOnly } from "../utils/isEmojiOnly.ts";
+import type { EmojiClickData } from "emoji-picker-react";
+import type { ModelMessage } from "../../api";
 
-import {useRoomMessages} from "../hooks/useRoomMessages";
-import {useRoomWebSocket} from "../hooks/useRoomWebSocket";
-import {useScrollManagement} from "../hooks/useScrollManagement";
-import {RoomMembers} from "../components/RoomMembers.tsx";
-import {LiveKitRoomWrapper} from "../components/Livekit/LiveKitRoomWrapper.tsx";
-import {RoomVideo} from "../components/Livekit/RoomVideo.tsx";
+import { useRoomMessages } from "../hooks/useRoomMessages";
+import { useRoomWebSocket } from "../hooks/useRoomWebSocket";
+import { useScrollManagement } from "../hooks/useScrollManagement";
+import { RoomMembers } from "../components/RoomMembers.tsx";
+import { LiveKitRoomWrapper } from "../components/Livekit/LiveKitRoomWrapper.tsx";
+import { RoomVideo } from "../components/Livekit/RoomVideo.tsx";
 
 export default function Room() {
-    const {roomSlug} = useParams<string>();
-    const {user} = useSessionStore()
-    const {colorScheme, primaryColor} = useUiStore();
+    const { roomSlug } = useParams<string>();
+    const { user } = useSessionStore()
+    const { colorScheme, primaryColor } = useUiStore();
     const isMobile = useMediaQuery('(max-width: 768px)');
 
     const [memberSidebarOpen, setMemberSidebarOpen] = useState(false);
     const [value, setValue] = useState("");
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [isVideoFullscreen, setIsVideoFullscreen] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const messageAudioRef = useRef(new Audio(messagePopAudio));
+    const videoContainerRef = useRef<HTMLDivElement>(null);
 
     const [isTabVisible, setIsTabVisible] = useState(document.visibilityState === "visible");
 
@@ -96,7 +98,7 @@ export default function Room() {
         }
     }, [user?.username, isAtBottom, isTabVisible, addMessage, scrollToBottom, showNotification, incrementUnread]);
 
-    const {sendRoomMessage} = useRoomWebSocket({
+    const { sendRoomMessage } = useRoomWebSocket({
         roomSlug,
         onMessageReceived
     });
@@ -114,6 +116,29 @@ export default function Room() {
             Notification.requestPermission();
         }
         return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, []);
+
+    const handleFullscreen = useCallback(() => {
+        if (!videoContainerRef.current) return;
+
+        if (!document.fullscreenElement) {
+            videoContainerRef.current.requestFullscreen().catch((err) => {
+                console.error('Error attempting to enable fullscreen:', err);
+            });
+            setIsVideoFullscreen(true);
+        } else {
+            document.exitFullscreen();
+            setIsVideoFullscreen(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsVideoFullscreen(!!document.fullscreenElement);
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
     }, []);
 
     const sendMessage = useCallback(() => {
@@ -144,7 +169,7 @@ export default function Room() {
             return (
                 <Group key={i} align="flex-end" justify={isMe ? 'flex-end' : 'flex-start'} gap="xs" wrap="nowrap">
                     {!isMe && m.sender?.username && (
-                        <UserAvatar username={m.sender.username} avatarUrl={m.sender.avatarUrl} size={32}/>
+                        <UserAvatar username={m.sender.username} avatarUrl={m.sender.avatarUrl} size={32} />
                     )}
                     <Stack gap={4} align={isMe ? 'flex-end' : 'flex-start'} maw="70%">
                         {!isMe && m.sender?.username && (
@@ -167,7 +192,7 @@ export default function Room() {
                             </Text>
                         </Paper>
                         {m.createdAt && (
-                            <Text size="xs" style={{userSelect: 'none'}}>
+                            <Text size="xs" style={{ userSelect: 'none' }}>
                                 {formatMessageDate(m.createdAt)}
                             </Text>
                         )}
@@ -177,37 +202,41 @@ export default function Room() {
         });
     }, [messages, user?.username, colorScheme, primaryColor]);
 
-    if (notFound) return <NotFound/>;
+    if (notFound) return <NotFound />;
 
     return (
-        <Flex h="100%" w="100%" direction="row" gap="md" style={{overflow: 'hidden'}}>
-            <Box style={{flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden'}}>
+        <Flex h="100%" w="100%" direction="row" gap="md" style={{ overflow: 'hidden' }}>
+            <Box style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <Flex h="100%" w="100%" direction={isMobile ? "column" : "row"} gap={isMobile ? 0 : "md"}
-                      style={{flex: 1, overflow: 'hidden'}}>
+                    style={{ flex: 1, overflow: 'hidden' }}>
                     <LiveKitRoomWrapper roomSlug={roomSlug!}>
                         <Box
+                            ref={videoContainerRef}
                             style={{
-                                height: isMobile ? '35vh' : '70vh',
-                                minHeight: isMobile ? 220 : undefined,
+                                height: isVideoFullscreen ? '100vh' : (isMobile ? '30vh' : '70vh'),
+                                minHeight: isMobile && !isVideoFullscreen ? 200 : undefined,
+                                maxHeight: isMobile && !isVideoFullscreen ? '30vh' : undefined,
                                 background: 'black',
+                                flexShrink: 0,
                             }}
                         >
-                            <RoomVideo/>
+                            <RoomVideo onFullscreen={handleFullscreen} />
                         </Box>
                     </LiveKitRoomWrapper>
 
                     <Paper w={isMobile ? "100%" : 400} h={isMobile ? "auto" : "100%"} shadow="xl"
-                           radius={isMobile ? 0 : "lg"}
-                           withBorder={!isMobile}
-                           display="flex"
-                           style={{
-                               flexDirection: 'column',
-                               overflow: 'hidden',
-                               position: 'relative',
-                               flex: isMobile ? 1 : 'none'
-                           }}>
+                        radius={isMobile ? 0 : "lg"}
+                        withBorder={!isMobile}
+                        display="flex"
+                        style={{
+                            flexDirection: 'column',
+                            overflow: 'hidden',
+                            position: 'relative',
+                            flex: isMobile ? '1 1 auto' : 'none',
+                            minHeight: isMobile ? 0 : undefined,
+                        }}>
                         <Box p="sm"
-                             style={{borderBottom: `1px solid ${colorScheme === 'dark' ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-2)'}`}}>
+                            style={{ borderBottom: `1px solid ${colorScheme === 'dark' ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-2)'}` }}>
                             <Group justify="space-between">
                                 <Text fw={700} size="sm">Chat</Text>
                                 <Tooltip label={memberSidebarOpen ? "Hide Members" : "Show Members"}>
@@ -216,14 +245,14 @@ export default function Room() {
                                         color="gray"
                                         onClick={() => setMemberSidebarOpen(!memberSidebarOpen)}
                                     >
-                                        <IconUsers size={20}/>
+                                        <IconUsers size={20} />
                                     </ActionIcon>
                                 </Tooltip>
                             </Group>
                         </Box>
 
                         <ScrollArea
-                            style={{flex: 1}}
+                            style={{ flex: 1 }}
                             viewportRef={viewportRef}
                             onScrollPositionChange={(pos) => handleScroll(pos, nextCursor, loadOlderMessages)}
                             p="md"
@@ -247,7 +276,7 @@ export default function Room() {
                                     radius="xl"
                                     size="xs"
                                     variant="filled"
-                                    leftSection={<IconArrowDown size={14}/>}
+                                    leftSection={<IconArrowDown size={14} />}
                                 >
                                     {unreadCount} new messages
                                 </Button>
@@ -255,36 +284,36 @@ export default function Room() {
                         )}
 
                         {!isAtBottom && unreadCount === 0 && (
-                            <div style={{position: 'absolute', bottom: 80, right: 20, zIndex: 10}}>
+                            <div style={{ position: 'absolute', bottom: 80, right: 20, zIndex: 10 }}>
                                 <ActionIcon
                                     onClick={() => scrollToBottom("smooth")}
                                     radius="xl"
                                     size="lg"
                                     variant="default"
-                                    style={{boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}}
+                                    style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                                 >
-                                    <IconArrowDown size={18}/>
+                                    <IconArrowDown size={18} />
                                 </ActionIcon>
                             </div>
                         )}
 
-                        <Paper p="md" style={{position: 'relative'}}>
+                        <Paper p="md" style={{ position: 'relative' }}>
                             <Popover opened={showEmojiPicker} onChange={setShowEmojiPicker} position="top-start"
-                                     withArrow
-                                     shadow="md">
+                                withArrow
+                                shadow="md">
                                 <Popover.Target>
                                     <ActionIcon
                                         variant="subtle"
                                         color="gray"
                                         size="lg"
                                         onClick={() => setShowEmojiPicker((o) => !o)}
-                                        style={{position: 'absolute', left: 16, top: 24, zIndex: 5}}
+                                        style={{ position: 'absolute', left: 16, top: 24, zIndex: 5 }}
                                     >
-                                        <IconMoodSmile size={20}/>
+                                        <IconMoodSmile size={20} />
                                     </ActionIcon>
                                 </Popover.Target>
                                 <Popover.Dropdown p={0}>
-                                    <EmojiPicker onEmojiClick={handleEmojiClick}/>
+                                    <EmojiPicker onEmojiClick={handleEmojiClick} />
                                 </Popover.Dropdown>
                             </Popover>
 
@@ -300,7 +329,7 @@ export default function Room() {
                                     minRows={1}
                                     maxRows={5}
                                     autosize
-                                    style={{flex: 1}}
+                                    style={{ flex: 1 }}
                                     pl={40}
                                 />
                                 <ActionIcon
@@ -311,7 +340,7 @@ export default function Room() {
                                     disabled={!value.trim()}
                                     mb={4}
                                 >
-                                    <IconSend2/>
+                                    <IconSend2 />
                                 </ActionIcon>
                             </Group>
                         </Paper>
@@ -338,7 +367,7 @@ export default function Room() {
                         position: 'relative',
                     }}
                 >
-                    <RoomMembers onClose={() => setMemberSidebarOpen(false)}/>
+                    <RoomMembers onClose={() => setMemberSidebarOpen(false)} />
                 </Paper>
             </Box>
 
@@ -350,10 +379,10 @@ export default function Room() {
                 padding={0}
                 withCloseButton={false}
                 styles={{
-                    content: {borderRadius: '16px 0 0 16px'}
+                    content: { borderRadius: '16px 0 0 16px' }
                 }}
             >
-                <RoomMembers onClose={() => setMemberSidebarOpen(false)}/>
+                <RoomMembers onClose={() => setMemberSidebarOpen(false)} />
             </Drawer>
         </Flex>
     );
