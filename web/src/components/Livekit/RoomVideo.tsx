@@ -1,4 +1,5 @@
 import {
+    ControlBar,
     GridLayout,
     ParticipantTile,
     useTracks,
@@ -16,8 +17,12 @@ export function RoomVideo() {
     );
 
     return (
-        <GridLayout tracks={tracks} style={{ height: "100%" }}>
-            <ParticipantTile />
-        </GridLayout>
+        <>
+            <GridLayout tracks={tracks} style={{height: "100%"}}>
+                <ParticipantTile/>
+            </GridLayout>
+
+            <ControlBar />
+        </>
     );
 }
