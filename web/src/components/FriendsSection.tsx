@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import {
-    Box,
     Button,
     Card,
     Group,
@@ -12,7 +11,6 @@ import {
     ActionIcon,
     Badge,
     Paper,
-    Divider,
     Loader,
     Alert
 } from '@mantine/core';
