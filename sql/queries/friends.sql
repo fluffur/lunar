@@ -56,3 +56,48 @@ SELECT from_user_id, to_user_id, created_at
 FROM user_blocks
 WHERE from_user_id = $1
 ORDER BY created_at DESC;
+
+-- name: ListIncomingRequestsWithUsers :many
+SELECT 
+    fr.from_user_id,
+    fr.to_user_id,
+    fr.status,
+    fr.message,
+    fr.created_at,
+    fr.responded_at,
+    u.id as from_user_id,
+    u.username as from_username,
+    u.avatar_url as from_avatar_url
+FROM friend_requests fr
+INNER JOIN users u ON u.id = fr.from_user_id
+WHERE fr.to_user_id = $1 AND fr.status = 'pending'
+ORDER BY fr.created_at DESC;
+
+-- name: ListOutgoingRequestsWithUsers :many
+SELECT 
+    fr.from_user_id,
+    fr.to_user_id,
+    fr.status,
+    fr.message,
+    fr.created_at,
+    fr.responded_at,
+    u.id as to_user_id,
+    u.username as to_username,
+    u.avatar_url as to_avatar_url
+FROM friend_requests fr
+INNER JOIN users u ON u.id = fr.to_user_id
+WHERE fr.from_user_id = $1 AND fr.status = 'pending'
+ORDER BY fr.created_at DESC;
+
+-- name: ListFriendsWithUsers :many
+SELECT 
+    f.user_id,
+    f.friend_id,
+    f.created_at,
+    u.id as friend_user_id,
+    u.username as friend_username,
+    u.avatar_url as friend_avatar_url
+FROM friendships f
+INNER JOIN users u ON u.id = f.friend_id
+WHERE f.user_id = $1
+ORDER BY f.created_at DESC;

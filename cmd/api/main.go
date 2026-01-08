@@ -10,6 +10,7 @@ import (
 	redis2 "lunar/internal/db/redis"
 	"lunar/internal/friendship"
 	"lunar/internal/httputil"
+	"lunar/internal/livekit"
 	"lunar/internal/message"
 	"lunar/internal/notification"
 	"lunar/internal/room"
@@ -71,7 +72,7 @@ func main() {
 	wsService := ws.NewService(rdb, userRepo, messageRepo, cfg.CORS.AllowedOrigins)
 	messageService := message.NewService(roomRepo, messageRepo)
 	friendshipService := friendship.NewFriendshipService(friendshipRepo, userRepo)
-
+	livekitService := livekit.NewService(cfg.LiveKit.APIKey, cfg.LiveKit.APISecret)
 	validator := httputil.NewValidator()
 
 	api := application{
@@ -85,7 +86,7 @@ func main() {
 		wsService:         wsService,
 		messageService:    messageService,
 		friendshipService: friendshipService,
-		userRepo:          userRepo,
+		livekitService:    livekitService,
 		validator:         validator,
 	}
 

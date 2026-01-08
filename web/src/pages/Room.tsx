@@ -1,5 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActionIcon, Box, Button, Flex, Group, Paper, Popover, ScrollArea, Stack, Text, Textarea, Tooltip, Drawer } from "@mantine/core";
+import {
+    ActionIcon,
+    Box,
+    Button,
+    Drawer,
+    Flex,
+    Group,
+    Paper,
+    Popover,
+    ScrollArea,
+    Stack,
+    Text,
+    Textarea,
+    Tooltip
+} from "@mantine/core";
 import { useParams } from "react-router-dom";
 import { useSessionStore } from "../stores/sessionStore.ts";
 import { IconArrowDown, IconMoodSmile, IconSend2, IconUsers } from "@tabler/icons-react";
@@ -10,7 +24,6 @@ import messagePopAudio from "../assets/message-pop.mp3"
 import { formatMessageDate } from "../utils/formatMessageDate.ts";
 import { useUiStore } from "../stores/uiStore.ts";
 import { useMediaQuery } from "@mantine/hooks";
-import { ScreenShareBlock } from "../components/ScreenShareBlock.tsx";
 import { EmojiPicker } from "../components/EmojiPicker.tsx";
 import { isEmojiOnly } from "../utils/isEmojiOnly.ts";
 import type { EmojiClickData } from "emoji-picker-react";
@@ -20,6 +33,8 @@ import { useRoomMessages } from "../hooks/useRoomMessages";
 import { useRoomWebSocket } from "../hooks/useRoomWebSocket";
 import { useScrollManagement } from "../hooks/useScrollManagement";
 import { RoomMembers } from "../components/RoomMembers.tsx";
+import { LiveKitRoomWrapper } from "../components/Livekit/LiveKitRoomWrapper.tsx";
+import { RoomVideo } from "../components/Livekit/RoomVideo.tsx";
 
 export default function Room() {
     const { roomSlug } = useParams<string>();
@@ -30,8 +45,10 @@ export default function Room() {
     const [memberSidebarOpen, setMemberSidebarOpen] = useState(false);
     const [value, setValue] = useState("");
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [isVideoFullscreen, setIsVideoFullscreen] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const messageAudioRef = useRef(new Audio(messagePopAudio));
+    const videoContainerRef = useRef<HTMLDivElement>(null);
 
     const [isTabVisible, setIsTabVisible] = useState(document.visibilityState === "visible");
 
@@ -101,6 +118,29 @@ export default function Room() {
         return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
     }, []);
 
+    const handleFullscreen = useCallback(() => {
+        if (!videoContainerRef.current) return;
+
+        if (!document.fullscreenElement) {
+            videoContainerRef.current.requestFullscreen().catch((err) => {
+                console.error('Error attempting to enable fullscreen:', err);
+            });
+            setIsVideoFullscreen(true);
+        } else {
+            document.exitFullscreen();
+            setIsVideoFullscreen(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        const handleFullscreenChange = () => {
+            setIsVideoFullscreen(!!document.fullscreenElement);
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenChange);
+        return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    }, []);
+
     const sendMessage = useCallback(() => {
         if (!value.trim()) return;
         sendRoomMessage(value);
@@ -167,20 +207,36 @@ export default function Room() {
     return (
         <Flex h="100%" w="100%" direction="row" gap="md" style={{ overflow: 'hidden' }}>
             <Box style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                <Flex h="100%" w="100%" direction={isMobile ? "column" : "row"} gap={isMobile ? 0 : "md"} style={{ flex: 1, overflow: 'hidden' }}>
-                    <Box style={{ flex: isMobile ? 'none' : 1, width: isMobile ? '100%' : 'auto' }}>
-                        <ScreenShareBlock />
-                    </Box>
-                    <Paper w={isMobile ? "100%" : 400} h={isMobile ? "auto" : "100%"} shadow="xl" radius={isMobile ? 0 : "lg"}
+                <Flex h="100%" w="100%" direction={isMobile ? "column" : "row"} gap={isMobile ? 0 : "md"}
+                    style={{ flex: 1, overflow: 'hidden' }}>
+                    <LiveKitRoomWrapper roomSlug={roomSlug!}>
+                        <Box
+                            ref={videoContainerRef}
+                            style={{
+                                height: isVideoFullscreen ? '100vh' : (isMobile ? '30vh' : '70vh'),
+                                minHeight: isMobile && !isVideoFullscreen ? 200 : undefined,
+                                maxHeight: isMobile && !isVideoFullscreen ? '30vh' : undefined,
+                                background: 'black',
+                                flexShrink: 0,
+                            }}
+                        >
+                            <RoomVideo onFullscreen={handleFullscreen} />
+                        </Box>
+                    </LiveKitRoomWrapper>
+
+                    <Paper w={isMobile ? "100%" : 400} h={isMobile ? "auto" : "100%"} shadow="xl"
+                        radius={isMobile ? 0 : "lg"}
                         withBorder={!isMobile}
                         display="flex"
                         style={{
                             flexDirection: 'column',
                             overflow: 'hidden',
                             position: 'relative',
-                            flex: isMobile ? 1 : 'none'
+                            flex: isMobile ? '1 1 auto' : 'none',
+                            minHeight: isMobile ? 0 : undefined,
                         }}>
-                        <Box p="sm" style={{ borderBottom: `1px solid ${colorScheme === 'dark' ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-2)'}` }}>
+                        <Box p="sm"
+                            style={{ borderBottom: `1px solid ${colorScheme === 'dark' ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-2)'}` }}>
                             <Group justify="space-between">
                                 <Text fw={700} size="sm">Chat</Text>
                                 <Tooltip label={memberSidebarOpen ? "Hide Members" : "Show Members"}>
@@ -242,7 +298,8 @@ export default function Room() {
                         )}
 
                         <Paper p="md" style={{ position: 'relative' }}>
-                            <Popover opened={showEmojiPicker} onChange={setShowEmojiPicker} position="top-start" withArrow
+                            <Popover opened={showEmojiPicker} onChange={setShowEmojiPicker} position="top-start"
+                                withArrow
                                 shadow="md">
                                 <Popover.Target>
                                     <ActionIcon

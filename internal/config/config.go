@@ -11,6 +11,7 @@ type Config struct {
 	DB        DBConfig
 	Redis     RedisConfig
 	FileStore FileStoreConfig
+	LiveKit   LiveKitConfig
 	Features  FeaturesConfig
 }
 

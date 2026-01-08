@@ -3,7 +3,7 @@ package friendship
 import (
 	"context"
 	"errors"
-	"lunar/internal/model"
+	"lunar/internal/friendship/dto"
 	"lunar/internal/repository"
 
 	"github.com/google/uuid"
@@ -16,7 +16,6 @@ var (
 	ErrFriendRequestExists   = errors.New("friend request already exists")
 	ErrAlreadyFriends        = errors.New("users are already friends")
 	ErrFriendRequestNotFound = errors.New("friend request not found")
-	ErrNotFriends            = errors.New("users are not friends")
 	ErrBlocked               = errors.New("user is blocked")
 )
 
@@ -32,7 +31,7 @@ func NewFriendshipService(repo repository.FriendshipRepository, userRepo reposit
 	}
 }
 
-func (s *FriendshipService) SendFriendRequest(ctx context.Context, fromID uuid.UUID, username string, message string) error {
+func (s *FriendshipService) SendFriendRequestByUsername(ctx context.Context, fromID uuid.UUID, username string, message string) error {
 	toUser, err := s.userRepo.GetByLogin(ctx, username)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -47,7 +46,6 @@ func (s *FriendshipService) SendFriendRequest(ctx context.Context, fromID uuid.U
 		return ErrCannotAddSelf
 	}
 
-	// Check if blocked
 	blocked, err := s.repo.IsBlocked(ctx, fromID, toID)
 	if err != nil {
 		return err
@@ -56,7 +54,7 @@ func (s *FriendshipService) SendFriendRequest(ctx context.Context, fromID uuid.U
 		return ErrBlocked
 	}
 
-	friends, err := s.repo.ListFriends(ctx, fromID)
+	friends, err := s.repo.ListFriendsWithUsers(ctx, fromID)
 	if err != nil {
 		return err
 	}
@@ -97,19 +95,7 @@ func (s *FriendshipService) AcceptFriendRequest(ctx context.Context, userID uuid
 	return s.repo.AcceptFriendRequest(ctx, userID, fromID)
 }
 
-func (s *FriendshipService) RejectFriendRequest(ctx context.Context, userID uuid.UUID, fromID uuid.UUID) error {
-	_, err := s.repo.GetFriendRequest(ctx, fromID, userID)
-	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			return ErrFriendRequestNotFound
-		}
-		return err
-	}
-
-	return s.repo.DeleteFriendRequest(ctx, fromID, userID)
-}
-
-func (s *FriendshipService) CancelFriendRequest(ctx context.Context, fromID uuid.UUID, toID uuid.UUID) error {
+func (s *FriendshipService) DeleteFriendRequest(ctx context.Context, fromID uuid.UUID, toID uuid.UUID) error {
 	_, err := s.repo.GetFriendRequest(ctx, fromID, toID)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -121,35 +107,30 @@ func (s *FriendshipService) CancelFriendRequest(ctx context.Context, fromID uuid
 	return s.repo.DeleteFriendRequest(ctx, fromID, toID)
 }
 
-func (s *FriendshipService) ListFriends(ctx context.Context, userID uuid.UUID) ([]model.Friendship, error) {
-	return s.repo.ListFriends(ctx, userID)
-}
-
-func (s *FriendshipService) ListIncomingRequests(ctx context.Context, userID uuid.UUID) ([]model.FriendRequest, error) {
-	return s.repo.ListIncomingRequest(ctx, userID)
-}
-
-func (s *FriendshipService) ListOutgoingRequests(ctx context.Context, userID uuid.UUID) ([]model.FriendRequest, error) {
-	return s.repo.ListOutgoingRequest(ctx, userID)
-}
-
 func (s *FriendshipService) RemoveFriend(ctx context.Context, userID uuid.UUID, friendID uuid.UUID) error {
-	friends, err := s.repo.ListFriends(ctx, userID)
-	if err != nil {
-		return err
-	}
-
-	found := false
-	for _, f := range friends {
-		if f.FriendID == friendID {
-			found = true
-			break
-		}
-	}
-
-	if !found {
-		return ErrNotFriends
-	}
-
 	return s.repo.RemoveFriend(ctx, userID, friendID)
+}
+
+func (s *FriendshipService) ListFriendsWithInfo(ctx context.Context, userID uuid.UUID) ([]dto.FriendWithInfo, error) {
+	rows, err := s.repo.ListFriendsWithUsers(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return mapFriendsWithInfo(rows), nil
+}
+
+func (s *FriendshipService) ListIncomingRequestsWithInfo(ctx context.Context, userID uuid.UUID) ([]dto.FriendRequestWithInfo, error) {
+	rows, err := s.repo.ListIncomingRequestsWithUsers(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return mapIncomingRequestsWithInfo(rows), nil
+}
+
+func (s *FriendshipService) ListOutgoingRequestsWithInfo(ctx context.Context, userID uuid.UUID) ([]dto.FriendRequestWithInfo, error) {
+	rows, err := s.repo.ListOutgoingRequestsWithUsers(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	return mapOutgoingRequestsWithInfo(rows), nil
 }

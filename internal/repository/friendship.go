@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	db "lunar/internal/db/postgres/sqlc"
 	"lunar/internal/model"
 
 	"github.com/google/uuid"
@@ -10,13 +11,7 @@ import (
 type FriendshipRepository interface {
 	CreateFriendRequest(ctx context.Context, fromID, toID uuid.UUID, message string) error
 	GetFriendRequest(ctx context.Context, fromID, toID uuid.UUID) (model.FriendRequest, error)
-	ListIncomingRequest(ctx context.Context, userID uuid.UUID) ([]model.FriendRequest, error)
-	ListOutgoingRequest(ctx context.Context, userID uuid.UUID) ([]model.FriendRequest, error)
 	DeleteFriendRequest(ctx context.Context, fromID, toID uuid.UUID) error
-
-	InsertFriendshipEdge(ctx context.Context, userID, friendID uuid.UUID) error
-	DeleteFriendshipEdge(ctx context.Context, userID, friendID uuid.UUID) error
-	ListFriends(ctx context.Context, userID uuid.UUID) ([]model.Friendship, error)
 
 	IsBlocked(ctx context.Context, fromID, toID uuid.UUID) (bool, error)
 	CreateBlock(ctx context.Context, fromID, toID uuid.UUID) error
@@ -25,4 +20,8 @@ type FriendshipRepository interface {
 
 	AcceptFriendRequest(ctx context.Context, toID, fromID uuid.UUID) error
 	RemoveFriend(ctx context.Context, userID, friendID uuid.UUID) error
+
+	ListFriendsWithUsers(ctx context.Context, userID uuid.UUID) ([]db.ListFriendsWithUsersRow, error)
+	ListIncomingRequestsWithUsers(ctx context.Context, userID uuid.UUID) ([]db.ListIncomingRequestsWithUsersRow, error)
+	ListOutgoingRequestsWithUsers(ctx context.Context, userID uuid.UUID) ([]db.ListOutgoingRequestsWithUsersRow, error)
 }
