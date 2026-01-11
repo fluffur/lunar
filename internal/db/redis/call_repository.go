@@ -1,20 +1,21 @@
-package call
+package redis
 
 import (
 	"context"
 	"fmt"
+	"lunar/internal/repository"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 )
 
-type Store struct {
+type CallRepository struct {
 	rdb *redis.Client
 }
 
-func NewStore(rdb *redis.Client) *Store {
-	return &Store{
+func NewCallRepository(rdb *redis.Client) repository.CallRepository {
+	return &CallRepository{
 		rdb: rdb,
 	}
 }
@@ -23,7 +24,7 @@ func activeCallKey(userID uuid.UUID) string {
 	return fmt.Sprintf("user_active_calls:%s", userID.String())
 }
 
-func (s *Store) SaveActiveCall(ctx context.Context, userID uuid.UUID, roomName string, callerID uuid.UUID, callerName string) error {
+func (r *CallRepository) SaveActiveCall(ctx context.Context, userID uuid.UUID, roomName string, callerID uuid.UUID, callerName string) error {
 	key := activeCallKey(userID)
 
 	values := map[string]interface{}{
@@ -33,7 +34,7 @@ func (s *Store) SaveActiveCall(ctx context.Context, userID uuid.UUID, roomName s
 		"created_at":  time.Now().Unix(),
 	}
 
-	pipeline := s.rdb.Pipeline()
+	pipeline := r.rdb.Pipeline()
 	pipeline.HSet(ctx, key, values)
 	pipeline.Expire(ctx, key, 10*time.Minute) // Call invalid after 10 mins
 
@@ -41,10 +42,10 @@ func (s *Store) SaveActiveCall(ctx context.Context, userID uuid.UUID, roomName s
 	return err
 }
 
-func (s *Store) GetActiveCall(ctx context.Context, userID uuid.UUID) (roomName string, callerID uuid.UUID, callerName string, exists bool, err error) {
+func (r *CallRepository) GetActiveCall(ctx context.Context, userID uuid.UUID) (roomName string, callerID uuid.UUID, callerName string, exists bool, err error) {
 	key := activeCallKey(userID)
 
-	res, err := s.rdb.HGetAll(ctx, key).Result()
+	res, err := r.rdb.HGetAll(ctx, key).Result()
 	if err != nil {
 		return "", uuid.Nil, "", false, err
 	}
@@ -68,7 +69,7 @@ func (s *Store) GetActiveCall(ctx context.Context, userID uuid.UUID) (roomName s
 	return roomName, callerID, callerName, true, nil
 }
 
-func (s *Store) RemoveActiveCall(ctx context.Context, userID uuid.UUID) error {
+func (r *CallRepository) RemoveActiveCall(ctx context.Context, userID uuid.UUID) error {
 	key := activeCallKey(userID)
-	return s.rdb.Del(ctx, key).Err()
+	return r.rdb.Del(ctx, key).Err()
 }

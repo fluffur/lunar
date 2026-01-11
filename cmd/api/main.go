@@ -62,7 +62,7 @@ func main() {
 	messageRepo := postgres.NewMessageRepository(queries)
 	friendshipRepo := postgres.NewFriendshipRepository(pool, queries)
 
-	callStore := call.NewStore(rdb)
+	callRepo := redis2.NewCallRepository(rdb)
 
 	authService := auth.NewService(
 		authenticator,
@@ -73,11 +73,11 @@ func main() {
 	)
 	userService := user.NewService(userRepo, authService, cfg.FileStore.AvatarsPath())
 	roomService := room.NewService(roomRepo)
-	wsService := ws.NewService(rdb, userRepo, messageRepo, callStore, cfg.CORS.AllowedOrigins)
+	wsService := ws.NewService(rdb, userRepo, messageRepo, callRepo, cfg.CORS.AllowedOrigins)
 	messageService := message.NewService(roomRepo, messageRepo)
 	friendshipService := friendship.NewFriendshipService(friendshipRepo, userRepo)
 	livekitService := livekit.NewService(cfg.LiveKit.APIKey, cfg.LiveKit.APISecret)
-	callService := call.NewService(livekitService, wsService, userRepo, callStore)
+	callService := call.NewService(livekitService, wsService, userRepo, callRepo)
 	validator := httputil.NewValidator()
 
 	api := application{

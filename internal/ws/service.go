@@ -17,24 +17,20 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-type ActiveCallStore interface {
-	GetActiveCall(ctx context.Context, userID uuid.UUID) (roomName string, callerID uuid.UUID, callerName string, exists bool, err error)
-}
-
 type Service struct {
 	rdb         *redis.Client
 	upgrader    *websocket.Upgrader
 	userRepo    repository.UserRepository
 	messageRepo repository.MessageRepository
-	callStore   ActiveCallStore
+	callRepo    repository.CallRepository
 }
 
-func NewService(rdb *redis.Client, userRepo repository.UserRepository, messageRepo repository.MessageRepository, callStore ActiveCallStore, allowedOrigins []string) *Service {
+func NewService(rdb *redis.Client, userRepo repository.UserRepository, messageRepo repository.MessageRepository, callRepo repository.CallRepository, allowedOrigins []string) *Service {
 	return &Service{
 		rdb:         rdb,
 		userRepo:    userRepo,
 		messageRepo: messageRepo,
-		callStore:   callStore,
+		callRepo:    callRepo,
 		upgrader: &websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
@@ -75,8 +71,8 @@ func (s *Service) HandleWebSocket(
 	sub := s.rdb.Subscribe(ctx, userChannel)
 	defer sub.Close()
 
-	if s.callStore != nil {
-		roomName, callerID, callerName, exists, err := s.callStore.GetActiveCall(ctx, userID)
+	if s.callRepo != nil {
+		roomName, callerID, callerName, exists, err := s.callRepo.GetActiveCall(ctx, userID)
 		if err == nil && exists {
 			payload := IncomingCallPayload{
 				CallerID:   callerID,
