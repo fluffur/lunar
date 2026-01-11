@@ -63,6 +63,20 @@ definitions:
     - code
     - email
     type: object
+  call.StartCallRequest:
+    properties:
+      callee_id:
+        type: string
+    required:
+    - callee_id
+    type: object
+  call.StartCallResponse:
+    properties:
+      room_name:
+        type: string
+      token:
+        type: string
+    type: object
   httputil.ErrorBody:
     properties:
       code:
@@ -362,6 +376,37 @@ paths:
       summary: Resend verification code
       tags:
       - auth
+  /call/start:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Call params
+        in: body
+        name: input
+        required: true
+        schema:
+          $ref: '#/definitions/call.StartCallRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/call.StartCallResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/httputil.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Start a direct call
+      tags:
+      - call
   /livekit/token/{roomSlug}:
     get:
       parameters:
@@ -504,30 +549,6 @@ paths:
       summary: List messages in a room
       tags:
       - message
-  /rooms/{roomSlug}/ws:
-    get:
-      description: Connect to the websocket to receive real-time notifications in
-        a room
-      parameters:
-      - description: Room Slug
-        in: path
-        name: roomSlug
-        required: true
-        type: string
-      responses:
-        "401":
-          description: Unauthorized
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/httputil.ErrorResponse'
-      security:
-      - WebSocketQueryAuth: []
-      summary: Connect to the websocket in a room
-      tags:
-      - room
   /users/me:
     get:
       produces:

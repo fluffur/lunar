@@ -10,6 +10,9 @@ docs/AuthRegisterCredentials.md
 docs/AuthResendVerificationCodeRequest.md
 docs/AuthTokens.md
 docs/AuthVerifyEmailRequest.md
+docs/CallApi.md
+docs/CallStartCallRequest.md
+docs/CallStartCallResponse.md
 docs/HttputilErrorBody.md
 docs/HttputilErrorResponse.md
 docs/LivekitApi.md

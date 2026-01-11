@@ -4,7 +4,9 @@ import (
 	"context"
 	"log/slog"
 	"lunar/internal/auth"
+	"lunar/internal/call"
 	"lunar/internal/config"
+
 	"lunar/internal/db/postgres"
 	db "lunar/internal/db/postgres/sqlc"
 	redis2 "lunar/internal/db/redis"
@@ -73,6 +75,7 @@ func main() {
 	messageService := message.NewService(roomRepo, messageRepo)
 	friendshipService := friendship.NewFriendshipService(friendshipRepo, userRepo)
 	livekitService := livekit.NewService(cfg.LiveKit.APIKey, cfg.LiveKit.APISecret)
+	callService := call.NewService(livekitService, wsService, userRepo)
 	validator := httputil.NewValidator()
 
 	api := application{
@@ -87,6 +90,7 @@ func main() {
 		messageService:    messageService,
 		friendshipService: friendshipService,
 		livekitService:    livekitService,
+		callService:       callService,
 		validator:         validator,
 	}
 

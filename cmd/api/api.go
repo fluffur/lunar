@@ -7,7 +7,9 @@ import (
 	"log/slog"
 	_ "lunar/docs"
 	"lunar/internal/auth"
+	"lunar/internal/call"
 	"lunar/internal/config"
+
 	"lunar/internal/friendship"
 	"lunar/internal/httputil"
 	"lunar/internal/livekit"
@@ -53,10 +55,11 @@ func (app *application) mount() http.Handler {
 
 	authHandler := auth.NewHandler(app.validator, app.authService)
 	userHandler := user.NewHandler(app.validator, app.userService)
-	roomHandler := room.NewHandler(app.validator, app.roomService, app.wsService)
+	roomHandler := room.NewHandler(app.validator, app.roomService)
 	messageHandler := message.NewHandler(app.validator, app.messageService)
 	friendshipHandler := friendship.NewHandler(app.validator, app.friendshipService)
 	livekitHandler := livekit.NewHandler(app.livekitService)
+	callHandler := call.NewHandler(app.validator, app.callService)
 
 	r.Mount("/api", r)
 	r.Handle("/uploads/*", http.StripPrefix("/uploads/", http.FileServer(http.Dir("./uploads"))))
@@ -101,11 +104,15 @@ func (app *application) mount() http.Handler {
 			r.Delete("/{friendId}", friendshipHandler.RemoveFriend)
 		})
 
+		r.Route("/call", func(r chi.Router) {
+			r.Post("/start", callHandler.StartCall)
+		})
+
 		r.Get("/livekit/token/{roomSlug}", livekitHandler.Token)
 	})
 
 	r.With(wsAuthMw).
-		Get("/rooms/{roomSlug:[a-z0-9]{11}}/ws", roomHandler.Websocket)
+		Get("/ws", app.wsService.Handle)
 
 	return r
 }
@@ -171,4 +178,5 @@ type application struct {
 	friendshipService *friendship.FriendshipService
 	validator         *httputil.Validator
 	livekitService    *livekit.Service
+	callService       *call.Service
 }
