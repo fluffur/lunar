@@ -36,7 +36,7 @@ func (r *CallRepository) SaveActiveCall(ctx context.Context, userID uuid.UUID, r
 
 	pipeline := r.rdb.Pipeline()
 	pipeline.HSet(ctx, key, values)
-	pipeline.Expire(ctx, key, 10*time.Minute) // Call invalid after 10 mins
+	pipeline.Expire(ctx, key, 10*time.Minute)
 
 	_, err := pipeline.Exec(ctx)
 	return err
@@ -61,7 +61,6 @@ func (r *CallRepository) GetActiveCall(ctx context.Context, userID uuid.UUID) (r
 	if cidVal != "" {
 		callerID, err = uuid.Parse(cidVal)
 		if err != nil {
-			// Data corruption or invalid UUID, treat as no call
 			return "", uuid.Nil, "", false, nil
 		}
 	}
