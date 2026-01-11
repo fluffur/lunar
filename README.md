@@ -54,7 +54,7 @@ Open a new terminal for the frontend:
 ```bash
 cd web
 npm install
-npm run dev
+npm run dev -- --host
 ```
 The application will be available at http://localhost:5173
 
