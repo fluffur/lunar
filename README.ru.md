@@ -54,7 +54,7 @@ docker compose logs -f
 ```bash
 cd web
 npm install
-npm run dev
+npm run dev -- --host
 ```
 Приложение будет доступно по адресу http://localhost:5173
 
