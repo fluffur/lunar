@@ -14,13 +14,15 @@ type Service struct {
 	livekitService *livekit.Service
 	wsService      *ws.Service
 	userRepo       repository.UserRepository
+	store          *Store
 }
 
-func NewService(livekitService *livekit.Service, wsService *ws.Service, userRepo repository.UserRepository) *Service {
+func NewService(livekitService *livekit.Service, wsService *ws.Service, userRepo repository.UserRepository, store *Store) *Service {
 	return &Service{
 		livekitService: livekitService,
 		wsService:      wsService,
 		userRepo:       userRepo,
+		store:          store,
 	}
 }
 
@@ -48,6 +50,10 @@ func (s *Service) InitiateCall(ctx context.Context, callerID, calleeID uuid.UUID
 		RoomName:   roomName,
 	}
 
+	if err := s.store.SaveActiveCall(ctx, calleeID, roomName, callerID, caller.Username); err != nil {
+		return nil, fmt.Errorf("failed to save active call: %w", err)
+	}
+
 	if err := s.wsService.PublishUserEvent(ctx, calleeID, ws.MsgIncomingCall, payload); err != nil {
 		return nil, fmt.Errorf("failed to signal callee: %w", err)
 	}
@@ -55,5 +61,21 @@ func (s *Service) InitiateCall(ctx context.Context, callerID, calleeID uuid.UUID
 	return &StartCallResponse{
 		RoomName: roomName,
 		Token:    token,
+	}, nil
+}
+
+func (s *Service) CheckActiveCall(ctx context.Context, userID uuid.UUID) (*ws.IncomingCallPayload, error) {
+	roomName, callerID, callerName, exists, err := s.store.GetActiveCall(ctx, userID)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, nil
+	}
+
+	return &ws.IncomingCallPayload{
+		CallerID:   callerID,
+		CallerName: callerName,
+		RoomName:   roomName,
 	}, nil
 }

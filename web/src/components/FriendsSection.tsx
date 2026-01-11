@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
     Button,
     Card,
@@ -14,7 +15,7 @@ import {
     Loader,
     Alert
 } from '@mantine/core';
-import { IconUserPlus, IconCheck, IconX, IconUserMinus, IconAlertCircle } from '@tabler/icons-react';
+import { IconUserPlus, IconCheck, IconX, IconUserMinus, IconAlertCircle, IconPhone } from '@tabler/icons-react';
 import { UserAvatar } from './UserAvatar';
 import { api } from '../api';
 
@@ -46,6 +47,7 @@ export function FriendsSection() {
     const [loadingFriends, setLoadingFriends] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
+    const navigate = useNavigate();
 
     const filteredFriends = friends.filter(friend =>
         friend.username.toLowerCase().includes(searchQuery.toLowerCase())
@@ -157,6 +159,16 @@ export function FriendsSection() {
             loadOutgoingRequests();
         } catch (err: any) {
             setError(err.response?.data?.error?.message || 'Failed to cancel request');
+        }
+    };
+
+    const handleCall = async (friendId: string) => {
+        try {
+            const { data } = await api.post<{ room_name: string }>('/call/start', { callee_id: friendId });
+            setSuccess('Call started');
+            navigate(`/call/${data.room_name}`);
+        } catch (err: any) {
+            setError(err.response?.data?.error?.message || 'Failed to start call');
         }
     };
 
@@ -277,14 +289,24 @@ export function FriendsSection() {
                                                         <Text fw={500}>{friend.username}</Text>
                                                     </div>
                                                 </Group>
-                                                <ActionIcon
-                                                    color="red"
-                                                    variant="light"
-                                                    onClick={() => handleRemoveFriend(friend.id)}
-                                                    title="Remove friend"
-                                                >
-                                                    <IconUserMinus size={16} />
-                                                </ActionIcon>
+                                                <Group>
+                                                    <ActionIcon
+                                                        variant="light"
+                                                        color="blue"
+                                                        onClick={() => handleCall(friend.id)}
+                                                        title="Call friend"
+                                                    >
+                                                        <IconPhone size={16} />
+                                                    </ActionIcon>
+                                                    <ActionIcon
+                                                        color="red"
+                                                        variant="light"
+                                                        onClick={() => handleRemoveFriend(friend.id)}
+                                                        title="Remove friend"
+                                                    >
+                                                        <IconUserMinus size={16} />
+                                                    </ActionIcon>
+                                                </Group>
                                             </Group>
                                         </Paper>
                                     ))

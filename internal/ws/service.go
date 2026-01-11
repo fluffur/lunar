@@ -17,24 +17,24 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
+type ActiveCallStore interface {
+	GetActiveCall(ctx context.Context, userID uuid.UUID) (roomName string, callerID uuid.UUID, callerName string, exists bool, err error)
+}
+
 type Service struct {
 	rdb         *redis.Client
 	upgrader    *websocket.Upgrader
 	userRepo    repository.UserRepository
 	messageRepo repository.MessageRepository
-
-	// clients maps userID to their active connection(s)
-	// For simplicity, we assume one connection per user for now,
-	// or we can just pub/sub to strict redis channels and not keep local state except for the connection loop itself.
-	// Actually, standard practice with Redis Pub/Sub: each connection subscribes to necessary channels.
-	// We don't need a global map if we rely on Redis for broadcasting.
+	callStore   ActiveCallStore
 }
 
-func NewService(rdb *redis.Client, userRepo repository.UserRepository, messageRepo repository.MessageRepository, allowedOrigins []string) *Service {
+func NewService(rdb *redis.Client, userRepo repository.UserRepository, messageRepo repository.MessageRepository, callStore ActiveCallStore, allowedOrigins []string) *Service {
 	return &Service{
 		rdb:         rdb,
 		userRepo:    userRepo,
 		messageRepo: messageRepo,
+		callStore:   callStore,
 		upgrader: &websocket.Upgrader{
 			ReadBufferSize:  1024,
 			WriteBufferSize: 1024,
@@ -71,20 +71,29 @@ func (s *Service) HandleWebSocket(
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// 1. Subscribe to User's private channel (for calls, notifications)
 	userChannel := fmt.Sprintf("user:%s", userID.String())
 	sub := s.rdb.Subscribe(ctx, userChannel)
 	defer sub.Close()
 
-	// Channels for managing dynamic subscriptions (joining rooms)
-	// Since Redis PubSub is blocking, we need a way to manage multiple subscriptions.
-	// However, go-redis PubSub is thread-safe. We can add/remove channels to `sub`.
+	if s.callStore != nil {
+		roomName, callerID, callerName, exists, err := s.callStore.GetActiveCall(ctx, userID)
+		if err == nil && exists {
+			payload := IncomingCallPayload{
+				CallerID:   callerID,
+				CallerName: callerName,
+				RoomName:   roomName,
+			}
+			msg := ServerMessage{
+				Type:    MsgIncomingCall,
+				Payload: payload,
+			}
+			bytes, _ := json.Marshal(msg)
+			conn.WriteMessage(websocket.TextMessage, bytes)
+		}
+	}
 
 	inErr := make(chan error, 1)
 	outErr := make(chan error, 1)
-
-	// We need a thread-safe map to track active room subscriptions if we want to unsubscribe later
-	// But go-redis handles this.
 
 	go s.handleIncoming(ctx, conn, user, sub, inErr)
 	go s.handleOutgoing(ctx, conn, sub.Channel(), outErr)
@@ -139,13 +148,8 @@ func (s *Service) processClientMessage(ctx context.Context, msg ClientMessage, u
 		if err := json.Unmarshal(msg.Payload, &payload); err != nil {
 			return err
 		}
-		// Validate room exists? For now assume yes or client knows what they are doing.
-		// Security: Check if user is allowed to join this room?
-		// Ideally we should check room membership here.
-		// For MVP, we trust the client to only join rooms they have access to (fetched via REST API).
-		// But in production you MUST verify.
 
-		roomChannel := payload.RoomID // Assuming RoomID is the channel name (uuid string)
+		roomChannel := payload.RoomID
 		return sub.Subscribe(ctx, roomChannel)
 
 	case MsgLeaveRoom:
@@ -167,7 +171,6 @@ func (s *Service) processClientMessage(ctx context.Context, msg ClientMessage, u
 			return fmt.Errorf("invalid room id: %w", err)
 		}
 
-		// Save to DB
 		message, err := model.NewMessage(roomID, payload.Content, user)
 		if err != nil {
 			return err
@@ -178,7 +181,6 @@ func (s *Service) processClientMessage(ctx context.Context, msg ClientMessage, u
 			return err
 		}
 
-		// Broadcast to Redis
 		response := ServerMessage{
 			Type:    MsgNewMessage,
 			Payload: savedMsg,
@@ -220,12 +222,6 @@ func (s *Service) handleOutgoing(
 				errChan <- fmt.Errorf("redis channel closed")
 				return
 			}
-
-			// msg.Payload is the raw JSON string published to Redis
-			// We just forward it to the websocket client
-			// But wait, our Redis messages might be just the payload or the full ServerMessage wrapper?
-			// In processClientMessage we wrapped it in ServerMessage.
-			// So we can send it directly.
 
 			err := conn.WriteMessage(websocket.TextMessage, []byte(msg.Payload))
 			if err != nil {
