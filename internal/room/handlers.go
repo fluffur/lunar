@@ -1,7 +1,6 @@
 package room
 
 import (
-	"log/slog"
 	"lunar/internal/httputil"
 	"lunar/internal/ws"
 	"net/http"
@@ -13,11 +12,10 @@ type Handler struct {
 	wsService *ws.Service
 }
 
-func NewHandler(validator *httputil.Validator, service *Service, wsService *ws.Service) *Handler {
+func NewHandler(validator *httputil.Validator, service *Service) *Handler {
 	return &Handler{
 		validator: validator,
 		service:   service,
-		wsService: wsService,
 	}
 }
 
@@ -86,36 +84,11 @@ func (h *Handler) JoinCurrentUser(w http.ResponseWriter, r *http.Request) {
 	user := httputil.UserFromRequest(r)
 	roomSlug := r.PathValue("roomSlug")
 
-	if _, err := h.service.JoinUserToRoom(r.Context(), user.ID, roomSlug); err != nil {
-		httputil.InternalError(w, r, err)
-		return
-	}
-
-	httputil.Success(w)
-}
-
-// Websocket sockets
-//
-//	@Summary		Connect to the websocket in a room
-//	@Tags			room
-//	@Param			roomSlug	path	string	true	"Room Slug"
-//	@Security		WebSocketQueryAuth
-//	@Description	Connect to the websocket to receive real-time notifications in a room
-//	@Schemes		ws
-//	@Failure		401	{object}	httputil.ErrorResponse
-//	@Failure		500	{object}	httputil.ErrorResponse
-//	@Router			/rooms/{roomSlug}/ws [get]
-func (h *Handler) Websocket(w http.ResponseWriter, r *http.Request) {
-	user := httputil.UserFromRequest(r)
-	roomSlug := r.PathValue("roomSlug")
-
 	room, err := h.service.JoinUserToRoom(r.Context(), user.ID, roomSlug)
 	if err != nil {
 		httputil.InternalError(w, r, err)
 		return
 	}
 
-	if err := h.wsService.HandleWebSocket(w, r, room, user.ID); err != nil {
-		slog.Error("websocket error", "err", err)
-	}
+	httputil.SuccessData(w, room)
 }

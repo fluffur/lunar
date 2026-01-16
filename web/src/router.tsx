@@ -6,6 +6,7 @@ import VerifyEmail from "./pages/VerifyEmail.tsx";
 import Profile from "./pages/Profile.tsx";
 import Rooms from "./pages/Rooms.tsx";
 import Room from "./pages/Room.tsx";
+import { DirectCall } from "./pages/DirectCall.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { ProtectedRoute } from "./layouts/ProtectedRoute.tsx";
 import { RoomsLayout } from "./layouts/RoomsLayout.tsx";
@@ -21,6 +22,7 @@ export const router = createBrowserRouter(
                     <Route path="rooms" element={<Rooms />} />
                     <Route path="r/:roomSlug" element={<Room />} />
                 </Route>
+                <Route path="call/:roomSlug" element={<DirectCall />} />
             </Route>
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />

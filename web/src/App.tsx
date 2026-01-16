@@ -4,6 +4,8 @@ import { useSessionStore } from "./stores/sessionStore.ts";
 import { useEffect } from "react";
 import { authApi, userApi } from "./api.ts";
 
+import { CallProvider } from "./contexts/CallContext.tsx";
+
 function App() {
     const { setUser, logout, setInitialized, setToken } = useSessionStore();
 
@@ -25,10 +27,10 @@ function App() {
     }, [logout, setInitialized, setUser, setToken]);
 
     return (
-        <>
+        <CallProvider>
             <Header />
             <Outlet />
-        </>
+        </CallProvider>
     )
 }
 

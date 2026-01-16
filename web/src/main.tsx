@@ -6,6 +6,8 @@ import { MantineProvider } from "@mantine/core";
 import '@mantine/core/styles.css'
 import { createAppTheme } from "./theme.ts";
 import { useUiStore } from "./stores/uiStore.ts";
+import { WebSocketProvider } from './contexts/WebSocketContext.tsx';
+
 
 export function Root() {
     const { primaryColor, colorScheme } = useUiStore()
@@ -13,7 +15,9 @@ export function Root() {
     return (
         <StrictMode>
             <MantineProvider theme={createAppTheme(primaryColor)} forceColorScheme={colorScheme}>
-                <RouterProvider router={router} />
+                <WebSocketProvider>
+                    <RouterProvider router={router} />
+                </WebSocketProvider>
             </MantineProvider>
         </StrictMode>
     );

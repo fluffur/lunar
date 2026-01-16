@@ -245,6 +245,56 @@ const docTemplate = `{
                 }
             }
         },
+        "/call/start": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "call"
+                ],
+                "summary": "Start a direct call",
+                "parameters": [
+                    {
+                        "description": "Call params",
+                        "name": "input",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/call.StartCallRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/call.StartCallResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/httputil.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/livekit/token/{roomSlug}": {
             "get": {
                 "security": [
@@ -460,43 +510,6 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/httputil.ErrorResponse"
-                        }
-                    }
-                }
-            }
-        },
-        "/rooms/{roomSlug}/ws": {
-            "get": {
-                "security": [
-                    {
-                        "WebSocketQueryAuth": []
-                    }
-                ],
-                "description": "Connect to the websocket to receive real-time notifications in a room",
-                "tags": [
-                    "room"
-                ],
-                "summary": "Connect to the websocket in a room",
-                "parameters": [
-                    {
-                        "type": "string",
-                        "description": "Room Slug",
-                        "name": "roomSlug",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "401": {
-                        "description": "Unauthorized",
                         "schema": {
                             "$ref": "#/definitions/httputil.ErrorResponse"
                         }
@@ -791,6 +804,28 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "call.StartCallRequest": {
+            "type": "object",
+            "required": [
+                "callee_id"
+            ],
+            "properties": {
+                "callee_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "call.StartCallResponse": {
+            "type": "object",
+            "properties": {
+                "room_name": {
+                    "type": "string"
+                },
+                "token": {
                     "type": "string"
                 }
             }
