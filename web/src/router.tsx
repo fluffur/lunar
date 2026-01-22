@@ -10,6 +10,8 @@ import { DirectCall } from "./pages/DirectCall.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { ProtectedRoute } from "./layouts/ProtectedRoute.tsx";
 import { RoomsLayout } from "./layouts/RoomsLayout.tsx";
+import { FriendsLayout } from "./layouts/FriendsLayout.tsx";
+import { FriendsSection } from "./components/FriendsSection.tsx";
 import App from "./App.tsx";
 
 export const router = createBrowserRouter(
@@ -18,6 +20,9 @@ export const router = createBrowserRouter(
             <Route index element={<Home />} />
             <Route element={<ProtectedRoute />}>
                 <Route path="profile" element={<Profile />} />
+                <Route element={<FriendsLayout />}>
+                    <Route path="friends" element={<FriendsSection />} />
+                </Route>
                 <Route element={<RoomsLayout />}>
                     <Route path="rooms" element={<Rooms />} />
                     <Route path="r/:roomSlug" element={<Room />} />

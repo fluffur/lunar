@@ -5,7 +5,7 @@ import "@livekit/components-styles";
 import { Box, Center, Loader, Text, Button } from "@mantine/core";
 import { LIVEKIT_WS_URL } from "../config";
 import { livekitApi } from "../api";
-import { RoomVideo } from "../components/Livekit/RoomVideo";
+import { DirectCallView } from "../components/Livekit/DirectCallView";
 
 export function DirectCall() {
     const { roomSlug } = useParams<{ roomSlug: string }>();
@@ -61,7 +61,7 @@ export function DirectCall() {
                 onDisconnected={() => navigate('/')}
                 style={{ height: '100%' }}
             >
-                <RoomVideo />
+                <DirectCallView onDisconnect={() => navigate('/')} />
             </LiveKitRoom>
         </Box>
     );

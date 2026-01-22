@@ -1,28 +1,36 @@
-import {Button, Container, Group, Text, Title, SimpleGrid} from "@mantine/core";
+import {Button, Container, Group, Text, Title, Stack} from "@mantine/core";
 import {Link} from "react-router-dom";
 import {useSessionStore} from "../stores/sessionStore.ts";
-import {FriendsSection} from "../components/FriendsSection.tsx";
 
 export default function Home() {
     const {user} = useSessionStore();
 
     if (user) {
         return (
-            <Container size="lg" py="xl">
-                <SimpleGrid cols={{base: 1, md: 2}} spacing="xl">
-                    <div>
-                        <Title order={1} mb="md">
-                            Welcome back, {user.username}!
-                        </Title>
-                        <Text c="dimmed" size="lg" mb="xl">
-                            Manage your friends, send requests, and stay connected with your community.
-                        </Text>
-                        <Button size="lg" component={Link} to="/rooms">
-                            Go to Rooms
+            <Container size="md" style={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: 'calc(100vh - 80px)',
+                textAlign: 'center'
+            }}>
+                <Title order={1} mb="md">
+                    Welcome back, {user.username}!
+                </Title>
+                <Text c="dimmed" size="lg" mb="xl" maw={500}>
+                    Manage your friends, join rooms, and stay connected with your community.
+                </Text>
+                <Stack gap="md">
+                    <Group>
+                        <Button size="lg" component={Link} to="/friends">
+                            Friends
                         </Button>
-                    </div>
-                    <FriendsSection />
-                </SimpleGrid>
+                        <Button size="lg" variant="light" component={Link} to="/rooms">
+                            Rooms
+                        </Button>
+                    </Group>
+                </Stack>
             </Container>
         );
     }

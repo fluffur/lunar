@@ -58,7 +58,7 @@ func (app *application) mount() http.Handler {
 	roomHandler := room.NewHandler(app.validator, app.roomService)
 	messageHandler := message.NewHandler(app.validator, app.messageService)
 	friendshipHandler := friendship.NewHandler(app.validator, app.friendshipService)
-	livekitHandler := livekit.NewHandler(app.livekitService)
+	livekitHandler := livekit.NewHandler(app.livekitService, app.userService)
 	callHandler := call.NewHandler(app.validator, app.callService)
 
 	r.Mount("/api", r)
@@ -106,6 +106,7 @@ func (app *application) mount() http.Handler {
 
 		r.Route("/call", func(r chi.Router) {
 			r.Post("/start", callHandler.StartCall)
+			r.Delete("/active", callHandler.ClearActiveCall)
 		})
 
 		r.Get("/livekit/token/{roomSlug}", livekitHandler.Token)

@@ -1,0 +1,291 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+    ActionIcon,
+    Box,
+    Button,
+    Group,
+    Paper,
+    Popover,
+    ScrollArea,
+    Stack,
+    Text,
+    Textarea
+} from "@mantine/core";
+import { useSessionStore } from "../stores/sessionStore.ts";
+import { IconArrowDown, IconMoodSmile, IconSend2 } from "@tabler/icons-react";
+import { UserAvatar } from "./UserAvatar.tsx";
+import { API_AVATARS_BASE_URL } from "../config.ts";
+import messagePopAudio from "../assets/message-pop.mp3";
+import { formatMessageDate } from "../utils/formatMessageDate.ts";
+import { useUiStore } from "../stores/uiStore.ts";
+import { EmojiPicker } from "./EmojiPicker.tsx";
+import { isEmojiOnly } from "../utils/isEmojiOnly.ts";
+import type { EmojiClickData } from "emoji-picker-react";
+import type { ModelMessage } from "../../api";
+import { useRoomMessages } from "../hooks/useRoomMessages";
+import { useRoomWebSocket } from "../hooks/useRoomWebSocket";
+import { useScrollManagement } from "../hooks/useScrollManagement";
+
+interface ChatViewProps {
+    roomSlug: string;
+}
+
+export function ChatView({ roomSlug }: ChatViewProps) {
+    const { user } = useSessionStore();
+    const { colorScheme, primaryColor } = useUiStore();
+    const [value, setValue] = useState("");
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const messageAudioRef = useRef(new Audio(messagePopAudio));
+    const [isTabVisible, setIsTabVisible] = useState(document.visibilityState === "visible");
+
+    const {
+        messages,
+        notFound,
+        loadOlderMessages,
+        addMessage,
+        nextCursor
+    } = useRoomMessages(roomSlug);
+
+    const {
+        viewportRef,
+        unreadCount,
+        isAtBottom,
+        scrollToBottom,
+        handleScroll,
+        incrementUnread
+    } = useScrollManagement();
+
+    const showNotification = useCallback((message: ModelMessage) => {
+        if (!("Notification" in window) || Notification.permission !== "granted") return;
+        new Notification(message.sender?.username ?? "New message", {
+            body: message.content,
+            icon: API_AVATARS_BASE_URL + message.sender?.avatarUrl,
+        });
+    }, []);
+
+    const onMessageReceived = useCallback((data: ModelMessage) => {
+        addMessage(data);
+
+        const isMe = data.sender?.username === user?.username;
+        if (!isMe) {
+            messageAudioRef.current.play().catch(() => {});
+        }
+
+        if (isMe || isAtBottom) {
+            setTimeout(() => scrollToBottom("smooth"), 100);
+        } else {
+            showNotification(data);
+            incrementUnread();
+        }
+
+        if (!isMe && !isTabVisible) {
+            showNotification(data);
+        }
+    }, [user?.username, isAtBottom, isTabVisible, addMessage, scrollToBottom, showNotification, incrementUnread]);
+
+    const { sendRoomMessage } = useRoomWebSocket({
+        roomSlug,
+        onMessageReceived
+    });
+
+    useEffect(() => {
+        if (messages.length > 0 && isAtBottom) {
+            scrollToBottom("auto");
+        }
+    }, [messages.length, isAtBottom, scrollToBottom]);
+
+    useEffect(() => {
+        const handleVisibilityChange = () => setIsTabVisible(document.visibilityState === "visible");
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+        if ("Notification" in window && Notification.permission === "default") {
+            Notification.requestPermission();
+        }
+        return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+    }, []);
+
+    const sendMessage = useCallback(() => {
+        if (!value.trim()) return;
+        sendRoomMessage(value);
+        setValue("");
+    }, [value, sendRoomMessage]);
+
+    const handleEmojiClick = useCallback((emojiData: EmojiClickData) => {
+        const emoji = emojiData.emoji;
+        const cursor = textareaRef.current?.selectionStart || value.length;
+        const newValue = value.slice(0, cursor) + emoji + value.slice(cursor);
+        setValue(newValue);
+        setShowEmojiPicker(false);
+    }, [value]);
+
+    const handleTextareaKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    }, [sendMessage]);
+
+    const renderedMessages = useMemo(() => {
+        return messages.map((m, i) => {
+            const isMe = m.sender?.username === user?.username;
+            const emojiOnly = isEmojiOnly(m.content);
+            return (
+                <Group key={i} align="flex-end" justify={isMe ? 'flex-end' : 'flex-start'} gap="xs" wrap="nowrap">
+                    {!isMe && m.sender?.username && (
+                        <UserAvatar username={m.sender.username} avatarUrl={m.sender.avatarUrl} size={32} />
+                    )}
+                    <Stack gap={4} align={isMe ? 'flex-end' : 'flex-start'} maw="50%">
+                        {!isMe && m.sender?.username && (
+                            <Text size="xs" c="dimmed" lh={1}>
+                                {m.sender.username}
+                            </Text>
+                        )}
+                        <Group gap="xs" align="flex-end" wrap="nowrap">
+                            <Paper
+                                p="xs"
+                                px="sm"
+                                bg={emojiOnly ? "none" : (colorScheme === 'dark' ? (isMe ? 'dark.4' : 'dark.6') : (isMe ? `${primaryColor}.1` : 'gray.1'))}
+                                c={colorScheme === 'dark' ? (isMe ? 'white' : 'gray.1') : 'black'}
+                            >
+                                <Text size={emojiOnly ? "2rem" : "md"} style={{
+                                    wordBreak: 'break-word',
+                                    whiteSpace: 'pre-wrap',
+                                    lineHeight: emojiOnly ? 1.2 : undefined
+                                }}>
+                                    {m.content}
+                                </Text>
+                            </Paper>
+                            {m.createdAt && (
+                                <Text size="xs" c="dimmed" style={{ userSelect: 'none', whiteSpace: 'nowrap' }}>
+                                    {formatMessageDate(m.createdAt)}
+                                </Text>
+                            )}
+                        </Group>
+                    </Stack>
+                </Group>
+            );
+        });
+    }, [messages, user?.username, colorScheme, primaryColor]);
+
+    if (notFound) {
+        return (
+            <Box h="100%" p="md" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Text c="dimmed">Room not found</Text>
+            </Box>
+        );
+    }
+
+    return (
+        <Paper
+            h="100%"
+            shadow="xl"
+            radius="lg"
+            withBorder
+            display="flex"
+            style={{
+                flexDirection: 'column',
+                overflow: 'hidden',
+                position: 'relative',
+            }}
+        >
+            <Box p="sm"
+                style={{ borderBottom: `1px solid ${colorScheme === 'dark' ? 'var(--mantine-color-dark-4)' : 'var(--mantine-color-gray-2)'}` }}>
+                <Text fw={700} size="sm">Chat</Text>
+            </Box>
+
+            <ScrollArea
+                style={{ flex: 1 }}
+                viewportRef={viewportRef}
+                onScrollPositionChange={(pos) => handleScroll(pos, nextCursor, loadOlderMessages)}
+                p="md"
+            >
+                <Stack gap="md">
+                    {renderedMessages}
+                </Stack>
+            </ScrollArea>
+
+            {!isAtBottom && unreadCount > 0 && (
+                <div style={{
+                    position: 'absolute',
+                    bottom: 80,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    zIndex: 10
+                }}>
+                    <Button
+                        onClick={() => scrollToBottom("smooth")}
+                        radius="xl"
+                        size="xs"
+                        variant="filled"
+                        leftSection={<IconArrowDown size={14} />}
+                    >
+                        {unreadCount} new messages
+                    </Button>
+                </div>
+            )}
+
+            {!isAtBottom && unreadCount === 0 && (
+                <div style={{ position: 'absolute', bottom: 80, right: 20, zIndex: 10 }}>
+                    <ActionIcon
+                        onClick={() => scrollToBottom("smooth")}
+                        radius="xl"
+                        size="lg"
+                        variant="default"
+                        style={{ boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                    >
+                        <IconArrowDown size={18} />
+                    </ActionIcon>
+                </div>
+            )}
+
+            <Paper p="md" style={{ position: 'relative' }}>
+                <Popover opened={showEmojiPicker} onChange={setShowEmojiPicker} position="top-start"
+                    withArrow
+                    shadow="md">
+                    <Popover.Target>
+                        <ActionIcon
+                            variant="subtle"
+                            color="gray"
+                            size="lg"
+                            onClick={() => setShowEmojiPicker((o) => !o)}
+                            style={{ position: 'absolute', left: 16, top: 24, zIndex: 5 }}
+                        >
+                            <IconMoodSmile size={20} />
+                        </ActionIcon>
+                    </Popover.Target>
+                    <Popover.Dropdown p={0}>
+                        <EmojiPicker onEmojiClick={handleEmojiClick} />
+                    </Popover.Dropdown>
+                </Popover>
+
+                <Group gap="sm" align="flex-end">
+                    <Textarea
+                        ref={textareaRef}
+                        placeholder="Type a message..."
+                        value={value}
+                        onChange={(e) => setValue(e.currentTarget.value)}
+                        onKeyDown={handleTextareaKeyDown}
+                        radius="md"
+                        size="md"
+                        minRows={1}
+                        maxRows={5}
+                        autosize
+                        style={{ flex: 1 }}
+                        pl={40}
+                    />
+                    <ActionIcon
+                        size={38}
+                        radius="md"
+                        variant="filled"
+                        onClick={sendMessage}
+                        disabled={!value.trim()}
+                        mb={4}
+                    >
+                        <IconSend2 />
+                    </ActionIcon>
+                </Group>
+            </Paper>
+        </Paper>
+    );
+}
+
