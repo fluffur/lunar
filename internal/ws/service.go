@@ -74,10 +74,17 @@ func (s *Service) HandleWebSocket(
 	if s.callRepo != nil {
 		roomName, callerID, callerName, exists, err := s.callRepo.GetActiveCall(ctx, userID)
 		if err == nil && exists {
+			caller, err := s.userRepo.GetByID(ctx, callerID)
+			avatarUrl := ""
+			if err == nil {
+				avatarUrl = caller.AvatarURL
+			}
+
 			payload := IncomingCallPayload{
-				CallerID:   callerID,
-				CallerName: callerName,
-				RoomName:   roomName,
+				CallerID:        callerID,
+				CallerName:      callerName,
+				CallerAvatarUrl: avatarUrl,
+				RoomName:        roomName,
 			}
 			msg := ServerMessage{
 				Type:    MsgIncomingCall,

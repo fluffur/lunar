@@ -77,7 +77,7 @@ func main() {
 	messageService := message.NewService(roomRepo, messageRepo)
 	friendshipService := friendship.NewFriendshipService(friendshipRepo, userRepo)
 	livekitService := livekit.NewService(cfg.LiveKit.APIKey, cfg.LiveKit.APISecret)
-	callService := call.NewService(livekitService, wsService, userRepo, callRepo)
+	callService := call.NewService(livekitService, wsService, userRepo, roomService, callRepo)
 	validator := httputil.NewValidator()
 
 	api := application{

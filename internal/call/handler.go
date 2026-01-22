@@ -51,3 +51,14 @@ func (h *Handler) StartCall(w http.ResponseWriter, r *http.Request) {
 
 	httputil.SuccessData(w, resp)
 }
+
+func (h *Handler) ClearActiveCall(w http.ResponseWriter, r *http.Request) {
+	userCtx := httputil.UserFromRequest(r)
+
+	if err := h.service.ClearActiveCall(r.Context(), userCtx.ID); err != nil {
+		httputil.InternalError(w, r, err)
+		return
+	}
+
+	httputil.Success(w)
+}

@@ -54,6 +54,18 @@ func (r *CallRepository) GetActiveCall(ctx context.Context, userID uuid.UUID) (r
 		return "", uuid.Nil, "", false, nil
 	}
 
+	createdAtStr := res["created_at"]
+	if createdAtStr != "" {
+		var createdAtUnix int64
+		if _, err := fmt.Sscanf(createdAtStr, "%d", &createdAtUnix); err == nil {
+			createdAt := time.Unix(createdAtUnix, 0)
+			if time.Since(createdAt) > 2*time.Minute {
+				r.rdb.Del(ctx, key)
+				return "", uuid.Nil, "", false, nil
+			}
+		}
+	}
+
 	roomName = res["room_name"]
 	callerName = res["caller_name"]
 	cidVal := res["caller_id"]

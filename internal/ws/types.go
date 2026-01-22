@@ -41,8 +41,9 @@ type ChatMessagePayload struct {
 }
 
 type IncomingCallPayload struct {
-	CallerID   uuid.UUID `json:"caller_id"`
-	CallerName string    `json:"caller_name"`
-	RoomName   string    `json:"room_name"`
-	Token      string    `json:"token,omitempty"`
+	CallerID        uuid.UUID `json:"caller_id"`
+	CallerName      string    `json:"caller_name"`
+	CallerAvatarUrl string    `json:"caller_avatar_url,omitempty"`
+	RoomName        string    `json:"room_name"`
+	Token           string    `json:"token,omitempty"`
 }

@@ -54,7 +54,6 @@ require (
 	github.com/pion/transport/v2 v2.2.4 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sethvargo/go-retry v0.3.0 // indirect
-	github.com/stretchr/objx v0.5.2 // indirect
 	github.com/swaggo/files v1.0.1 // indirect
 	github.com/twitchtv/twirp v8.1.3+incompatible // indirect
 	go.uber.org/multierr v1.11.0 // indirect

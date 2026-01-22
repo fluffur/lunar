@@ -39,6 +39,7 @@ export function Header() {
                     <Group>
                         {user ? (
                             <>
+                                <Button variant="subtle" component={Link} to="/friends">Friends</Button>
                                 <Button variant="subtle" component={Link} to="/rooms">Rooms</Button>
                                 <Menu shadow="xl" width={200} withArrow position="bottom-end">
                                     <Menu.Target>

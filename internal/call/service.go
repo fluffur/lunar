@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"lunar/internal/livekit"
 	"lunar/internal/repository"
+	"lunar/internal/room"
 	"lunar/internal/ws"
 
 	"github.com/google/uuid"
@@ -14,14 +15,16 @@ type Service struct {
 	livekitService *livekit.Service
 	wsService      *ws.Service
 	userRepo       repository.UserRepository
+	roomService    *room.Service
 	repo           repository.CallRepository
 }
 
-func NewService(livekitService *livekit.Service, wsService *ws.Service, userRepo repository.UserRepository, repo repository.CallRepository) *Service {
+func NewService(livekitService *livekit.Service, wsService *ws.Service, userRepo repository.UserRepository, roomService *room.Service, repo repository.CallRepository) *Service {
 	return &Service{
 		livekitService: livekitService,
 		wsService:      wsService,
 		userRepo:       userRepo,
+		roomService:    roomService,
 		repo:           repo,
 	}
 }
@@ -37,20 +40,26 @@ func (s *Service) InitiateCall(ctx context.Context, callerID, calleeID uuid.UUID
 		return nil, fmt.Errorf("failed to get callee: %w", err)
 	}
 
-	roomName := fmt.Sprintf("call_%s", uuid.New().String())
+	room, err := s.roomService.GetOrCreateRoom(ctx, []uuid.UUID{callerID, calleeID})
+	if err != nil {
+		return nil, fmt.Errorf("failed to get or create room: %w", err)
+	}
 
-	token, err := s.livekitService.GenerateToken(roomName, callerID)
+	roomSlug := room.Slug
+
+	token, err := s.livekitService.GenerateToken(roomSlug, callerID, caller.Username, caller.AvatarURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
 
 	payload := ws.IncomingCallPayload{
-		CallerID:   caller.ID,
-		CallerName: caller.Username,
-		RoomName:   roomName,
+		CallerID:        caller.ID,
+		CallerName:      caller.Username,
+		CallerAvatarUrl: caller.AvatarURL,
+		RoomName:        roomSlug,
 	}
 
-	if err := s.repo.SaveActiveCall(ctx, calleeID, roomName, callerID, caller.Username); err != nil {
+	if err := s.repo.SaveActiveCall(ctx, calleeID, roomSlug, callerID, caller.Username); err != nil {
 		return nil, fmt.Errorf("failed to save active call: %w", err)
 	}
 
@@ -59,7 +68,7 @@ func (s *Service) InitiateCall(ctx context.Context, callerID, calleeID uuid.UUID
 	}
 
 	return &StartCallResponse{
-		RoomName: roomName,
+		RoomName: roomSlug,
 		Token:    token,
 	}, nil
 }
@@ -73,9 +82,20 @@ func (s *Service) CheckActiveCall(ctx context.Context, userID uuid.UUID) (*ws.In
 		return nil, nil
 	}
 
+	caller, err := s.userRepo.GetByID(ctx, callerID)
+	avatarUrl := ""
+	if err == nil {
+		avatarUrl = caller.AvatarURL
+	}
+
 	return &ws.IncomingCallPayload{
-		CallerID:   callerID,
-		CallerName: callerName,
-		RoomName:   roomName,
+		CallerID:        callerID,
+		CallerName:      callerName,
+		CallerAvatarUrl: avatarUrl,
+		RoomName:        roomName,
 	}, nil
+}
+
+func (s *Service) ClearActiveCall(ctx context.Context, userID uuid.UUID) error {
+	return s.repo.RemoveActiveCall(ctx, userID)
 }

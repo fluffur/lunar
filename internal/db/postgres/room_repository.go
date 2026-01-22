@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"errors"
+	"time"
 	db "lunar/internal/db/postgres/sqlc"
 	"lunar/internal/model"
 	"lunar/internal/repository"
@@ -81,4 +82,27 @@ func (r *RoomRepository) GetBySlug(ctx context.Context, slug string) (model.Room
 		return model.Room{}, err
 	}
 	return mapRoom(room), nil
+}
+
+func (r *RoomRepository) AddMembers(ctx context.Context, roomID uuid.UUID, userIDs []uuid.UUID) error {
+	now := time.Now()
+	for _, userID := range userIDs {
+		member := model.NewRoomMember(roomID, userID)
+		if err := r.queries.AddRoomMember(ctx, db.AddRoomMemberParams{
+			ID:       member.ID,
+			RoomID:   roomID,
+			UserID:   userID,
+			JoinedAt: timestampFromTime(now),
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (r *RoomRepository) IsUserRoomMember(ctx context.Context, roomID uuid.UUID, userID uuid.UUID) (bool, error) {
+	return r.queries.IsUserRoomMember(ctx, db.IsUserRoomMemberParams{
+		RoomID: roomID,
+		UserID: userID,
+	})
 }

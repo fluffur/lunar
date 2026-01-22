@@ -51,7 +51,7 @@ func (s *RefreshTokenRepository) Issue(ctx context.Context, userID uuid.UUID) (s
 	if _, err := pipe.Exec(ctx); err != nil {
 		return "", err
 	}
-	panic("")
+	//panic("")
 	return token, nil
 }
 

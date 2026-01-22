@@ -45,6 +45,7 @@ export interface ChatMessagePayload {
 export interface IncomingCallPayload {
     caller_id: string;
     caller_name: string;
+    caller_avatar_url?: string;
     room_name: string;
     token?: string;
 }

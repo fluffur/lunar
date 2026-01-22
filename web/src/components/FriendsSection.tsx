@@ -1,427 +1,130 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import {
-    Button,
-    Card,
     Group,
     Stack,
     Text,
-    TextInput,
     Title,
-    Tabs,
-    ActionIcon,
-    Badge,
     Paper,
-    Loader,
-    Alert
+    Container,
+    ScrollArea,
+    Flex,
+    Box
 } from '@mantine/core';
-import { IconUserPlus, IconCheck, IconX, IconUserMinus, IconAlertCircle, IconPhone } from '@tabler/icons-react';
+import { IconMessage } from '@tabler/icons-react';
 import { UserAvatar } from './UserAvatar';
-import { api } from '../api';
-
-interface Friend {
-    id: string;
-    username: string;
-    avatarUrl?: string | null;
-}
-
-interface FriendRequest {
-    fromUserId: string;
-    toUserId: string;
-    status: string;
-    message?: string;
-    createdAt: string;
-    respondedAt?: string;
-    fromUser?: Friend;
-    toUser?: Friend;
-}
+import { roomApi } from '../api';
+import type { ModelRoom } from '../../api';
+import { ChatView } from './ChatView';
+import { useMediaQuery } from '@mantine/hooks';
 
 export function FriendsSection() {
-    const [friends, setFriends] = useState<Friend[]>([]);
-    const [incomingRequests, setIncomingRequests] = useState<FriendRequest[]>([]);
-    const [outgoingRequests, setOutgoingRequests] = useState<FriendRequest[]>([]);
-    const [username, setUsername] = useState('');
-    const [message, setMessage] = useState('');
-    const [searchQuery, setSearchQuery] = useState('');
-    const [loading, setLoading] = useState(false);
-    const [loadingFriends, setLoadingFriends] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [success, setSuccess] = useState<string | null>(null);
-    const navigate = useNavigate();
+    const [directChatRooms, setDirectChatRooms] = useState<ModelRoom[]>([]);
+    const [selectedChatSlug, setSelectedChatSlug] = useState<string | null>(null);
+    const isMobile = useMediaQuery('(max-width: 768px)');
+    const [hoveredChatSlug, setHoveredChatSlug] = useState<string | null>(null);
 
-    const filteredFriends = friends.filter(friend =>
-        friend.username.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    const loadFriends = async () => {
+    const loadRooms = async () => {
         try {
-            setLoadingFriends(true);
-            const { data } = await api.get<Friend[]>('/friends');
-            setFriends(data);
-        } catch (err: any) {
-            console.error('Failed to load friends', err);
-            setError(err.response?.data?.error?.message || 'Failed to load friends');
-        } finally {
-            setLoadingFriends(false);
-        }
-    };
-
-    const loadIncomingRequests = async () => {
-        try {
-            const { data } = await api.get<FriendRequest[]>('/friends/requests/incoming');
-            setIncomingRequests(data);
-        } catch (err: any) {
-            console.error('Failed to load incoming requests', err);
-        }
-    };
-
-    const loadOutgoingRequests = async () => {
-        try {
-            const { data } = await api.get<FriendRequest[]>('/friends/requests/outgoing');
-            setOutgoingRequests(data);
-        } catch (err: any) {
-            console.error('Failed to load outgoing requests', err);
+            const { data } = await roomApi.roomsGet();
+            // Фильтруем прямые чаты (комнаты без имени)
+            const directChats = (data.rooms || []).filter(room => !room.name || room.name === '');
+            setDirectChatRooms(directChats);
+        } catch (err) {
+            console.error('Failed to load rooms', err);
         }
     };
 
     useEffect(() => {
-        loadFriends();
-        loadIncomingRequests();
-        loadOutgoingRequests();
+        loadRooms();
     }, []);
 
-    const handleSendRequest = async () => {
-        if (!username.trim()) {
-            setError('Please enter a username');
-            return;
-        }
-
-        setLoading(true);
-        setError(null);
-        setSuccess(null);
-
-        try {
-            await api.post('/friends/requests', {
-                username: username.trim(),
-                message: message.trim() || undefined
-            });
-            setSuccess(`Friend request sent to ${username}`);
-            setUsername('');
-            setMessage('');
-            loadOutgoingRequests();
-        } catch (err: any) {
-            const errorMsg = err.response?.data?.error?.message || err.response?.data?.error?.fields?.username || 'Failed to send friend request';
-            setError(errorMsg);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleAcceptRequest = async (fromId: string) => {
-        try {
-            await api.post(`/friends/requests/${fromId}/accept`);
-            setSuccess('Friend request accepted');
-            loadFriends();
-            loadIncomingRequests();
-        } catch (err: any) {
-            setError(err.response?.data?.error?.message || 'Failed to accept request');
-        }
-    };
-
-    const handleRejectRequest = async (fromId: string) => {
-        try {
-            await api.post(`/friends/requests/${fromId}/reject`);
-            setSuccess('Friend request rejected');
-            loadIncomingRequests();
-        } catch (err: any) {
-            setError(err.response?.data?.error?.message || 'Failed to reject request');
-        }
-    };
-
-    const handleRemoveFriend = async (friendId: string) => {
-        if (!confirm('Are you sure you want to remove this friend?')) {
-            return;
-        }
-
-        try {
-            await api.delete(`/friends/${friendId}`);
-            setSuccess('Friend removed');
-            loadFriends();
-        } catch (err: any) {
-            setError(err.response?.data?.error?.message || 'Failed to remove friend');
-        }
-    };
-
-    const handleCancelRequest = async (toId: string) => {
-        try {
-            await api.post(`/friends/requests/${toId}/cancel`);
-            setSuccess('Friend request cancelled');
-            loadOutgoingRequests();
-        } catch (err: any) {
-            setError(err.response?.data?.error?.message || 'Failed to cancel request');
-        }
-    };
-
-    const handleCall = async (friendId: string) => {
-        try {
-            const { data } = await api.post<{ room_name: string }>('/call/start', { callee_id: friendId });
-            setSuccess('Call started');
-            navigate(`/call/${data.room_name}`);
-        } catch (err: any) {
-            setError(err.response?.data?.error?.message || 'Failed to start call');
-        }
+    const handleChatClick = (roomSlug: string) => {
+        setSelectedChatSlug(roomSlug);
     };
 
     return (
-        <Card shadow="sm" padding="lg" radius="md" withBorder>
-            <Stack gap="md">
-                <Title order={3}>Friends</Title>
-
-                {error && (
-                    <Alert icon={<IconAlertCircle size={16} />} title="Error" color="red" onClose={() => setError(null)} withCloseButton>
-                        {error}
-                    </Alert>
-                )}
-
-                {success && (
-                    <Alert icon={<IconCheck size={16} />} title="Success" color="green" onClose={() => setSuccess(null)} withCloseButton>
-                        {success}
-                    </Alert>
-                )}
-
-                <Paper p="md" withBorder radius="md">
-                    <Stack gap="sm">
-                        <Text size="sm" fw={500}>Add Friend by Username</Text>
-                        <TextInput
-                            placeholder="Enter username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    handleSendRequest();
-                                }
-                            }}
-                        />
-                        <TextInput
-                            placeholder="Optional message"
-                            value={message}
-                            onChange={(e) => setMessage(e.target.value)}
-                            onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                    handleSendRequest();
-                                }
-                            }}
-                        />
-                        <Button
-                            leftSection={<IconUserPlus size={16} />}
-                            onClick={handleSendRequest}
-                            loading={loading}
-                            disabled={!username.trim()}
-                            fullWidth
-                        >
-                            Send Friend Request
-                        </Button>
-                    </Stack>
-                </Paper>
-
-                <Tabs defaultValue="friends">
-                    <Tabs.List>
-                        <Tabs.Tab value="friends">
-                            Friends
-                            {friends.length > 0 && (
-                                <Badge size="sm" variant="light" ml="xs">
-                                    {friends.length}
-                                </Badge>
-                            )}
-                        </Tabs.Tab>
-                        <Tabs.Tab value="incoming">
-                            Incoming
-                            {incomingRequests.length > 0 && (
-                                <Badge size="sm" variant="light" color="blue" ml="xs">
-                                    {incomingRequests.length}
-                                </Badge>
-                            )}
-                        </Tabs.Tab>
-                        <Tabs.Tab value="outgoing">
-                            Outgoing
-                            {outgoingRequests.length > 0 && (
-                                <Badge size="sm" variant="light" color="gray" ml="xs">
-                                    {outgoingRequests.length}
-                                </Badge>
-                            )}
-                        </Tabs.Tab>
-                    </Tabs.List>
-
-                    <Tabs.Panel value="friends" pt="md">
-                        {loadingFriends ? (
-                            <Group justify="center" p="xl">
-                                <Loader />
+        <Flex h="100%" w="100%" gap="md" style={{ overflow: 'hidden' }}>
+            <Box
+                style={{
+                    width: isMobile ? (selectedChatSlug ? 0 : '100%') : (selectedChatSlug ? 350 : '100%'),
+                    transition: 'width 0.3s ease',
+                    overflow: 'hidden',
+                    flexShrink: 0,
+                    display: selectedChatSlug && isMobile ? 'none' : 'block'
+                }}
+            >
+                <ScrollArea h="100%" w="100%">
+                    <Container size="sm" py="xl">
+                        <Stack gap="lg">
+                            <Group>
+                                <IconMessage size={24} />
+                                <Title order={2}>Chats</Title>
                             </Group>
-                        ) : friends.length === 0 ? (
-                            <Text c="dimmed" ta="center" p="xl">
-                                No friends yet. Send a friend request to get started!
-                            </Text>
-                        ) : (
-                            <Stack gap="sm">
-                                {friends.length > 3 && (
-                                    <TextInput
-                                        placeholder="Search friends..."
-                                        value={searchQuery}
-                                        onChange={(e) => setSearchQuery(e.target.value)}
-                                        mb="xs"
-                                    />
-                                )}
-                                {filteredFriends.length === 0 ? (
-                                    <Text c="dimmed" ta="center" p="md">
-                                        No friends found matching "{searchQuery}"
+
+                            {directChatRooms.length === 0 ? (
+                                <Paper p="xl" withBorder radius="md">
+                                    <Text c="dimmed" ta="center">
+                                        No chats yet. Start a call with a friend to create a chat.
                                     </Text>
-                                ) : (
-                                    filteredFriends.map((friend) => (
-                                        <Paper key={friend.id} p="sm" withBorder radius="md">
-                                            <Group justify="space-between">
-                                                <Group>
-                                                    <UserAvatar
-                                                        username={friend.username}
-                                                        avatarUrl={friend.avatarUrl}
-                                                        size={40}
-                                                    />
-                                                    <div>
-                                                        <Text fw={500}>{friend.username}</Text>
-                                                    </div>
-                                                </Group>
-                                                <Group>
-                                                    <ActionIcon
-                                                        variant="light"
-                                                        color="blue"
-                                                        onClick={() => handleCall(friend.id)}
-                                                        title="Call friend"
-                                                    >
-                                                        <IconPhone size={16} />
-                                                    </ActionIcon>
-                                                    <ActionIcon
-                                                        color="red"
-                                                        variant="light"
-                                                        onClick={() => handleRemoveFriend(friend.id)}
-                                                        title="Remove friend"
-                                                    >
-                                                        <IconUserMinus size={16} />
-                                                    </ActionIcon>
-                                                </Group>
+                                </Paper>
+                            ) : (
+                                <Stack gap="sm">
+                                    {directChatRooms.map((room) => (
+                                        <Paper 
+                                            key={room.id} 
+                                            p="md" 
+                                            shadow="sm"
+                                            radius="md"
+                                            style={{ 
+                                                cursor: 'pointer',
+                                                backgroundColor: selectedChatSlug === room.slug || hoveredChatSlug === room.slug
+                                                    ? 'var(--mantine-color-dark-6)' 
+                                                    : undefined
+                                            }}
+                                            onMouseEnter={() => setHoveredChatSlug(room.slug)}
+                                            onMouseLeave={() => setHoveredChatSlug(null)}
+                                            onClick={() => handleChatClick(room.slug)}
+                                        >
+                                            <Group>
+                                                <UserAvatar
+                                                    username={room.slug}
+                                                    size={40}
+                                                />
+                                                <div style={{ flex: 1 }}>
+                                                    <Text fw={500}>Chat</Text>
+                                                    <Text size="sm" c="dimmed">
+                                                        Click to view messages
+                                                    </Text>
+                                                </div>
                                             </Group>
                                         </Paper>
-                                    ))
-                                )}
-                            </Stack>
-                        )}
-                    </Tabs.Panel>
+                                    ))}
+                                </Stack>
+                            )}
+                        </Stack>
+                    </Container>
+                </ScrollArea>
+            </Box>
 
-                    <Tabs.Panel value="incoming" pt="md">
-                        {incomingRequests.length === 0 ? (
-                            <Text c="dimmed" ta="center" p="xl">
-                                No incoming friend requests
-                            </Text>
-                        ) : (
-                            <Stack gap="sm">
-                                {incomingRequests.map((request) => (
-                                    <Paper key={request.fromUserId} p="sm" withBorder radius="md">
-                                        <Stack gap="sm">
-                                            <Group justify="space-between">
-                                                <Group>
-                                                    {request.fromUser && (
-                                                        <>
-                                                            <UserAvatar
-                                                                username={request.fromUser.username}
-                                                                avatarUrl={request.fromUser.avatarUrl}
-                                                                size={40}
-                                                            />
-                                                            <div>
-                                                                <Text fw={500}>{request.fromUser.username}</Text>
-                                                                {request.message && (
-                                                                    <Text size="sm" c="dimmed">
-                                                                        {request.message}
-                                                                    </Text>
-                                                                )}
-                                                            </div>
-                                                        </>
-                                                    )}
-                                                </Group>
-                                                <Group gap="xs">
-                                                    <Button
-                                                        size="xs"
-                                                        color="green"
-                                                        leftSection={<IconCheck size={14} />}
-                                                        onClick={() => handleAcceptRequest(request.fromUserId)}
-                                                    >
-                                                        Accept
-                                                    </Button>
-                                                    <Button
-                                                        size="xs"
-                                                        color="red"
-                                                        variant="light"
-                                                        leftSection={<IconX size={14} />}
-                                                        onClick={() => handleRejectRequest(request.fromUserId)}
-                                                    >
-                                                        Reject
-                                                    </Button>
-                                                </Group>
-                                            </Group>
-                                        </Stack>
-                                    </Paper>
-                                ))}
-                            </Stack>
-                        )}
-                    </Tabs.Panel>
-
-                    <Tabs.Panel value="outgoing" pt="md">
-                        {outgoingRequests.length === 0 ? (
-                            <Text c="dimmed" ta="center" p="xl">
-                                No outgoing friend requests
-                            </Text>
-                        ) : (
-                            <Stack gap="sm">
-                                {outgoingRequests.map((request) => (
-                                    <Paper key={request.toUserId} p="sm" withBorder radius="md">
-                                        <Group justify="space-between">
-                                            <Group>
-                                                {request.toUser && (
-                                                    <>
-                                                        <UserAvatar
-                                                            username={request.toUser.username}
-                                                            avatarUrl={request.toUser.avatarUrl}
-                                                            size={40}
-                                                        />
-                                                        <div>
-                                                            <Text fw={500}>{request.toUser.username}</Text>
-                                                            <Text size="xs" c="dimmed">
-                                                                Status: {request.status}
-                                                            </Text>
-                                                            {request.message && (
-                                                                <Text size="sm" c="dimmed">
-                                                                    {request.message}
-                                                                </Text>
-                                                            )}
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </Group>
-                                            <Button
-                                                size="xs"
-                                                color="red"
-                                                variant="light"
-                                                leftSection={<IconX size={14} />}
-                                                onClick={() => handleCancelRequest(request.toUserId)}
-                                            >
-                                                Cancel
-                                            </Button>
-                                        </Group>
-                                    </Paper>
-                                ))}
-                            </Stack>
-                        )}
-                    </Tabs.Panel>
-                </Tabs>
-            </Stack>
-        </Card>
+            {selectedChatSlug && (
+                <Box style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+                    {isMobile && (
+                        <Paper p="sm" withBorder radius="md" mb="md">
+                            <Group>
+                                <Text 
+                                    size="sm" 
+                                    c="blue" 
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => setSelectedChatSlug(null)}
+                                >
+                                    ← Back to chats
+                                </Text>
+                            </Group>
+                        </Paper>
+                    )}
+                    <ChatView roomSlug={selectedChatSlug} />
+                </Box>
+            )}
+        </Flex>
     );
 }
-
