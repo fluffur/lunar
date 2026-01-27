@@ -3,7 +3,7 @@ import Home from "./pages/Home.tsx";
 import Login from "./pages/Login.tsx";
 import Register from "./pages/Register.tsx";
 import VerifyEmail from "./pages/VerifyEmail.tsx";
-import Profile from "./pages/Profile.tsx";
+import Settings from "./pages/Settings.tsx";
 import Rooms from "./pages/Rooms.tsx";
 import Room from "./pages/Room.tsx";
 import { DirectCall } from "./pages/DirectCall.tsx";
@@ -19,7 +19,7 @@ export const router = createBrowserRouter(
         <Route path="/" element={<App />}>
             <Route index element={<Home />} />
             <Route element={<ProtectedRoute />}>
-                <Route path="profile" element={<Profile />} />
+                <Route path="settings/:sectionId?" element={<Settings />} />
                 <Route element={<FriendsLayout />}>
                     <Route path="friends" element={<FriendsSection />} />
                 </Route>
