@@ -41,6 +41,11 @@ Run database migrations:
 make migrate-up
 ```
 
+If go.mod error occured use next command:
+```bash
+go mod tidy
+```
+
 Check logs to ensure everything is running:
 ```bash
 docker compose logs -f
