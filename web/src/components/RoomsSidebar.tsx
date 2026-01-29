@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import { useEffect, useState } from 'react';
 import {
     ActionIcon,
     Avatar,
@@ -13,34 +13,35 @@ import {
     TextInput,
     Title
 } from '@mantine/core';
-import {useNavigate, useParams} from 'react-router-dom';
-import {roomApi} from "../api.ts";
-import type {ModelRoom} from "../../api";
-import {IconChevronLeft, IconLogout, IconPlus, IconSearch} from "@tabler/icons-react";
-import {CreateRoomModal} from "./CreateRoomModal.tsx";
-import {useSessionStore} from "../stores/sessionStore.ts";
-import {UserAvatar} from "./UserAvatar.tsx";
-import {useUiStore} from "../stores/uiStore.ts";
-import {useMediaQuery} from "@mantine/hooks";
+import { useNavigate, useParams } from 'react-router-dom';
+import { roomApi } from "../api.ts";
+import type { ModelRoom } from "../../api";
+import { IconChevronLeft, IconLogout, IconPlus, IconSearch } from "@tabler/icons-react";
+import { CreateRoomModal } from "./CreateRoomModal.tsx";
+import { useSessionStore } from "../stores/sessionStore.ts";
+import { UserAvatar } from "./UserAvatar.tsx";
+import { useUiStore } from "../stores/uiStore.ts";
+import { useMediaQuery } from "@mantine/hooks";
+import { getRoomDisplayName } from "../utils/room.ts";
 
 interface RoomsSidebarProps {
     onClose?: () => void;
 }
 
-export function RoomsSidebar({onClose}: RoomsSidebarProps) {
+export function RoomsSidebar({ onClose }: RoomsSidebarProps) {
     const [rooms, setRooms] = useState<ModelRoom[]>([]);
-    const {roomSlug} = useParams<string>();
+    const { roomSlug } = useParams<string>();
     const navigate = useNavigate();
     const [createModalOpen, setCreateModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const {user, logout} = useSessionStore();
-    const {primaryColor} = useUiStore()
+    const { user, logout } = useSessionStore();
+    const { primaryColor } = useUiStore()
     const isMobile = useMediaQuery('(max-width: 768px)');
 
     useEffect(() => {
         const fetchRooms = async () => {
             try {
-                const {data} = await roomApi.roomsGet();
+                const { data } = await roomApi.roomsGet();
                 setRooms(data.rooms || []);
             } catch (error) {
                 console.error("Failed to fetch rooms", error);
@@ -51,7 +52,7 @@ export function RoomsSidebar({onClose}: RoomsSidebarProps) {
     }, []);
 
     const filteredRooms = rooms.filter(room =>
-        (room.name || room.id).toLowerCase().includes(searchQuery.toLowerCase())
+        getRoomDisplayName(room, user?.id).toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const handleRoomClick = (slug: string) => {
@@ -62,16 +63,16 @@ export function RoomsSidebar({onClose}: RoomsSidebarProps) {
     };
 
     return (
-        <Box h="100%" p="md" display="flex" style={{flexDirection: 'column', gap: 'var(--mantine-spacing-md)'}}>
+        <Box h="100%" p="md" display="flex" style={{ flexDirection: 'column', gap: 'var(--mantine-spacing-md)' }}>
             <Group justify="space-between">
                 <Title order={3}>Rooms</Title>
                 <Group gap="xs">
                     <ActionIcon variant="light" size="lg" onClick={() => setCreateModalOpen(true)}>
-                        <IconPlus size={20}/>
+                        <IconPlus size={20} />
                     </ActionIcon>
                     {onClose && (
                         <ActionIcon variant="subtle" color="gray" onClick={onClose}>
-                            <IconChevronLeft size={20}/>
+                            <IconChevronLeft size={20} />
                         </ActionIcon>
                     )}
                 </Group>
@@ -79,34 +80,37 @@ export function RoomsSidebar({onClose}: RoomsSidebarProps) {
 
             <TextInput
                 placeholder="Search rooms..."
-                leftSection={<IconSearch style={{width: rem(16), height: rem(16)}} stroke={1.5}/>}
+                leftSection={<IconSearch style={{ width: rem(16), height: rem(16) }} stroke={1.5} />}
                 value={searchQuery}
                 onChange={(event) => setSearchQuery(event.currentTarget.value)}
             />
 
             <Paper shadow="sm" radius="lg" withBorder
-                   style={{flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
-                <ScrollArea style={{flex: 1}}>
+                style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                <ScrollArea style={{ flex: 1 }}>
                     <Stack gap={0}>
-                        {filteredRooms.map((room) => (
-                            <NavLink
-                                key={room.id}
-                                label={room.name || room.slug}
-                                active={room.slug === roomSlug}
-                                onClick={() => room.slug && handleRoomClick(room.slug)}
-                                leftSection={
-                                    <Avatar radius="xl" size="sm" color={primaryColor}>
-                                        {(room.name || room.id).slice(0, 2).toUpperCase()}
-                                    </Avatar>
-                                }
-                                variant="light"
-                                color="blue"
-                                style={{
-                                    borderRadius: 0,
-                                    borderBottom: '1px solid var(--mantine-color-default-border)'
-                                }}
-                            />
-                        ))}
+                        {filteredRooms.map((room) => {
+                            const displayName = getRoomDisplayName(room, user?.id);
+                            return (
+                                <NavLink
+                                    key={room.id}
+                                    label={displayName}
+                                    active={room.slug === roomSlug}
+                                    onClick={() => room.slug && handleRoomClick(room.slug)}
+                                    leftSection={
+                                        <Avatar radius="xl" size="sm" color={primaryColor}>
+                                            {displayName.slice(0, 2).toUpperCase()}
+                                        </Avatar>
+                                    }
+                                    variant="light"
+                                    color="blue"
+                                    style={{
+                                        borderRadius: 0,
+                                        borderBottom: '1px solid var(--mantine-color-default-border)'
+                                    }}
+                                />
+                            );
+                        })}
                         {filteredRooms.length === 0 && (
                             <Text c="dimmed" size="sm" ta="center" py="xl">
                                 {rooms.length === 0 ? "No rooms found" : "No results"}
@@ -118,18 +122,18 @@ export function RoomsSidebar({onClose}: RoomsSidebarProps) {
 
             <Paper shadow="sm" radius="lg" withBorder p="xs">
                 <Group>
-                    {user && <UserAvatar username={user.username} avatarUrl={user.avatarUrl}/>}
-                    <div style={{flex: 1, overflow: 'hidden'}}>
+                    {user && <UserAvatar username={user.username} avatarUrl={user.avatarUrl} />}
+                    <div style={{ flex: 1, overflow: 'hidden' }}>
                         <Text size="sm" fw={500} truncate>{user?.username}</Text>
                         <Text c="dimmed" size="xs" truncate>{user?.email}</Text>
                     </div>
                     <ActionIcon variant="subtle" color="red" onClick={logout} title="Logout">
-                        <IconLogout style={{width: rem(18), height: rem(18)}} stroke={1.5}/>
+                        <IconLogout style={{ width: rem(18), height: rem(18) }} stroke={1.5} />
                     </ActionIcon>
                 </Group>
             </Paper>
 
-            <CreateRoomModal opened={createModalOpen} onClose={() => setCreateModalOpen(false)}/>
+            <CreateRoomModal opened={createModalOpen} onClose={() => setCreateModalOpen(false)} />
         </Box>
     );
 }

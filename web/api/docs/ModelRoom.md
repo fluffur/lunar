@@ -6,7 +6,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **id** | **string** |  | [default to undefined]
-**members** | [**Array&lt;ModelRoomMember&gt;**](ModelRoomMember.md) |  | [optional] [default to undefined]
+**members** | [**Array&lt;ModelRoomMemberInfo&gt;**](ModelRoomMemberInfo.md) |  | [optional] [default to undefined]
 **name** | **string** |  | [optional] [default to undefined]
 **slug** | **string** |  | [default to undefined]
 

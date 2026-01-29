@@ -140,7 +140,7 @@ definitions:
         type: string
       members:
         items:
-          $ref: '#/definitions/model.RoomMember'
+          $ref: '#/definitions/model.RoomMemberInfo'
         type: array
       name:
         type: string
@@ -150,18 +150,12 @@ definitions:
     - id
     - slug
     type: object
-  model.RoomMember:
+  model.RoomMemberInfo:
     properties:
-      id:
+      user_id:
         type: string
-      roomID:
+      username:
         type: string
-      userID:
-        type: string
-    required:
-    - id
-    - roomID
-    - userID
     type: object
   model.User:
     properties:

@@ -4,10 +4,15 @@ FROM rooms
 WHERE id = $1;
 
 -- name: GetUserRooms :many
-SELECT r.*
+SELECT r.*,
+       COUNT(rm.id)                                         AS member_count,
+       COALESCE(json_agg(json_build_object('user_id', u.id, 'username', u.username))
+                FILTER (WHERE u.id IS NOT NULL), '[]'::json)::TEXT AS members
 FROM rooms r
          JOIN room_members rm ON rm.room_id = r.id
-WHERE rm.user_id = $1;
+         JOIN users u ON rm.user_id = u.id
+WHERE EXISTS (SELECT 1 FROM room_members rm2 WHERE rm2.room_id = r.id AND rm2.user_id = $1)
+GROUP BY r.id;
 
 -- name: CreateRoom :one
 INSERT INTO rooms (id, name, slug, created_at)

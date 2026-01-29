@@ -103,26 +103,42 @@ func (q *Queries) GetRoomBySlug(ctx context.Context, slug string) (Room, error) 
 }
 
 const getUserRooms = `-- name: GetUserRooms :many
-SELECT r.id, r.name, r.slug, r.created_at
+SELECT r.id, r.name, r.slug, r.created_at,
+       COUNT(rm.id)                                         AS member_count,
+       COALESCE(json_agg(json_build_object('user_id', u.id, 'username', u.username))
+                FILTER (WHERE u.id IS NOT NULL), '[]'::json)::TEXT AS members
 FROM rooms r
          JOIN room_members rm ON rm.room_id = r.id
-WHERE rm.user_id = $1
+         JOIN users u ON rm.user_id = u.id
+WHERE EXISTS (SELECT 1 FROM room_members rm2 WHERE rm2.room_id = r.id AND rm2.user_id = $1)
+GROUP BY r.id
 `
 
-func (q *Queries) GetUserRooms(ctx context.Context, userID uuid.UUID) ([]Room, error) {
+type GetUserRoomsRow struct {
+	ID          uuid.UUID          `db:"id" json:"id"`
+	Name        pgtype.Text        `db:"name" json:"name"`
+	Slug        string             `db:"slug" json:"slug"`
+	CreatedAt   pgtype.Timestamptz `db:"created_at" json:"createdAt"`
+	MemberCount int64              `db:"member_count" json:"memberCount"`
+	Members     string             `db:"members" json:"members"`
+}
+
+func (q *Queries) GetUserRooms(ctx context.Context, userID uuid.UUID) ([]GetUserRoomsRow, error) {
 	rows, err := q.db.Query(ctx, getUserRooms, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	items := []Room{}
+	items := []GetUserRoomsRow{}
 	for rows.Next() {
-		var i Room
+		var i GetUserRoomsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
 			&i.Slug,
 			&i.CreatedAt,
+			&i.MemberCount,
+			&i.Members,
 		); err != nil {
 			return nil, err
 		}

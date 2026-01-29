@@ -8,11 +8,16 @@ import (
 )
 
 type Room struct {
-	ID        uuid.UUID    `json:"id" binding:"required"`
-	Name      string       `json:"name,omitempty"`
-	Slug      string       `json:"slug" binding:"required"`
-	Members   []RoomMember `json:"members,omitempty"`
-	CreatedAt time.Time    `json:"-"`
+	ID        uuid.UUID        `json:"id" binding:"required"`
+	Name      string           `json:"name,omitempty"`
+	Slug      string           `json:"slug" binding:"required"`
+	Members   []RoomMemberInfo `json:"members,omitempty"`
+	CreatedAt time.Time        `json:"-"`
+}
+
+type RoomMemberInfo struct {
+	UserID   uuid.UUID `json:"user_id"`
+	Username string    `json:"username"`
 }
 
 func NewRoom(name string) (Room, error) {
