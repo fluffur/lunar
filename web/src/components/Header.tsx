@@ -3,7 +3,7 @@ import { ActionIcon, Button, Container, Group, Menu, Text, UnstyledButton } from
 import { useSessionStore } from "../stores/sessionStore.ts";
 import { authApi } from "../api.ts";
 import { UserAvatar } from "./UserAvatar.tsx";
-import { IconLogout, IconMoonStars, IconSun, IconUserFilled } from "@tabler/icons-react";
+import { IconLogout, IconMoonStars, IconSettings, IconSun } from "@tabler/icons-react";
 import { useUiStore } from "../stores/uiStore.ts";
 
 export function Header() {
@@ -61,11 +61,11 @@ export function Header() {
                                         </UnstyledButton>
                                     </Menu.Target>
 
-                                    <Menu.Dropdown>
+                                        <Menu.Dropdown>
 
-                                        <Menu.Item component={Link} to="/profile"
-                                            leftSection={<IconUserFilled size={16} />}>
-                                            Profile
+                                        <Menu.Item component={Link} to="/settings"
+                                            leftSection={<IconSettings size={16} />}>
+                                            Settings
                                         </Menu.Item>
 
 
