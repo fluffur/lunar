@@ -74,3 +74,23 @@ WHERE pending_email = $1;
 UPDATE email_verification_codes
 SET attempts = attempts + 1
 WHERE user_id = $1;
+
+-- name: SearchUsers :many
+SELECT u.id, u.username, u.email, u.avatar_url, u.email_verified, u.created_at
+FROM users u
+LEFT JOIN friendships f ON u.id = f.friend_id AND f.user_id = @current_user_id
+LEFT JOIN friend_requests fr ON (
+    (fr.from_user_id = @current_user_id AND fr.to_user_id = u.id) OR
+    (fr.to_user_id = @current_user_id AND fr.from_user_id = u.id)
+) AND fr.status = 'pending'
+LEFT JOIN user_blocks ub_from ON u.id = ub_from.to_user_id AND ub_from.from_user_id = @current_user_id
+LEFT JOIN user_blocks ub_to ON u.id = ub_to.from_user_id AND ub_to.to_user_id = @current_user_id
+WHERE u.id != @current_user_id
+  AND f.user_id IS NULL
+  AND fr.from_user_id IS NULL
+  AND fr.to_user_id IS NULL
+  AND ub_from.from_user_id IS NULL
+  AND ub_to.to_user_id IS NULL
+  AND LOWER(u.username) LIKE LOWER(@username) || '%'
+ORDER BY u.username
+LIMIT 20;

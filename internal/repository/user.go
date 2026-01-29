@@ -27,4 +27,5 @@ type UserRepository interface {
 	MarkEmailVerified(ctx context.Context, userID uuid.UUID) error
 	IncrementVerificationAttempts(ctx context.Context, userID uuid.UUID) error
 	DeleteVerificationCode(ctx context.Context, userID uuid.UUID) error
+	SearchByUsername(ctx context.Context, username string, currentUserID uuid.UUID) ([]model.User, error)
 }

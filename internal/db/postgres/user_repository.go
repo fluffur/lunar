@@ -33,6 +33,18 @@ func mapUser(user db.User) model.User {
 	}
 }
 
+func mapSearchUserRow(row db.SearchUsersRow) model.User {
+	return model.User{
+		ID:            row.ID,
+		Username:      row.Username,
+		Email:         row.Email,
+		AvatarURL:     row.AvatarUrl.String,
+		EmailVerified: row.EmailVerified,
+		PasswordHash:  "",
+		CreatedAt:     row.CreatedAt.Time,
+	}
+}
+
 //func (r *UserRepository) RunInTx(ctx context.Context, fn func(repository repository.UserRepository) error) error {
 //	tx, err := r.db.Begin(ctx)
 //	if err != nil {
@@ -192,4 +204,22 @@ func (r *UserRepository) IncrementVerificationAttempts(ctx context.Context, user
 
 func (r *UserRepository) DeleteVerificationCode(ctx context.Context, userID uuid.UUID) error {
 	return r.queries.DeleteEmailVerificationCode(ctx, userID)
+}
+
+func (r *UserRepository) SearchByUsername(ctx context.Context, username string, currentUserID uuid.UUID) ([]model.User, error) {
+	users, err := r.queries.SearchUsers(ctx, db.SearchUsersParams{
+		Username:      username,
+		CurrentUserID: currentUserID,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	result := make([]model.User, len(users))
+	for i, u := range users {
+		result[i] = mapSearchUserRow(u)
+	}
+
+	return result, nil
 }
