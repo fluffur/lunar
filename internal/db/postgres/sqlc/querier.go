@@ -44,6 +44,7 @@ type Querier interface {
 	ListOutgoingRequestsWithUsers(ctx context.Context, fromUserID uuid.UUID) ([]ListOutgoingRequestsWithUsersRow, error)
 	MarkEmailVerified(ctx context.Context, id uuid.UUID) error
 	RoomExists(ctx context.Context, id uuid.UUID) (bool, error)
+	SearchUsers(ctx context.Context, arg SearchUsersParams) ([]SearchUsersRow, error)
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error
 	UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) error
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error

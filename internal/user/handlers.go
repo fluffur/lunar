@@ -175,3 +175,20 @@ func (h *Handler) UploadAvatar(w http.ResponseWriter, r *http.Request) {
 
 	httputil.Success(w)
 }
+
+func (h *Handler) SearchUsers(w http.ResponseWriter, r *http.Request) {
+	username := r.URL.Query().Get("q")
+	if username == "" {
+		httputil.ValidationError(w, map[string]string{"q": "query parameter is required"})
+		return
+	}
+
+	userCtx := httputil.UserFromRequest(r)
+	users, err := h.service.SearchByUsername(r.Context(), username, userCtx.ID)
+	if err != nil {
+		httputil.InternalError(w, r, err)
+		return
+	}
+
+	httputil.SuccessData(w, users)
+}

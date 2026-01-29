@@ -93,3 +93,11 @@ func (s *Service) UploadAvatar(file multipart.File) (string, error) {
 
 	return resultFilename, nil
 }
+
+func (s *Service) SearchByUsername(ctx context.Context, username string, currentUserID uuid.UUID) ([]model.User, error) {
+	if len(username) < 2 {
+		return []model.User{}, nil
+	}
+
+	return s.repo.SearchByUsername(ctx, username, currentUserID)
+}

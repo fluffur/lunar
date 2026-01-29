@@ -165,6 +165,68 @@ func (q *Queries) MarkEmailVerified(ctx context.Context, id uuid.UUID) error {
 	return err
 }
 
+const searchUsers = `-- name: SearchUsers :many
+SELECT u.id, u.username, u.email, u.avatar_url, u.email_verified, u.created_at
+FROM users u
+LEFT JOIN friendships f ON u.id = f.friend_id AND f.user_id = $1
+LEFT JOIN friend_requests fr ON (
+    (fr.from_user_id = $1 AND fr.to_user_id = u.id) OR
+    (fr.to_user_id = $1 AND fr.from_user_id = u.id)
+) AND fr.status = 'pending'
+LEFT JOIN user_blocks ub_from ON u.id = ub_from.to_user_id AND ub_from.from_user_id = $1
+LEFT JOIN user_blocks ub_to ON u.id = ub_to.from_user_id AND ub_to.to_user_id = $1
+WHERE u.id != $1
+  AND f.user_id IS NULL
+  AND fr.from_user_id IS NULL
+  AND fr.to_user_id IS NULL
+  AND ub_from.from_user_id IS NULL
+  AND ub_to.to_user_id IS NULL
+  AND LOWER(u.username) LIKE LOWER($2) || '%'
+ORDER BY u.username
+LIMIT 20
+`
+
+type SearchUsersParams struct {
+	CurrentUserID uuid.UUID `db:"current_user_id" json:"currentUserId"`
+	Username      string    `db:"username" json:"username"`
+}
+
+type SearchUsersRow struct {
+	ID            uuid.UUID          `db:"id" json:"id"`
+	Username      string             `db:"username" json:"username"`
+	Email         string             `db:"email" json:"email"`
+	AvatarUrl     pgtype.Text        `db:"avatar_url" json:"avatarUrl"`
+	EmailVerified bool               `db:"email_verified" json:"emailVerified"`
+	CreatedAt     pgtype.Timestamptz `db:"created_at" json:"createdAt"`
+}
+
+func (q *Queries) SearchUsers(ctx context.Context, arg SearchUsersParams) ([]SearchUsersRow, error) {
+	rows, err := q.db.Query(ctx, searchUsers, arg.CurrentUserID, arg.Username)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	items := []SearchUsersRow{}
+	for rows.Next() {
+		var i SearchUsersRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Username,
+			&i.Email,
+			&i.AvatarUrl,
+			&i.EmailVerified,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateUserAvatar = `-- name: UpdateUserAvatar :exec
 UPDATE users
 SET avatar_url = $1

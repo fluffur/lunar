@@ -75,13 +75,15 @@ func (app *application) mount() http.Handler {
 	})
 
 	r.With(authMw).Group(func(r chi.Router) {
-		r.Route("/users/me", func(r chi.Router) {
-			r.Get("/", userHandler.CurrentUser)
+		r.Route("/users", func(r chi.Router) {
+			r.Get("/search", userHandler.SearchUsers)
 
-			r.Put("/email", userHandler.UpdateEmail)
-
-			r.Put("/password", userHandler.ChangePassword)
-			r.Post("/avatar", userHandler.UploadAvatar)
+			r.Route("/me", func(r chi.Router) {
+				r.Get("/", userHandler.CurrentUser)
+				r.Put("/email", userHandler.UpdateEmail)
+				r.Put("/password", userHandler.ChangePassword)
+				r.Post("/avatar", userHandler.UploadAvatar)
+			})
 		})
 
 		r.Route("/rooms", func(r chi.Router) {
