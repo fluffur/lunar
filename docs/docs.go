@@ -943,6 +943,9 @@ const docTemplate = `{
         "model.RoomMemberInfo": {
             "type": "object",
             "properties": {
+                "avatar_url": {
+                    "type": "string"
+                },
                 "user_id": {
                     "type": "string"
                 },

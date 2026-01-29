@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
     ActionIcon,
-    Avatar,
     Box,
     Group,
     NavLink,
@@ -20,9 +19,9 @@ import { IconChevronLeft, IconLogout, IconPlus, IconSearch } from "@tabler/icons
 import { CreateRoomModal } from "./CreateRoomModal.tsx";
 import { useSessionStore } from "../stores/sessionStore.ts";
 import { UserAvatar } from "./UserAvatar.tsx";
-import { useUiStore } from "../stores/uiStore.ts";
 import { useMediaQuery } from "@mantine/hooks";
 import { getRoomDisplayName } from "../utils/room.ts";
+import { RoomAvatar } from "./RoomAvatar.tsx";
 
 interface RoomsSidebarProps {
     onClose?: () => void;
@@ -35,7 +34,6 @@ export function RoomsSidebar({ onClose }: RoomsSidebarProps) {
     const [createModalOpen, setCreateModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const { user, logout } = useSessionStore();
-    const { primaryColor } = useUiStore()
     const isMobile = useMediaQuery('(max-width: 768px)');
 
     useEffect(() => {
@@ -98,9 +96,11 @@ export function RoomsSidebar({ onClose }: RoomsSidebarProps) {
                                     active={room.slug === roomSlug}
                                     onClick={() => room.slug && handleRoomClick(room.slug)}
                                     leftSection={
-                                        <Avatar radius="xl" size="sm" color={primaryColor}>
-                                            {displayName.slice(0, 2).toUpperCase()}
-                                        </Avatar>
+                                        <RoomAvatar
+                                            room={room}
+                                            currentUserId={user?.id}
+                                            size={32}
+                                        />
                                     }
                                     variant="light"
                                     color="blue"

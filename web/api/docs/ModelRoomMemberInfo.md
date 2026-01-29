@@ -5,6 +5,7 @@
 
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
+**avatar_url** | **string** |  | [optional] [default to undefined]
 **user_id** | **string** |  | [optional] [default to undefined]
 **username** | **string** |  | [optional] [default to undefined]
 
@@ -14,6 +15,7 @@ Name | Type | Description | Notes
 import { ModelRoomMemberInfo } from './api';
 
 const instance: ModelRoomMemberInfo = {
+    avatar_url,
     user_id,
     username,
 };

@@ -16,8 +16,9 @@ type Room struct {
 }
 
 type RoomMemberInfo struct {
-	UserID   uuid.UUID `json:"user_id"`
-	Username string    `json:"username"`
+	UserID    uuid.UUID `json:"user_id"`
+	Username  string    `json:"username"`
+	AvatarURL *string   `json:"avatar_url"`
 }
 
 func NewRoom(name string) (Room, error) {

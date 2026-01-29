@@ -6,7 +6,7 @@ WHERE id = $1;
 -- name: GetUserRooms :many
 SELECT r.*,
        COUNT(rm.id)                                         AS member_count,
-       COALESCE(json_agg(json_build_object('user_id', u.id, 'username', u.username))
+       COALESCE(json_agg(json_build_object('user_id', u.id, 'username', u.username, 'avatar_url', u.avatar_url))
                 FILTER (WHERE u.id IS NOT NULL), '[]'::json)::TEXT AS members
 FROM rooms r
          JOIN room_members rm ON rm.room_id = r.id

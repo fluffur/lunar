@@ -11,13 +11,13 @@ import {
     Box
 } from '@mantine/core';
 import { IconMessage } from '@tabler/icons-react';
-import { UserAvatar } from './UserAvatar';
 import { roomApi } from '../api';
 import type { ModelRoom } from '../../api';
 import { ChatView } from './ChatView';
 import { useMediaQuery } from '@mantine/hooks';
 import { getRoomDisplayName } from '../utils/room.ts';
 import { useSessionStore } from '../stores/sessionStore.ts';
+import { RoomAvatar } from './RoomAvatar.tsx';
 
 export function FriendsSection() {
     const [directChatRooms, setDirectChatRooms] = useState<ModelRoom[]>([]);
@@ -91,8 +91,9 @@ export function FriendsSection() {
                                                 onClick={() => handleChatClick(room.slug)}
                                             >
                                                 <Group>
-                                                    <UserAvatar
-                                                        username={displayName}
+                                                    <RoomAvatar
+                                                        room={room}
+                                                        currentUserId={user?.id}
                                                         size={40}
                                                     />
                                                     <div style={{ flex: 1 }}>

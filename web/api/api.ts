@@ -85,6 +85,7 @@ export interface ModelRoom {
     'slug': string;
 }
 export interface ModelRoomMemberInfo {
+    'avatar_url'?: string;
     'user_id'?: string;
     'username'?: string;
 }
