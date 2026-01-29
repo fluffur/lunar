@@ -3,22 +3,26 @@ import {
     ActionIcon,
     Box,
     Group,
-    Menu,
     Paper,
     rem,
     ScrollArea,
-    Stack,
     Text,
     TextInput,
     Title,
-    Badge
+    Badge,
+    SegmentedControl
 } from '@mantine/core';
 import {useNavigate} from 'react-router-dom';
 import {api} from "../api.ts";
-import {IconChevronLeft, IconLogout, IconPhone, IconSearch, IconUserMinus, IconDots} from "@tabler/icons-react";
+import {IconChevronLeft, IconLogout, IconSearch, IconUserPlus, IconUsers, IconUserCheck, IconUserX} from "@tabler/icons-react";
 import {useSessionStore} from "../stores/sessionStore.ts";
+import {useUiStore} from "../stores/uiStore.ts";
 import {UserAvatar} from "./UserAvatar.tsx";
 import {useMediaQuery} from "@mantine/hooks";
+import {UserSearch} from "./UserSearch.tsx";
+import {FriendsList} from "./FriendsList.tsx";
+import {IncomingRequestsList} from "./IncomingRequestsList.tsx";
+import {OutgoingRequestsList} from "./OutgoingRequestsList.tsx";
 
 interface Friend {
     id: string;
@@ -41,15 +45,21 @@ interface FriendsSidebarProps {
     onClose?: () => void;
 }
 
+type FriendsTab = 'all' | 'incoming' | 'outgoing';
+
 export function FriendsSidebar({onClose}: FriendsSidebarProps) {
     const [friends, setFriends] = useState<Friend[]>([]);
     const [incomingRequests, setIncomingRequests] = useState<FriendRequest[]>([]);
+    const [outgoingRequests, setOutgoingRequests] = useState<FriendRequest[]>([]);
     const navigate = useNavigate();
     const [searchQuery, setSearchQuery] = useState('');
     const {user, logout} = useSessionStore();
+    const {primaryColor} = useUiStore();
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [openedMenuId, setOpenedMenuId] = useState<string | null>(null);
     const [hoveredFriendId, setHoveredFriendId] = useState<string | null>(null);
+    const [showAddFriend, setShowAddFriend] = useState(false);
+    const [activeTab, setActiveTab] = useState<FriendsTab>('all');
 
     const loadFriends = async () => {
         try {
@@ -69,13 +79,33 @@ export function FriendsSidebar({onClose}: FriendsSidebarProps) {
         }
     };
 
+    const loadOutgoingRequests = async () => {
+        try {
+            const {data} = await api.get<FriendRequest[]>('/friends/requests/outgoing');
+            setOutgoingRequests(data);
+        } catch (err) {
+            console.error('Failed to load outgoing requests', err);
+        }
+    };
+
     useEffect(() => {
-        loadFriends();
-        loadIncomingRequests();
-    }, []);
+        if (!showAddFriend) {
+            loadFriends();
+            loadIncomingRequests();
+            loadOutgoingRequests();
+        }
+    }, [showAddFriend]);
 
     const filteredFriends = friends.filter(friend =>
         friend.username.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const filteredIncoming = incomingRequests.filter(req =>
+        req.fromUser?.username.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    const filteredOutgoing = outgoingRequests.filter(req =>
+        req.toUser?.username.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const handleCall = async (friendId: string) => {
@@ -102,19 +132,114 @@ export function FriendsSidebar({onClose}: FriendsSidebarProps) {
         }
     };
 
+    const handleAcceptRequest = async (fromId: string) => {
+        try {
+            await api.post(`/friends/requests/${fromId}/accept`);
+            loadIncomingRequests();
+            loadFriends();
+        } catch (err) {
+            console.error('Failed to accept friend request', err);
+        }
+    };
+
+    const handleRejectRequest = async (fromId: string) => {
+        try {
+            await api.post(`/friends/requests/${fromId}/reject`);
+            loadIncomingRequests();
+        } catch (err) {
+            console.error('Failed to reject friend request', err);
+        }
+    };
+
+    const handleCancelRequest = async (toId: string) => {
+        try {
+            await api.post(`/friends/requests/${toId}/cancel`);
+            loadOutgoingRequests();
+        } catch (err) {
+            console.error('Failed to cancel friend request', err);
+        }
+    };
+
+    const handleSendFriendRequest = async (username: string) => {
+        try {
+            await api.post('/friends/requests', { 
+                username: username,
+                message: '' 
+            });
+            loadOutgoingRequests();
+        } catch (err) {
+            console.error('Failed to send friend request', err);
+        }
+    };
+
+    const handleAddFriendClick = () => {
+        setShowAddFriend(true);
+    };
+
+    const handleBackToFriends = () => {
+        setShowAddFriend(false);
+    };
+
+    const renderContent = () => {
+        switch (activeTab) {
+            case 'all':
+                return (
+                    <FriendsList
+                        friends={filteredFriends}
+                        onCall={handleCall}
+                        onRemoveFriend={handleRemoveFriend}
+                        openedMenuId={openedMenuId}
+                        onMenuChange={setOpenedMenuId}
+                        hoveredFriendId={hoveredFriendId}
+                        onHover={setHoveredFriendId}
+                    />
+                );
+            case 'incoming':
+                return (
+                    <IncomingRequestsList
+                        requests={filteredIncoming}
+                        onAccept={handleAcceptRequest}
+                        onReject={handleRejectRequest}
+                    />
+                );
+            case 'outgoing':
+                return (
+                    <OutgoingRequestsList
+                        requests={filteredOutgoing}
+                        onCancel={handleCancelRequest}
+                    />
+                );
+        }
+    };
+
     return (
         <Box h="100%" p="md" display="flex" style={{flexDirection: 'column', gap: 'var(--mantine-spacing-md)'}}>
             <Group justify="space-between">
                 <Group gap="xs">
-                    <Title order={3}>Friends</Title>
-                    {incomingRequests.length > 0 && (
-                        <Badge size="sm" variant="filled" color="blue">
-                            {incomingRequests.length}
-                        </Badge>
-                    )}
+                    <Title order={3}>{showAddFriend ? 'Add Friends' : 'Friends'}</Title>
                 </Group>
                 <Group gap="xs">
-                    {onClose && (
+                    {!showAddFriend && (
+                        <ActionIcon 
+                            variant="subtle" 
+                            color={primaryColor} 
+                            onClick={handleAddFriendClick}
+                            title="Add friend"
+                        >
+                            <IconUserPlus size={20}/>
+                        </ActionIcon>
+                    )}
+                    {showAddFriend && (
+                        <ActionIcon 
+                            variant="subtle" 
+                            color="gray" 
+                            onClick={handleBackToFriends}
+                            title="Back to friends"
+                        >
+                            <IconChevronLeft size={20}/>
+                        </ActionIcon>
+                    )}
+                    {onClose && !showAddFriend && (
                         <ActionIcon variant="subtle" color="gray" onClick={onClose}>
                             <IconChevronLeft size={20}/>
                         </ActionIcon>
@@ -122,99 +247,67 @@ export function FriendsSidebar({onClose}: FriendsSidebarProps) {
                 </Group>
             </Group>
 
-            <TextInput
-                placeholder="Search friends..."
-                leftSection={<IconSearch style={{width: rem(16), height: rem(16)}} stroke={1.5}/>}
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.currentTarget.value)}
-            />
+            {showAddFriend ? (
+                <UserSearch onAddFriend={handleSendFriendRequest} />
+            ) : (
+                <>
+                    <TextInput
+                        placeholder="Search..."
+                        leftSection={<IconSearch style={{width: rem(16), height: rem(16)}} stroke={1.5}/>}
+                        value={searchQuery}
+                        onChange={(event) => setSearchQuery(event.currentTarget.value)}
+                    />
 
-            <Paper shadow="sm" radius="lg"
-                   style={{flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
-                <ScrollArea style={{flex: 1}}>
-                    <Stack gap="sm" py="md" px={0}>
-                        {filteredFriends.map((friend) => (
-                            <Menu 
-                                key={friend.id} 
-                                position="bottom-end" 
-                                withArrow 
-                                opened={openedMenuId === friend.id}
-                                onChange={(opened) => setOpenedMenuId(opened ? friend.id : null)}
-                            >
-                                <Menu.Target>
-                                    <Paper 
-                                        p="md"
-                                        shadow="sm"
-                                        radius="md"
-                                        style={{ 
-                                            cursor: 'pointer',
-                                            backgroundColor: hoveredFriendId === friend.id 
-                                                ? 'var(--mantine-color-dark-6)' 
-                                                : undefined
-                                        }}
-                                        onMouseEnter={() => setHoveredFriendId(friend.id)}
-                                        onMouseLeave={() => setHoveredFriendId(null)}
-                                        onContextMenu={(e) => {
-                                            e.preventDefault();
-                                            setOpenedMenuId(friend.id);
-                                        }}
-                                    >
-                                        <Group justify="space-between">
-                                            <Group>
-                                                <UserAvatar
-                                                    username={friend.username}
-                                                    avatarUrl={friend.avatarUrl}
-                                                    size={48}
-                                                />
-                                                <div>
-                                                    <Text fw={500} size="md">{friend.username}</Text>
-                                                </div>
-                                            </Group>
-                                            <ActionIcon
-                                                variant="subtle"
-                                                color="gray"
-                                                size="md"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setOpenedMenuId(friend.id);
-                                                }}
-                                            >
-                                                <IconDots size={18}/>
-                                            </ActionIcon>
-                                        </Group>
-                                    </Paper>
-                                </Menu.Target>
-                                <Menu.Dropdown>
-                                    <Menu.Item
-                                        leftSection={<IconPhone size={16} />}
-                                        onClick={() => {
-                                            handleCall(friend.id);
-                                            setOpenedMenuId(null);
-                                        }}
-                                    >
-                                        Позвонить
-                                    </Menu.Item>
-                                    <Menu.Item
-                                        leftSection={<IconUserMinus size={16} />}
-                                        color="red"
-                                        onClick={() => {
-                                            handleRemoveFriend(friend.id);
-                                            setOpenedMenuId(null);
-                                        }}
-                                    >
-                                        Удалить из друзей
-                                    </Menu.Item>
-                                </Menu.Dropdown>
-                            </Menu>
-                        ))}
-                        {filteredFriends.length === 0 && (
-                            <Text c="dimmed" size="sm" ta="center" py="xl">
-                                {friends.length === 0 ? "No friends yet" : "No results"}
-                            </Text>
-                        )}
-                    </Stack>
-                </ScrollArea>
-            </Paper>
+                    <SegmentedControl
+                        value={activeTab}
+                        onChange={(value) => setActiveTab(value as FriendsTab)}
+                        data={[
+                            {
+                                value: 'all',
+                                label: (
+                                    <Group gap={4}>
+                                        <IconUsers size={16} />
+                                        <Text size="sm">All</Text>
+                                    </Group>
+                                )
+                            },
+                            {
+                                value: 'incoming',
+                                label: incomingRequests.length > 0 ? (
+                                    <Group gap={4}>
+                                        <Badge size="sm" variant="filled" color={primaryColor}>
+                                            {incomingRequests.length}
+                                        </Badge>
+                                        <Text size="sm">Incoming</Text>
+                                    </Group>
+                                ) : (
+                                    <Group gap={4}>
+                                        <IconUserCheck size={16} />
+                                        <Text size="sm">Incoming</Text>
+                                    </Group>
+                                )
+                            },
+                            {
+                                value: 'outgoing',
+                                label: (
+                                    <Group gap={4}>
+                                        <IconUserX size={16} />
+                                        <Text size="sm">Outgoing</Text>
+                                    </Group>
+                                )
+                            }
+                        ]}
+                        fullWidth
+                    />
+
+                    <Paper shadow="sm" radius="lg"
+                           style={{flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column'}}>
+                        <ScrollArea style={{flex: 1}}>
+                            {renderContent()}
+                        </ScrollArea>
+                    </Paper>
+                </>
+            )}
 
             <Paper 
                 shadow="sm" 
