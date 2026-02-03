@@ -6,13 +6,16 @@ import { LIVEKIT_WS_URL } from "../../config.ts";
 import { ConnectionState } from "./types.ts";
 import { Text, Button, Stack, Loader, Center } from "@mantine/core";
 import { IconAlertCircle } from "@tabler/icons-react";
+import { LiveKitAudioSettings } from "./LiveKitAudioSettings.tsx";
+import type { DisconnectReason } from "livekit-client";
 
 type Props = {
     roomSlug: string;
     children: React.ReactNode;
+    onDisconnected?: (reason?: DisconnectReason) => void;
 };
 
-export function LiveKitRoomWrapper({ roomSlug, children }: Props) {
+export function LiveKitRoomWrapper({ roomSlug, children, onDisconnected }: Props) {
     const { token, connectionState, error, retry } = useLiveKitConnection(roomSlug);
 
     if (connectionState === ConnectionState.Connecting || connectionState === ConnectionState.Reconnecting) {
@@ -61,13 +64,19 @@ export function LiveKitRoomWrapper({ roomSlug, children }: Props) {
             video
             audio
             data-lk-theme="default"
+            style={{ height: "100%" }}
             onDisconnected={(reason) => {
-                console.log('[LiveKit] Disconnected:', reason);
+                if (onDisconnected) {
+                    onDisconnected(reason);
+                } else {
+                    console.log('[LiveKit] Disconnected:', reason);
+                }
             }}
             onError={(error) => {
                 console.error('[LiveKit] Room error:', error);
             }}
         >
+            <LiveKitAudioSettings />
             {children}
         </LiveKitRoom>
     );
