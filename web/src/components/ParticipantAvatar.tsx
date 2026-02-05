@@ -2,6 +2,7 @@ import {
   useIsSpeaking,
   VideoTrack,
   useTracks,
+  type TrackReference,
 } from "@livekit/components-react";
 import { Track, Participant } from "livekit-client";
 import { Box, Text, Stack, Center } from "@mantine/core";
@@ -82,7 +83,7 @@ export function ParticipantAvatar({
         >
           {showVideo && isCameraOn && hasValidTrack && cameraTrack ? (
             <VideoTrack
-              trackRef={cameraTrack as any}
+              trackRef={cameraTrack as TrackReference}
               style={{
                 width: "100%",
                 height: "100%",
