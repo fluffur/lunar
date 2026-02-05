@@ -21,6 +21,7 @@ import { useSessionStore } from "../stores/sessionStore.ts";
 export default function Register() {
   const [generalError, setGeneralError] = useState<string | null>(null);
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const form = useForm({
     initialValues: {
@@ -48,10 +49,12 @@ export default function Register() {
   const { setToken, setUser } = useSessionStore();
 
   const handleSubmit = async (user: typeof form.values) => {
+    setIsLoading((p) => !p);
+    setGeneralError(null);
+
     try {
       await authApi.authRegisterPost(user);
       setRegisteredEmail(user.email);
-      setGeneralError(null);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const errors = error.response?.data?.error?.fields;
@@ -59,11 +62,15 @@ export default function Register() {
           form.setErrors(errors);
         } else {
           const message =
-            error.response?.data?.error?.message ?? "Registration failed";
+            error.response?.data?.error?.message ??
+            "Registration failed. Please try again.";
           setGeneralError(message);
         }
+      } else {
+        setGeneralError("An unexpected error occurred. Please try again.");
       }
-      throw error;
+    } finally {
+      setIsLoading((p) => !p);
     }
   };
 
@@ -151,6 +158,7 @@ export default function Register() {
                 size="md"
                 mt="xs"
                 disabled={!!registeredEmail}
+                loading={isLoading}
               >
                 Register
               </Button>
@@ -162,6 +170,7 @@ export default function Register() {
               <Text size="sm" mb="xs" fw={500}>
                 Registration successful! Please verify your email.
               </Text>
+
               <VerifyEmailForm
                 initialEmail={registeredEmail}
                 onSuccess={handleVerifySuccess}
