@@ -30,7 +30,7 @@ type Querier interface {
 	GetRoomBySlug(ctx context.Context, slug string) (Room, error)
 	GetUser(ctx context.Context, id uuid.UUID) (User, error)
 	GetUserByLogin(ctx context.Context, login string) (User, error)
-	GetUserRooms(ctx context.Context, userID uuid.UUID) ([]Room, error)
+	GetUserRooms(ctx context.Context, userID uuid.UUID) ([]GetUserRoomsRow, error)
 	IncrementVerificationAttempts(ctx context.Context, userID uuid.UUID) error
 	InsertFriendshipEdge(ctx context.Context, arg InsertFriendshipEdgeParams) error
 	IsBlocked(ctx context.Context, arg IsBlockedParams) (bool, error)

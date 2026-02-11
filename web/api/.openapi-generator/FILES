@@ -22,7 +22,7 @@ docs/MessageGetPagingResponse.md
 docs/ModelMessage.md
 docs/ModelMessageSender.md
 docs/ModelRoom.md
-docs/ModelRoomMember.md
+docs/ModelRoomMemberInfo.md
 docs/ModelUser.md
 docs/RoomApi.md
 docs/RoomCreateRequest.md

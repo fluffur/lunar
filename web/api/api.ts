@@ -80,14 +80,14 @@ export interface ModelMessageSender {
 }
 export interface ModelRoom {
     'id': string;
-    'members'?: Array<ModelRoomMember>;
+    'members'?: Array<ModelRoomMemberInfo>;
     'name'?: string;
     'slug': string;
 }
-export interface ModelRoomMember {
-    'id': string;
-    'roomID': string;
-    'userID': string;
+export interface ModelRoomMemberInfo {
+    'avatar_url'?: string;
+    'user_id'?: string;
+    'username'?: string;
 }
 export interface ModelUser {
     'avatarUrl'?: string;
