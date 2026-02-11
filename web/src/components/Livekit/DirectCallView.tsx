@@ -1,5 +1,4 @@
 import {
-    RoomAudioRenderer,
     useParticipants,
     useLocalParticipant,
     useIsSpeaking,
@@ -248,7 +247,6 @@ export function DirectCallView({ onDisconnect }: DirectCallViewProps) {
                 )}
             </Box>
 
-            <RoomAudioRenderer />
             <CustomControlBar onDisconnect={onDisconnect} />
         </Box>
     );

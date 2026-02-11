@@ -1,7 +1,6 @@
 import {
     GridLayout,
     ParticipantTile,
-    RoomAudioRenderer,
     useTracks,
     useParticipants,
     useRoomContext,
@@ -79,7 +78,6 @@ export function RoomVideo({ onFullscreen }: RoomVideoProps) {
                 </GridLayout>
             )}
 
-            <RoomAudioRenderer />
             <CustomControlBar onFullscreen={onFullscreen} />
         </Box>
     );
