@@ -11,17 +11,20 @@ import {
     Box
 } from '@mantine/core';
 import { IconMessage } from '@tabler/icons-react';
-import { UserAvatar } from './UserAvatar';
 import { roomApi } from '../api';
 import type { ModelRoom } from '../../api';
 import { ChatView } from './ChatView';
 import { useMediaQuery } from '@mantine/hooks';
+import { getRoomDisplayName } from '../utils/room.ts';
+import { useSessionStore } from '../stores/sessionStore.ts';
+import { RoomAvatar } from './RoomAvatar.tsx';
 
 export function FriendsSection() {
     const [directChatRooms, setDirectChatRooms] = useState<ModelRoom[]>([]);
     const [selectedChatSlug, setSelectedChatSlug] = useState<string | null>(null);
     const isMobile = useMediaQuery('(max-width: 768px)');
     const [hoveredChatSlug, setHoveredChatSlug] = useState<string | null>(null);
+    const { user } = useSessionStore();
 
     const loadRooms = async () => {
         try {
@@ -69,36 +72,40 @@ export function FriendsSection() {
                                 </Paper>
                             ) : (
                                 <Stack gap="sm">
-                                    {directChatRooms.map((room) => (
-                                        <Paper 
-                                            key={room.id} 
-                                            p="md" 
-                                            shadow="sm"
-                                            radius="md"
-                                            style={{ 
-                                                cursor: 'pointer',
-                                                backgroundColor: selectedChatSlug === room.slug || hoveredChatSlug === room.slug
-                                                    ? 'var(--mantine-color-dark-6)' 
-                                                    : undefined
-                                            }}
-                                            onMouseEnter={() => setHoveredChatSlug(room.slug)}
-                                            onMouseLeave={() => setHoveredChatSlug(null)}
-                                            onClick={() => handleChatClick(room.slug)}
-                                        >
-                                            <Group>
-                                                <UserAvatar
-                                                    username={room.slug}
-                                                    size={40}
-                                                />
-                                                <div style={{ flex: 1 }}>
-                                                    <Text fw={500}>Chat</Text>
-                                                    <Text size="sm" c="dimmed">
-                                                        Click to view messages
-                                                    </Text>
-                                                </div>
-                                            </Group>
-                                        </Paper>
-                                    ))}
+                                    {directChatRooms.map((room) => {
+                                        const displayName = getRoomDisplayName(room, user?.id);
+                                        return (
+                                            <Paper
+                                                key={room.id}
+                                                p="md"
+                                                shadow="sm"
+                                                radius="md"
+                                                style={{
+                                                    cursor: 'pointer',
+                                                    backgroundColor: selectedChatSlug === room.slug || hoveredChatSlug === room.slug
+                                                        ? 'var(--mantine-color-dark-6)'
+                                                        : undefined
+                                                }}
+                                                onMouseEnter={() => setHoveredChatSlug(room.slug)}
+                                                onMouseLeave={() => setHoveredChatSlug(null)}
+                                                onClick={() => handleChatClick(room.slug)}
+                                            >
+                                                <Group>
+                                                    <RoomAvatar
+                                                        room={room}
+                                                        currentUserId={user?.id}
+                                                        size={40}
+                                                    />
+                                                    <div style={{ flex: 1 }}>
+                                                        <Text fw={500}>{displayName}</Text>
+                                                        <Text size="sm" c="dimmed">
+                                                            Click to view messages
+                                                        </Text>
+                                                    </div>
+                                                </Group>
+                                            </Paper>
+                                        );
+                                    })}
                                 </Stack>
                             )}
                         </Stack>
@@ -111,9 +118,9 @@ export function FriendsSection() {
                     {isMobile && (
                         <Paper p="sm" withBorder radius="md" mb="md">
                             <Group>
-                                <Text 
-                                    size="sm" 
-                                    c="blue" 
+                                <Text
+                                    size="sm"
+                                    c="blue"
                                     style={{ cursor: 'pointer' }}
                                     onClick={() => setSelectedChatSlug(null)}
                                 >

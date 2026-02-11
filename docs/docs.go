@@ -929,7 +929,7 @@ const docTemplate = `{
                 "members": {
                     "type": "array",
                     "items": {
-                        "$ref": "#/definitions/model.RoomMember"
+                        "$ref": "#/definitions/model.RoomMemberInfo"
                     }
                 },
                 "name": {
@@ -940,21 +940,16 @@ const docTemplate = `{
                 }
             }
         },
-        "model.RoomMember": {
+        "model.RoomMemberInfo": {
             "type": "object",
-            "required": [
-                "id",
-                "roomID",
-                "userID"
-            ],
             "properties": {
-                "id": {
+                "avatar_url": {
                     "type": "string"
                 },
-                "roomID": {
+                "user_id": {
                     "type": "string"
                 },
-                "userID": {
+                "username": {
                     "type": "string"
                 }
             }
