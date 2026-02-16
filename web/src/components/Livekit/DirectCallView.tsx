@@ -6,13 +6,18 @@ import {
     VideoTrack,
     useTracks,
 } from "@livekit/components-react";
-import { Track, Participant } from "livekit-client";
+import { Track, Participant, DataPacket_Kind } from "livekit-client";
 import { CustomControlBar } from "./CustomControlBar.tsx";
 import { Box, Text, Stack, Group, Center } from "@mantine/core";
 import { IconMicrophoneOff} from "@tabler/icons-react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, memo, useState, useRef, useCallback } from "react";
 import { UserAvatar } from "../UserAvatar.tsx";
 import { useSessionStore } from "../../stores/sessionStore.ts";
+import { LiveAvatarMemo } from "../LiveAvatar/LiveAvatar";
+import { useAvatarStore } from "../../stores/avatarStore";
+import { RemoteAvatar } from "../LiveAvatar/RemoteAvatar";
+import type { LocalParticipant } from "livekit-client";
+import type { AvatarConfig, AvatarData, FaceParams } from "../LiveAvatar/types";
 
 interface ParticipantAvatarProps {
     participant: Participant;
@@ -25,6 +30,11 @@ function ParticipantAvatar({ participant, size = 120, showVideo = true }: Partic
     const isMuted = !participant.isMicrophoneEnabled;
     const isCameraOn = participant.isCameraEnabled;
     const currentUser = useSessionStore((state) => state.user);
+    const [avatarData, setAvatarData] = useState<{ config: AvatarConfig | null; faceParams: FaceParams | null; isEnabled: boolean }>({
+        config: null,
+        faceParams: null,
+        isEnabled: false,
+    });
 
     const tracks = useTracks(
         [{ source: Track.Source.Camera, withPlaceholder: false }],
@@ -33,6 +43,44 @@ function ParticipantAvatar({ participant, size = 120, showVideo = true }: Partic
 
     const cameraTrack = tracks.find(t => t.source === Track.Source.Camera);
     const hasValidTrack = cameraTrack && 'publication' in cameraTrack && cameraTrack.publication;
+
+    useEffect(() => {
+        const handleData = (payload: Uint8Array, kind?: DataPacket_Kind, topic?: string) => {
+            try {
+                const decoder = new TextDecoder();
+                const json = decoder.decode(payload);
+                const avatarData: AvatarData = JSON.parse(json);
+
+                if (avatarData.sequenceNumber === -1) {
+                    if (avatarData.avatarConfig) {
+                        setAvatarData(prev => ({
+                            ...prev,
+                            config: avatarData.avatarConfig!,
+                            isEnabled: avatarData.isAvatarEnabled ?? false,
+                        }));
+                    } else if (avatarData.isAvatarEnabled === false) {
+                        setAvatarData(prev => ({
+                            ...prev,
+                            isEnabled: false,
+                        }));
+                    }
+                } else {
+                    setAvatarData(prev => ({
+                        ...prev,
+                        faceParams: avatarData.face,
+                    }));
+                }
+            } catch (error) {
+                console.error('[ParticipantAvatar] Failed to parse avatar data:', error);
+            }
+        };
+
+        participant.on('dataReceived', handleData);
+
+        return () => {
+            participant.off('dataReceived', handleData);
+        };
+    }, [participant]);
 
     const displayName = participant.name || participant.identity || 'Unknown';
     const isCurrentUser = currentUser && participant.identity === currentUser.id;
@@ -78,7 +126,24 @@ function ParticipantAvatar({ participant, size = 120, showVideo = true }: Partic
                         background: 'var(--mantine-color-dark-6)',
                     }}
                 >
-                    {showVideo && isCameraOn && hasValidTrack && cameraTrack ? (
+                    {avatarData.isEnabled && avatarData.config && avatarData.faceParams ? (
+                        <Box
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                        >
+                            <RemoteAvatar
+                                avatarConfig={avatarData.config}
+                                faceParams={avatarData.faceParams}
+                                width={size}
+                                height={size}
+                            />
+                        </Box>
+                    ) : showVideo && isCameraOn && hasValidTrack && cameraTrack ? (
                         <VideoTrack
                             trackRef={cameraTrack as any}
                             style={{
@@ -141,9 +206,50 @@ interface DirectCallViewProps {
     onDisconnect?: () => void;
 }
 
-export function DirectCallView({ onDisconnect }: DirectCallViewProps) {
+interface AvatarWrapperProps {
+    enabled: boolean;
+    avatarConfig: AvatarConfig;
+    userId: string;
+    localParticipant: LocalParticipant | undefined;
+}
+
+const AvatarWrapper = memo(({ enabled, avatarConfig, userId, localParticipant }: AvatarWrapperProps) => {
+    const stableAvatarConfig = useMemo(() => avatarConfig, [avatarConfig.id]);
+    const stableUserId = useMemo(() => userId, [userId]);
+    const localParticipantId = useMemo(() => localParticipant?.identity || null, [localParticipant?.identity]);
+
+    if (!enabled || !localParticipant) {
+        return null;
+    }
+
+    return (
+        <LiveAvatarMemo
+            enabled={enabled}
+            avatarConfig={stableAvatarConfig}
+            userId={stableUserId}
+        />
+    );
+}, (prev, next) => {
+    const prevParticipantId = prev.localParticipant?.identity || null;
+    const nextParticipantId = next.localParticipant?.identity || null;
+    
+    return (
+        prev.enabled === next.enabled &&
+        prev.userId === next.userId &&
+        prev.avatarConfig.id === next.avatarConfig.id &&
+        prevParticipantId === nextParticipantId
+    );
+});
+
+export const DirectCallView = memo(function DirectCallView({ onDisconnect }: DirectCallViewProps) {
     const participants = useParticipants();
     const { localParticipant } = useLocalParticipant();
+    const user = useSessionStore((state) => state.user);
+    const isAvatarEnabled = useAvatarStore((state) => state.isEnabled);
+    const avatarConfig = useAvatarStore((state) => state.config);
+    
+    // Мемоизируем avatarConfig для стабильности
+    const stableAvatarConfig = useMemo(() => avatarConfig, [avatarConfig.id]);
 
     useEffect(() => {
         const styleId = 'direct-call-pulse-animation';
@@ -213,6 +319,15 @@ export function DirectCallView({ onDisconnect }: DirectCallViewProps) {
 
             <RoomAudioRenderer />
             <CustomControlBar onDisconnect={onDisconnect} />
+            <AvatarWrapper
+                enabled={isAvatarEnabled}
+                avatarConfig={stableAvatarConfig}
+                userId={user?.id || 'unknown'}
+                localParticipant={localParticipant}
+            />
         </Box>
     );
-}
+}, (prevProps, nextProps) => {
+    // Мемоизация: ререндерим только если onDisconnect изменился
+    return prevProps.onDisconnect === nextProps.onDisconnect;
+});

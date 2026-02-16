@@ -1,4 +1,4 @@
-import { ActionIcon, Group, Loader, Popover, Stack, Tooltip } from '@mantine/core';
+import { ActionIcon, Group, Loader, Popover, Stack, Tooltip, Switch, Text as MantineText } from '@mantine/core';
 import {
     IconMicrophone,
     IconMicrophoneOff,
@@ -8,12 +8,14 @@ import {
     IconScreenShareOff,
     IconPhoneOff,
     IconMaximize,
-    IconChevronDown
+    IconChevronDown,
+    IconUser
 } from '@tabler/icons-react';
 import { useLocalParticipant, useRoomContext } from '@livekit/components-react';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useSoundSettings } from '../../hooks/useSoundSettings.ts';
 import { MicrophoneSettingsPanel } from '../MicrophoneSettingsPanel.tsx';
+import { useAvatarStore } from '../../stores/avatarStore';
 
 interface CustomControlBarProps {
     onFullscreen?: () => void;
@@ -25,7 +27,12 @@ export function CustomControlBar({ onFullscreen, onDisconnect }: CustomControlBa
     const room = useRoomContext();
     const [isScreenSharing, setIsScreenSharing] = useState(false);
     const [isMicSettingsOpen, setIsMicSettingsOpen] = useState(false);
+    const { isEnabled: isAvatarEnabled, setEnabled: setAvatarEnabled } = useAvatarStore();
     const { settings, inputOptions, updateSettings } = useSoundSettings();
+
+    const handleAvatarToggle = useCallback((checked: boolean) => {
+        setAvatarEnabled(checked);
+    }, [setAvatarEnabled]);
 
     const isMicEnabled = localParticipant?.isMicrophoneEnabled ?? false;
     const isCameraEnabled = localParticipant?.isCameraEnabled ?? false;
@@ -185,6 +192,33 @@ export function CustomControlBar({ onFullscreen, onDisconnect }: CustomControlBa
                 </Tooltip>
             )}
 
+            <Popover position="top" withArrow shadow="md" withinPortal>
+                <Popover.Target>
+                    <Tooltip label="Avatar settings">
+                        <ActionIcon
+                            size="lg"
+                            radius="xl"
+                            variant={isAvatarEnabled ? 'filled' : 'light'}
+                            color={isAvatarEnabled ? 'blue' : 'gray'}
+                        >
+                            <IconUser size={20} />
+                        </ActionIcon>
+                    </Tooltip>
+                </Popover.Target>
+                <Popover.Dropdown>
+                    <Stack gap="sm" w={200}>
+                        <Switch
+                            label="Enable Avatar"
+                            checked={isAvatarEnabled}
+                            onChange={(e) => handleAvatarToggle(e.currentTarget.checked)}
+                        />
+                        <MantineText size="xs" c="dimmed">
+                            Replace your video with an animated avatar
+                        </MantineText>
+                    </Stack>
+                </Popover.Dropdown>
+            </Popover>
+
             <Tooltip label="Disconnect">
                 <ActionIcon
                     size="lg"
@@ -196,6 +230,7 @@ export function CustomControlBar({ onFullscreen, onDisconnect }: CustomControlBa
                     <IconPhoneOff size={20} />
                 </ActionIcon>
             </Tooltip>
+
         </Group>
     );
 }

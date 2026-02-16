@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { LiveKitRoom } from "@livekit/components-react";
 import "@livekit/components-styles";
@@ -12,6 +12,10 @@ export function DirectCall() {
     const navigate = useNavigate();
     const [token, setToken] = useState<string>("");
     const [error, setError] = useState<string | null>(null);
+
+    const handleDisconnect = useCallback(() => {
+        navigate('/');
+    }, [navigate]);
 
     useEffect(() => {
         const fetchToken = async () => {
@@ -58,10 +62,10 @@ export function DirectCall() {
                 connect={true}
                 video={true}
                 audio={true}
-                onDisconnected={() => navigate('/')}
+                onDisconnected={handleDisconnect}
                 style={{ height: '100%' }}
             >
-                <DirectCallView onDisconnect={() => navigate('/')} />
+                <DirectCallView onDisconnect={handleDisconnect} />
             </LiveKitRoom>
         </Box>
     );
