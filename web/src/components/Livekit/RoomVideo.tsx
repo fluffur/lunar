@@ -4,6 +4,7 @@ import {
     useTracks,
     useParticipants,
     useRoomContext,
+    useLocalParticipant,
 } from "@livekit/components-react";
 import { Track, ConnectionState as LiveKitConnectionState } from "livekit-client";
 import { CustomControlBar } from "./CustomControlBar.tsx";
@@ -20,14 +21,6 @@ export function RoomVideo({ onFullscreen }: RoomVideoProps) {
     const room = useRoomContext();
     const participants = useParticipants();
     const [connectionState, setConnectionState] = useState<ConnectionState>(ConnectionState.Connected);
-
-    const tracks = useTracks(
-        [
-            { source: Track.Source.Camera, withPlaceholder: true },
-            { source: Track.Source.ScreenShare, withPlaceholder: false },
-        ],
-        { onlySubscribed: false }
-    );
 
     useEffect(() => {
         if (!room) return;

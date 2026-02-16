@@ -1,13 +1,15 @@
 import { Outlet } from "react-router-dom";
 import { Header } from "./components/Header.tsx";
 import { useSessionStore } from "./stores/sessionStore.ts";
+import { useAvatarStore } from "./stores/avatarStore.ts";
 import { useEffect } from "react";
 import { authApi, userApi } from "./api.ts";
 
 import { CallProvider } from "./contexts/CallContext.tsx";
 
 function App() {
-    const { setUser, logout, setInitialized, setToken } = useSessionStore();
+    const { setUser, logout, setInitialized, setToken, user } = useSessionStore();
+    const { setUserId } = useAvatarStore();
 
     useEffect(() => {
         const requestAuth = async () => {
@@ -25,6 +27,12 @@ function App() {
 
         requestAuth();
     }, [logout, setInitialized, setUser, setToken]);
+
+    useEffect(() => {
+        if (user?.id) {
+            setUserId(user.id);
+        }
+    }, [user?.id, setUserId]);
 
     return (
         <CallProvider>
