@@ -3,10 +3,9 @@ import {useEffect, useState} from "react";
 import type {ReactNode} from "react";
 import {SoundSettingsSection} from "../components/SoundSettingsSection.tsx";
 import {ProfileSection} from "../components/ProfileSection.tsx";
-import {AvatarSettingsSection} from "../components/AvatarSettingsSection.tsx";
 import {useNavigate, useParams} from "react-router-dom";
 
-type SettingsSectionId = "profile" | "sound" | "avatar";
+type SettingsSectionId = "profile" | "sound";
 
 type SettingsSectionConfig = {
     id: SettingsSectionId;
@@ -25,15 +24,10 @@ const SETTINGS_SECTIONS: Record<SettingsSectionId, SettingsSectionConfig> = {
         label: "Sound",
         render: () => <SoundSettingsSection />,
     },
-    avatar: {
-        id: "avatar",
-        label: "Avatar",
-        render: () => <AvatarSettingsSection />,
-    },
 };
 
 const isSettingsSectionId = (value: string | undefined): value is SettingsSectionId =>
-    value === "profile" || value === "sound" || value === "avatar";
+    value === "profile" || value === "sound";
 
 export default function Settings() {
     const {sectionId} = useParams();
