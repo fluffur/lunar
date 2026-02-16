@@ -1,11 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { LiveKitRoom } from "@livekit/components-react";
-import "@livekit/components-styles";
-import { Box, Center, Loader, Text, Button } from "@mantine/core";
-import { LIVEKIT_WS_URL } from "../config";
-import { livekitApi } from "../api";
+import { Box, Center, Text, Button } from "@mantine/core";
 import { DirectCallView } from "../components/Livekit/DirectCallView";
+import { LiveKitRoomWrapper } from "../components/Livekit/LiveKitRoomWrapper.tsx";
 
 export function DirectCall() {
     const { roomSlug } = useParams<{ roomSlug: string }>();
@@ -40,16 +37,8 @@ export function DirectCall() {
     if (error) {
         return (
             <Center h="100vh">
-                <Text c="red">{error}</Text>
+                <Text c="red">Invalid call link</Text>
                 <Button onClick={() => navigate('/')} mt="md">Go Home</Button>
-            </Center>
-        );
-    }
-
-    if (!token) {
-        return (
-            <Center h="100vh">
-                <Loader size="xl" />
             </Center>
         );
     }
@@ -69,4 +58,21 @@ export function DirectCall() {
             </LiveKitRoom>
         </Box>
     );
+  }
+
+  return (
+    <Box w="100%" h="100vh" __vars={{ "--lk-bg": "transparent" }}>
+      <LiveKitRoom
+        serverUrl={LIVEKIT_WS_URL}
+        token={token}
+        connect={true}
+        video={true}
+        audio={true}
+        onDisconnected={() => navigate("/")}
+        style={{ height: "100%" }}
+      >
+        <DirectCallView onDisconnect={() => navigate("/")} />
+      </LiveKitRoom>
+    </Box>
+  );
 }

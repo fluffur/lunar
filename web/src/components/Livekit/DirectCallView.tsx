@@ -1,5 +1,4 @@
 import {
-    RoomAudioRenderer,
     useParticipants,
     useLocalParticipant,
     useIsSpeaking,
@@ -203,7 +202,7 @@ function ParticipantAvatar({ participant, size = 120, showVideo = true }: Partic
 }
 
 interface DirectCallViewProps {
-    onDisconnect?: () => void;
+  onDisconnect?: () => void;
 }
 
 interface AvatarWrapperProps {
@@ -251,13 +250,13 @@ export const DirectCallView = memo(function DirectCallView({ onDisconnect }: Dir
     // Мемоизируем avatarConfig для стабильности
     const stableAvatarConfig = useMemo(() => avatarConfig, [avatarConfig.id]);
 
-    useEffect(() => {
-        const styleId = 'direct-call-pulse-animation';
-        if (document.getElementById(styleId)) return;
+  useEffect(() => {
+    const styleId = "direct-call-pulse-animation";
+    if (document.getElementById(styleId)) return;
 
-        const style = document.createElement('style');
-        style.id = styleId;
-        style.textContent = `
+    const style = document.createElement("style");
+    style.id = styleId;
+    style.textContent = `
             @keyframes pulse-speaking {
                 0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
                 70% { box-shadow: 0 0 0 15px rgba(34, 197, 94, 0); }
@@ -295,29 +294,62 @@ export const DirectCallView = memo(function DirectCallView({ onDisconnect }: Dir
                 flexDirection: 'column',
                 background: 'linear-gradient(180deg, var(--mantine-color-dark-8) 0%, var(--mantine-color-dark-9) 100%)',
                 position: 'relative',
+                overflow: 'hidden'
             }}
         >
-            <Box style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {allParticipants.length === 0 ? (
-                    <Stack align="center" gap="xl">
-                        <Text c="dimmed" size="lg">
-                            Waiting for others to join...
-                        </Text>
-                    </Stack>
-                ) : (
-                    <Group gap={60} justify="center" wrap="nowrap">
-                        {allParticipants.map((participant) => (
-                            <ParticipantAvatar
-                                key={participant.identity}
-                                participant={participant}
-                                size={180}
+            <Box style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+                {activeScreenShare ? (
+                    <Box style={{ width: '100%', height: '100%', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+                        <Box style={{ flex: 1, minHeight: 0 }}>
+                            <VideoTrack
+                                trackRef={activeScreenShare as any}
+                                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
                             />
-                        ))}
-                    </Group>
+                        </Box>
+
+                        {/* Overlay for participants when screen sharing */}
+                        <Box
+                            style={{
+                                position: 'absolute',
+                                bottom: 100,
+                                left: 0,
+                                right: 0,
+                                zIndex: 5,
+                                pointerEvents: 'none'
+                            }}
+                        >
+                            <Group justify="center" gap="xl" style={{ pointerEvents: 'auto' }}>
+                                {allParticipants.map((participant) => (
+                                    <ParticipantAvatar
+                                        key={participant.identity}
+                                        participant={participant}
+                                        size={activeScreenShare ? 100 : 180}
+                                    />
+                                ))}
+                            </Group>
+                        </Box>
+                    </Box>
+                ) : (
+                    allParticipants.length === 0 ? (
+                        <Stack align="center" gap="xl">
+                            <Text c="dimmed" size="lg">
+                                Waiting for others to join...
+                            </Text>
+                        </Stack>
+                    ) : (
+                        <Group gap={60} justify="center" wrap="nowrap">
+                            {allParticipants.map((participant) => (
+                                <ParticipantAvatar
+                                    key={participant.identity}
+                                    participant={participant}
+                                    size={180}
+                                />
+                            ))}
+                        </Group>
+                    )
                 )}
             </Box>
 
-            <RoomAudioRenderer />
             <CustomControlBar onDisconnect={onDisconnect} />
             <AvatarWrapper
                 enabled={isAvatarEnabled}

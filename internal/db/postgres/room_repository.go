@@ -2,11 +2,12 @@ package postgres
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
-	"time"
 	db "lunar/internal/db/postgres/sqlc"
 	"lunar/internal/model"
 	"lunar/internal/repository"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
@@ -28,10 +29,23 @@ func mapRoom(room db.Room) model.Room {
 	}
 }
 
-func mapRooms(rooms []db.Room) []model.Room {
+func mapRoomRow(room db.GetUserRoomsRow) model.Room {
+	var members []model.RoomMemberInfo
+	if room.Members != "" {
+		_ = json.Unmarshal([]byte(room.Members), &members)
+	}
+	return model.Room{
+		ID:      room.ID,
+		Name:    room.Name.String,
+		Slug:    room.Slug,
+		Members: members,
+	}
+}
+
+func mapRooms(rooms []db.GetUserRoomsRow) []model.Room {
 	result := make([]model.Room, len(rooms))
 	for i, room := range rooms {
-		result[i] = mapRoom(room)
+		result[i] = mapRoomRow(room)
 	}
 	return result
 }

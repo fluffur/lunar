@@ -20,11 +20,18 @@ export async function listAudioDevices(): Promise<{
     inputs: AudioDevice[];
     outputs: AudioDevice[];
 }> {
-    const allDevices = await navigator.mediaDevices.enumerateDevices();
-
-    if (typeof navigator === "undefined" || !allDevices) {
+    if (typeof navigator === "undefined" || !navigator.mediaDevices) {
         return {inputs: [], outputs: []};
     }
+
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({audio: true});
+        stream.getTracks().forEach((track) => track.stop());
+    } catch (e) {
+        console.warn("Microphone permission not granted yet", e);
+    }
+
+    const allDevices = await navigator.mediaDevices.enumerateDevices();
 
     try {
         const inputs: AudioDevice[] = [];
@@ -56,4 +63,3 @@ export async function listAudioDevices(): Promise<{
         return {inputs: [], outputs: []};
     }
 }
-
