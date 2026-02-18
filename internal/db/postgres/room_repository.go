@@ -23,9 +23,12 @@ func NewRoomRepository(queries db.Querier) repository.RoomRepository {
 
 func mapRoom(room db.Room) model.Room {
 	return model.Room{
-		ID:   room.ID,
-		Name: room.Name.String,
-		Slug: room.Slug,
+		ID:       room.ID,
+		Name:     room.Name.String,
+		Slug:     room.Slug,
+		ServerID: uuidFromPgUUID(room.ServerID),
+		Type:     model.RoomType(room.Type),
+		Position: int(room.Position),
 	}
 }
 
@@ -35,10 +38,13 @@ func mapRoomRow(room db.GetUserRoomsRow) model.Room {
 		_ = json.Unmarshal([]byte(room.Members), &members)
 	}
 	return model.Room{
-		ID:      room.ID,
-		Name:    room.Name.String,
-		Slug:    room.Slug,
-		Members: members,
+		ID:       room.ID,
+		Name:     room.Name.String,
+		Slug:     room.Slug,
+		ServerID: uuidFromPgUUID(room.ServerID),
+		Type:     model.RoomType(room.Type),
+		Position: int(room.Position),
+		Members:  members,
 	}
 }
 
@@ -63,6 +69,9 @@ func (r *RoomRepository) Create(ctx context.Context, room model.Room) (model.Roo
 		ID:        room.ID,
 		Name:      textFromString(room.Name),
 		Slug:      room.Slug,
+		ServerID:  uuidOrNil(room.ServerID),
+		Type:      string(room.Type),
+		Position:  int32(room.Position),
 		CreatedAt: timestampFromTime(room.CreatedAt),
 	})
 	if err != nil {

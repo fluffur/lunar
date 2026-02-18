@@ -33,6 +33,11 @@ type Friendship struct {
 	CreatedAt pgtype.Timestamptz `db:"created_at" json:"createdAt"`
 }
 
+type MemberRole struct {
+	MemberID uuid.UUID `db:"member_id" json:"memberId"`
+	RoleID   uuid.UUID `db:"role_id" json:"roleId"`
+}
+
 type Message struct {
 	ID        uuid.UUID          `db:"id" json:"id"`
 	RoomID    uuid.UUID          `db:"room_id" json:"roomId"`
@@ -46,6 +51,9 @@ type Room struct {
 	Name      pgtype.Text        `db:"name" json:"name"`
 	Slug      string             `db:"slug" json:"slug"`
 	CreatedAt pgtype.Timestamptz `db:"created_at" json:"createdAt"`
+	ServerID  pgtype.UUID        `db:"server_id" json:"serverId"`
+	Type      string             `db:"type" json:"type"`
+	Position  int32              `db:"position" json:"position"`
 }
 
 type RoomMember struct {
@@ -53,6 +61,32 @@ type RoomMember struct {
 	RoomID   uuid.UUID          `db:"room_id" json:"roomId"`
 	UserID   uuid.UUID          `db:"user_id" json:"userId"`
 	JoinedAt pgtype.Timestamptz `db:"joined_at" json:"joinedAt"`
+}
+
+type Server struct {
+	ID        uuid.UUID          `db:"id" json:"id"`
+	Name      string             `db:"name" json:"name"`
+	OwnerID   uuid.UUID          `db:"owner_id" json:"ownerId"`
+	AvatarUrl pgtype.Text        `db:"avatar_url" json:"avatarUrl"`
+	CreatedAt pgtype.Timestamptz `db:"created_at" json:"createdAt"`
+}
+
+type ServerMember struct {
+	ID       uuid.UUID          `db:"id" json:"id"`
+	ServerID uuid.UUID          `db:"server_id" json:"serverId"`
+	UserID   uuid.UUID          `db:"user_id" json:"userId"`
+	Nickname pgtype.Text        `db:"nickname" json:"nickname"`
+	JoinedAt pgtype.Timestamptz `db:"joined_at" json:"joinedAt"`
+}
+
+type ServerRole struct {
+	ID          uuid.UUID          `db:"id" json:"id"`
+	ServerID    uuid.UUID          `db:"server_id" json:"serverId"`
+	Name        string             `db:"name" json:"name"`
+	Color       pgtype.Text        `db:"color" json:"color"`
+	Permissions int64              `db:"permissions" json:"permissions"`
+	Position    int32              `db:"position" json:"position"`
+	CreatedAt   pgtype.Timestamptz `db:"created_at" json:"createdAt"`
 }
 
 type User struct {

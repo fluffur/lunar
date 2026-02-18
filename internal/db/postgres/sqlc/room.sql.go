@@ -36,15 +36,18 @@ func (q *Queries) AddRoomMember(ctx context.Context, arg AddRoomMemberParams) er
 }
 
 const createRoom = `-- name: CreateRoom :one
-INSERT INTO rooms (id, name, slug, created_at)
-VALUES ($1, $2, $3, $4)
-RETURNING id, name, slug, created_at
+INSERT INTO rooms (id, name, slug, server_id, type, position, created_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
+RETURNING id, name, slug, created_at, server_id, type, position
 `
 
 type CreateRoomParams struct {
 	ID        uuid.UUID          `db:"id" json:"id"`
 	Name      pgtype.Text        `db:"name" json:"name"`
 	Slug      string             `db:"slug" json:"slug"`
+	ServerID  pgtype.UUID        `db:"server_id" json:"serverId"`
+	Type      string             `db:"type" json:"type"`
+	Position  int32              `db:"position" json:"position"`
 	CreatedAt pgtype.Timestamptz `db:"created_at" json:"createdAt"`
 }
 
@@ -53,6 +56,9 @@ func (q *Queries) CreateRoom(ctx context.Context, arg CreateRoomParams) (Room, e
 		arg.ID,
 		arg.Name,
 		arg.Slug,
+		arg.ServerID,
+		arg.Type,
+		arg.Position,
 		arg.CreatedAt,
 	)
 	var i Room
@@ -61,12 +67,15 @@ func (q *Queries) CreateRoom(ctx context.Context, arg CreateRoomParams) (Room, e
 		&i.Name,
 		&i.Slug,
 		&i.CreatedAt,
+		&i.ServerID,
+		&i.Type,
+		&i.Position,
 	)
 	return i, err
 }
 
 const getRoom = `-- name: GetRoom :one
-SELECT id, name, slug, created_at
+SELECT id, name, slug, created_at, server_id, type, position
 FROM rooms
 WHERE id = $1
 `
@@ -79,12 +88,15 @@ func (q *Queries) GetRoom(ctx context.Context, id uuid.UUID) (Room, error) {
 		&i.Name,
 		&i.Slug,
 		&i.CreatedAt,
+		&i.ServerID,
+		&i.Type,
+		&i.Position,
 	)
 	return i, err
 }
 
 const getRoomBySlug = `-- name: GetRoomBySlug :one
-SELECT id, name, slug, created_at
+SELECT id, name, slug, created_at, server_id, type, position
 FROM rooms
 WHERE slug = $1
 LIMIT 1
@@ -98,12 +110,15 @@ func (q *Queries) GetRoomBySlug(ctx context.Context, slug string) (Room, error) 
 		&i.Name,
 		&i.Slug,
 		&i.CreatedAt,
+		&i.ServerID,
+		&i.Type,
+		&i.Position,
 	)
 	return i, err
 }
 
 const getUserRooms = `-- name: GetUserRooms :many
-SELECT r.id, r.name, r.slug, r.created_at,
+SELECT r.id, r.name, r.slug, r.created_at, r.server_id, r.type, r.position,
        COUNT(rm.id)                                         AS member_count,
        COALESCE(json_agg(json_build_object('user_id', u.id, 'username', u.username, 'avatar_url', u.avatar_url))
                 FILTER (WHERE u.id IS NOT NULL), '[]'::json)::TEXT AS members
@@ -119,6 +134,9 @@ type GetUserRoomsRow struct {
 	Name        pgtype.Text        `db:"name" json:"name"`
 	Slug        string             `db:"slug" json:"slug"`
 	CreatedAt   pgtype.Timestamptz `db:"created_at" json:"createdAt"`
+	ServerID    pgtype.UUID        `db:"server_id" json:"serverId"`
+	Type        string             `db:"type" json:"type"`
+	Position    int32              `db:"position" json:"position"`
 	MemberCount int64              `db:"member_count" json:"memberCount"`
 	Members     string             `db:"members" json:"members"`
 }
@@ -137,6 +155,9 @@ func (q *Queries) GetUserRooms(ctx context.Context, userID uuid.UUID) ([]GetUser
 			&i.Name,
 			&i.Slug,
 			&i.CreatedAt,
+			&i.ServerID,
+			&i.Type,
+			&i.Position,
 			&i.MemberCount,
 			&i.Members,
 		); err != nil {

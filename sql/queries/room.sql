@@ -15,8 +15,8 @@ WHERE EXISTS (SELECT 1 FROM room_members rm2 WHERE rm2.room_id = r.id AND rm2.us
 GROUP BY r.id;
 
 -- name: CreateRoom :one
-INSERT INTO rooms (id, name, slug, created_at)
-VALUES ($1, $2, $3, $4)
+INSERT INTO rooms (id, name, slug, server_id, type, position, created_at)
+VALUES ($1, $2, $3, $4, $5, $6, $7)
 RETURNING *;
 
 -- name: AddRoomMember :exec

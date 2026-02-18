@@ -13,21 +13,31 @@ import (
 
 type Querier interface {
 	AddRoomMember(ctx context.Context, arg AddRoomMemberParams) error
+	AddServerMember(ctx context.Context, arg AddServerMemberParams) error
+	AssignRoleToMember(ctx context.Context, arg AssignRoleToMemberParams) error
 	CreateBlock(ctx context.Context, arg CreateBlockParams) error
+	CreateChannel(ctx context.Context, arg CreateChannelParams) (Room, error)
 	CreateFriendRequest(ctx context.Context, arg CreateFriendRequestParams) error
 	CreateMessage(ctx context.Context, arg CreateMessageParams) (Message, error)
 	CreateRoom(ctx context.Context, arg CreateRoomParams) (Room, error)
+	CreateServer(ctx context.Context, arg CreateServerParams) (Server, error)
+	CreateServerRole(ctx context.Context, arg CreateServerRoleParams) (ServerRole, error)
 	CreateUser(ctx context.Context, arg CreateUserParams) (User, error)
 	DeleteBlock(ctx context.Context, arg DeleteBlockParams) error
 	DeleteEmailVerificationCode(ctx context.Context, userID uuid.UUID) error
 	DeleteFriendRequest(ctx context.Context, arg DeleteFriendRequestParams) error
 	DeleteFriendshipEdge(ctx context.Context, arg DeleteFriendshipEdgeParams) error
+	DeleteServer(ctx context.Context, id uuid.UUID) error
+	DeleteServerRole(ctx context.Context, arg DeleteServerRoleParams) error
 	GetEmailVerificationCode(ctx context.Context, userID uuid.UUID) (EmailVerificationCode, error)
 	GetEmailVerificationCodeByEmail(ctx context.Context, pendingEmail pgtype.Text) (EmailVerificationCode, error)
 	GetFriendRequest(ctx context.Context, arg GetFriendRequestParams) (FriendRequest, error)
+	GetMemberRoles(ctx context.Context, memberID uuid.UUID) ([]uuid.UUID, error)
 	GetMessagesPaging(ctx context.Context, arg GetMessagesPagingParams) ([]GetMessagesPagingRow, error)
 	GetRoom(ctx context.Context, id uuid.UUID) (Room, error)
 	GetRoomBySlug(ctx context.Context, slug string) (Room, error)
+	GetServerByID(ctx context.Context, id uuid.UUID) (Server, error)
+	GetServerMember(ctx context.Context, arg GetServerMemberParams) (GetServerMemberRow, error)
 	GetUser(ctx context.Context, id uuid.UUID) (User, error)
 	GetUserByLogin(ctx context.Context, login string) (User, error)
 	GetUserRooms(ctx context.Context, userID uuid.UUID) ([]GetUserRoomsRow, error)
@@ -42,9 +52,16 @@ type Querier interface {
 	ListIncomingRequestsWithUsers(ctx context.Context, toUserID uuid.UUID) ([]ListIncomingRequestsWithUsersRow, error)
 	ListOutgoingRequests(ctx context.Context, fromUserID uuid.UUID) ([]FriendRequest, error)
 	ListOutgoingRequestsWithUsers(ctx context.Context, fromUserID uuid.UUID) ([]ListOutgoingRequestsWithUsersRow, error)
+	ListServerChannels(ctx context.Context, serverID pgtype.UUID) ([]Room, error)
+	ListServerMembers(ctx context.Context, serverID uuid.UUID) ([]ListServerMembersRow, error)
+	ListServerRoles(ctx context.Context, serverID uuid.UUID) ([]ServerRole, error)
 	MarkEmailVerified(ctx context.Context, id uuid.UUID) error
+	RemoveRoleFromMember(ctx context.Context, arg RemoveRoleFromMemberParams) error
+	RemoveServerMember(ctx context.Context, arg RemoveServerMemberParams) error
 	RoomExists(ctx context.Context, id uuid.UUID) (bool, error)
 	SearchUsers(ctx context.Context, arg SearchUsersParams) ([]SearchUsersRow, error)
+	UpdateServerMemberNickname(ctx context.Context, arg UpdateServerMemberNicknameParams) error
+	UpdateServerRole(ctx context.Context, arg UpdateServerRoleParams) (ServerRole, error)
 	UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error
 	UpdateUserEmail(ctx context.Context, arg UpdateUserEmailParams) error
 	UpdateUserPassword(ctx context.Context, arg UpdateUserPasswordParams) error
