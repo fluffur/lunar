@@ -15,28 +15,11 @@ export function DirectCall() {
         );
     }
 
-    return (
-        <Box w="100%" h="100vh" __vars={{ '--lk-bg': 'transparent' }}>
-            <LiveKitRoomWrapper roomSlug={roomSlug} onDisconnected={() => navigate('/')}>
-                <DirectCallView onDisconnect={() => navigate('/')} />
-            </LiveKitRoomWrapper>
-        </Box>
-    );
-  }
-
   return (
-    <Box w="100%" h="100vh" __vars={{ "--lk-bg": "transparent" }}>
-      <LiveKitRoom
-        serverUrl={LIVEKIT_WS_URL}
-        token={token}
-        connect={true}
-        video={true}
-        audio={true}
-        onDisconnected={() => navigate("/")}
-        style={{ height: "100%" }}
-      >
-        <DirectCallView onDisconnect={() => navigate("/")} />
-      </LiveKitRoom>
+    <Box w="100%" h="100vh" __vars={{ '--lk-bg': 'transparent' }}>
+      <LiveKitRoomWrapper roomSlug={roomSlug} onDisconnected={() => navigate('/')}>
+        <DirectCallView onDisconnect={() => navigate('/')} />
+      </LiveKitRoomWrapper>
     </Box>
   );
 }

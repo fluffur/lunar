@@ -1,13 +1,13 @@
 import {
-    useParticipants,
-    useLocalParticipant,
-    useIsSpeaking,
-    VideoTrack,
-    useTracks,
+  useParticipants,
+  useLocalParticipant,
+  VideoTrack,
+  useTracks,
+  RoomAudioRenderer,
 } from "@livekit/components-react";
+import { Track } from "livekit-client";
 import { CustomControlBar } from "./CustomControlBar.tsx";
-import { Box, Text, Stack, Group, Center } from "@mantine/core";
-import { IconMicrophoneOff } from "@tabler/icons-react";
+import { Box, Stack, Group, Text } from "@mantine/core";
 import { useEffect, useMemo } from "react";
 
 import { ParticipantAvatar } from "../ParticipantAvatar.tsx";
@@ -17,11 +17,11 @@ interface DirectCallViewProps {
 }
 
 export function DirectCallView({ onDisconnect }: DirectCallViewProps) {
-    const participants = useParticipants();
-    const { localParticipant } = useLocalParticipant();
-    const screenShareTracks = useTracks([{ source: Track.Source.ScreenShare, withPlaceholder: false }]);
+  const participants = useParticipants();
+  const { localParticipant } = useLocalParticipant();
+  const screenShareTracks = useTracks([{ source: Track.Source.ScreenShare, withPlaceholder: false }]);
 
-    const activeScreenShare = screenShareTracks.length > 0 ? screenShareTracks[0] : null;
+  const activeScreenShare = screenShareTracks.length > 0 ? screenShareTracks[0] : null;
 
   useEffect(() => {
     const styleId = "direct-call-pulse-animation";
@@ -36,148 +36,90 @@ export function DirectCallView({ onDisconnect }: DirectCallViewProps) {
                 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
             }
         `;
-        document.head.appendChild(style);
+    document.head.appendChild(style);
 
-        return () => {
-            const existingStyle = document.getElementById(styleId);
-            if (existingStyle) {
-                document.head.removeChild(existingStyle);
-            }
-        };
-    }, []);
+    return () => {
+      const existingStyle = document.getElementById(styleId);
+      if (existingStyle) {
+        document.head.removeChild(existingStyle);
+      }
+    };
+  }, []);
 
-    const allParticipants = useMemo(() => {
-        const all = [];
-        if (localParticipant) {
-            all.push(localParticipant);
-        }
-        const remoteParticipants = participants.filter(
-            p => p.identity !== localParticipant?.identity
-        );
-        all.push(...remoteParticipants);
-        return all;
-    }, [participants, localParticipant]);
-
-    return (
-        <Box
-            style={{
-                height: '100%',
-                width: '100%',
-                display: 'flex',
-                flexDirection: 'column',
-                background: 'linear-gradient(180deg, var(--mantine-color-dark-8) 0%, var(--mantine-color-dark-9) 100%)',
-                position: 'relative',
-                overflow: 'hidden'
-            }}
-        >
-            <Box style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
-                {activeScreenShare ? (
-                    <Box style={{ width: '100%', height: '100%', position: 'relative', display: 'flex', flexDirection: 'column' }}>
-                        <Box style={{ flex: 1, minHeight: 0 }}>
-                            <VideoTrack
-                                trackRef={activeScreenShare as any}
-                                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                            />
-                        </Box>
-
-                        {/* Overlay for participants when screen sharing */}
-                        <Box
-                            style={{
-                                position: 'absolute',
-                                bottom: 100,
-                                left: 0,
-                                right: 0,
-                                zIndex: 5,
-                                pointerEvents: 'none'
-                            }}
-                        >
-                            <Group justify="center" gap="xl" style={{ pointerEvents: 'auto' }}>
-                                {allParticipants.map((participant) => (
-                                    <ParticipantAvatar
-                                        key={participant.identity}
-                                        participant={participant}
-                                        size={activeScreenShare ? 100 : 180}
-                                    />
-                                ))}
-                            </Group>
-                        </Box>
-                    </Box>
-                ) : (
-                    allParticipants.length === 0 ? (
-                        <Stack align="center" gap="xl">
-                            <Text c="dimmed" size="lg">
-                                Waiting for others to join...
-                            </Text>
-                        </Stack>
-                    ) : (
-                        <Group gap={60} justify="center" wrap="nowrap">
-                            {allParticipants.map((participant) => (
-                                <ParticipantAvatar
-                                    key={participant.identity}
-                                    participant={participant}
-                                    size={180}
-                                />
-                            ))}
-                        </Group>
-                    )
-                )}
-            </Box>
-
-            <CustomControlBar onDisconnect={onDisconnect} />
-        </Box>
+  const allParticipants = useMemo(() => {
+    const all = [];
+    if (localParticipant) {
+      all.push(localParticipant);
+    }
+    const remoteParticipants = participants.filter(
+      p => p.identity !== localParticipant?.identity
     );
     all.push(...remoteParticipants);
     return all;
   }, [participants, localParticipant]);
 
-  // не скролим
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-
-    return () => {
-      document.body.style.overflow = "auto"; // дефолт для оверфлоу
-    };
-  }, []);
-
   return (
     <Box
       style={{
-        height: "100vh",
-        width: "100vw",
-        display: "flex",
-        flexDirection: "column",
-        background:
-          "linear-gradient(180deg, var(--mantine-color-dark-8) 0%, var(--mantine-color-dark-9) 100%)",
-        position: "fixed",
-        top: 0,
-        left: 0,
-        overflow: "hidden",
+        height: '100%',
+        width: '100%',
+        display: 'flex',
+        flexDirection: 'column',
+        background: 'linear-gradient(180deg, var(--mantine-color-dark-8) 0%, var(--mantine-color-dark-9) 100%)',
+        position: 'relative',
+        overflow: 'hidden'
       }}
     >
-      <Box
-        style={{
-          flex: 1,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        {allParticipants.length === 0 ? (
-          <Stack align="center" gap="xl">
-            <Text c="dimmed" size="lg">
-              Waiting for others to join...
-            </Text>
-          </Stack>
-        ) : (
-          <Group gap={60} justify="center" wrap="nowrap">
-            {allParticipants.map((participant) => (
-              <ParticipantAvatar
-                key={participant.identity}
-                participant={participant}
-                size={180}
+      <Box style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+        {activeScreenShare ? (
+          <Box style={{ width: '100%', height: '100%', position: 'relative', display: 'flex', flexDirection: 'column' }}>
+            <Box style={{ flex: 1, minHeight: 0 }}>
+              <VideoTrack
+                trackRef={activeScreenShare as any}
+                style={{ width: '100%', height: '100%', objectFit: 'contain' }}
               />
-            ))}
-          </Group>
+            </Box>
+
+            {/* Overlay for participants when screen sharing */}
+            <Box
+              style={{
+                position: 'absolute',
+                bottom: 100,
+                left: 0,
+                right: 0,
+                zIndex: 5,
+                pointerEvents: 'none'
+              }}
+            >
+              <Group justify="center" gap="xl" style={{ pointerEvents: 'auto' }}>
+                {allParticipants.map((participant) => (
+                  <ParticipantAvatar
+                    key={participant.identity}
+                    participant={participant}
+                    size={activeScreenShare ? 100 : 180}
+                  />
+                ))}
+              </Group>
+            </Box>
+          </Box>
+        ) : (
+          allParticipants.length === 0 ? (
+            <Stack align="center" gap="xl">
+              <Text c="dimmed" size="lg">
+                Waiting for others to join...
+              </Text>
+            </Stack>
+          ) : (
+            <Group gap={60} justify="center" wrap="nowrap">
+              {allParticipants.map((participant) => (
+                <ParticipantAvatar
+                  key={participant.identity}
+                  participant={participant}
+                  size={180}
+                />
+              ))}
+            </Group>
+          )
         )}
       </Box>
 
