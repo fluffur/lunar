@@ -144,11 +144,18 @@ definitions:
         type: array
       name:
         type: string
+      position:
+        type: integer
+      server_id:
+        type: string
       slug:
         type: string
+      type:
+        $ref: '#/definitions/model.RoomType'
     required:
     - id
     - slug
+    - type
     type: object
   model.RoomMemberInfo:
     properties:
@@ -159,6 +166,16 @@ definitions:
       username:
         type: string
     type: object
+  model.RoomType:
+    enum:
+    - dm
+    - text
+    - voice
+    type: string
+    x-enum-varnames:
+    - RoomTypeDM
+    - RoomTypeText
+    - RoomTypeVoice
   model.User:
     properties:
       avatarUrl:

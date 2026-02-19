@@ -23,7 +23,7 @@ func (s *Service) ListUserRooms(ctx context.Context, userID uuid.UUID) ([]model.
 }
 
 func (s *Service) CreateRoom(ctx context.Context, name string) (model.Room, error) {
-	room, err := model.NewRoom(name)
+	room, err := model.NewRoom(name, model.RoomTypeDM, nil)
 	if err != nil {
 		return model.Room{}, err
 	}
@@ -65,7 +65,7 @@ func (s *Service) GetOrCreateRoom(ctx context.Context, userIDs []uuid.UUID) (mod
 	}
 
 	log.Printf("No existing room found, creating new one for users: %v", userIDs)
-	room, err := model.NewRoom("")
+	room, err := model.NewRoom("", model.RoomTypeDM, nil)
 	if err != nil {
 		return model.Room{}, err
 	}

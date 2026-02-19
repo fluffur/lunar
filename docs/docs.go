@@ -920,7 +920,8 @@ const docTemplate = `{
             "type": "object",
             "required": [
                 "id",
-                "slug"
+                "slug",
+                "type"
             ],
             "properties": {
                 "id": {
@@ -935,8 +936,17 @@ const docTemplate = `{
                 "name": {
                     "type": "string"
                 },
+                "position": {
+                    "type": "integer"
+                },
+                "server_id": {
+                    "type": "string"
+                },
                 "slug": {
                     "type": "string"
+                },
+                "type": {
+                    "$ref": "#/definitions/model.RoomType"
                 }
             }
         },
@@ -953,6 +963,19 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "model.RoomType": {
+            "type": "string",
+            "enum": [
+                "dm",
+                "text",
+                "voice"
+            ],
+            "x-enum-varnames": [
+                "RoomTypeDM",
+                "RoomTypeText",
+                "RoomTypeVoice"
+            ]
         },
         "model.User": {
             "type": "object",
